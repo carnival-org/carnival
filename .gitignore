@@ -1,0 +1,8 @@
+venv
+*.egg-info
+*.ipr
+*.iws
+*.iml
+.idea
+__pycache__
+*.py[cod]

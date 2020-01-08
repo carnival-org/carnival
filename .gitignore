@@ -6,3 +6,4 @@ venv
 .idea
 __pycache__
 *.py[cod]
+carnival_file.py

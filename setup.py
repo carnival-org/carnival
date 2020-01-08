@@ -10,7 +10,7 @@ requirements = [
 setup(
     name='carnival',
     version=version,
-    packages=find_packages(),
+    packages=find_packages(where='carnival'),
     url='https://github.com/a1fred/carnival',
     license='MIT',
     author='a1fred',

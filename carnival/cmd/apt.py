@@ -68,8 +68,13 @@ def install(pkgname, version=None, update=True) -> bool:
 
 
 def install_multiple(*pkg_names: str, update=True):
+    if all([is_pkg_installed(x) for x in pkg_names]):
+        log(f"{','.join(pkg_names)} already installed")
+        return False
+
     if update:
         cmd.cli.run("sudo apt-get update", pty=True)
 
     for pkg in pkg_names:
         install(pkg, update=False)
+    return True

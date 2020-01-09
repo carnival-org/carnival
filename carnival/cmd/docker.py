@@ -13,6 +13,8 @@ def install_ce(version=None) -> bool:
         log(f"{pkgname} already installed")
         return False
 
+    log(f"Installing {pkgname}...")
+
     cmd.cli.run("sudo apt-get remove docker docker-engine docker.io")
     cmd.cli.run("sudo apt-get update")
     cmd.cli.run("sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common")
@@ -24,6 +26,7 @@ def install_ce(version=None) -> bool:
 
 
 def install_compose(version="1.25.1", dest="/usr/local/bin/docker-compose"):
+    log(f"Installing compose...")
     download_link = f"https://github.com/docker/compose/releases/download/{version}/docker-compose-`uname -s`-`uname -m`"
     cmd.cli.run(f"sudo curl -sL {download_link} -o {dest}")
     cmd.cli.run(f"sudo chmod a+x {dest}")

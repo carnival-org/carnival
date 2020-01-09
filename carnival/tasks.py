@@ -1,12 +1,14 @@
-from typing import List
+from typing import List, Optional
 
 from carnival.context import tasks
 from carnival.core.tasks import Task
 
-ROLE_ALL = ['all', ]
 
-
-def task(roles: List[str], task_name=None, help_text=''):
+def task(
+        roles: Optional[List[str]] = None,  # None for all roles
+        task_name=None,
+        help_text=''
+):
     def real_decorator(func):
         nonlocal task_name
 
@@ -16,20 +18,9 @@ def task(roles: List[str], task_name=None, help_text=''):
         func._roles = roles
         tasks.add_task(
             name=task_name,
-            task=Task(func=func, roles=roles, help_text=help_text)
+            task=Task(func=func, name=task_name, roles=roles, help_text=help_text)
         )
 
         return func
 
     return real_decorator
-
-
-@task(roles=ROLE_ALL)
-def tasks_list():
-    for name, t in tasks.items():
-        print(f" * {name} [{','.join(t.roles)}]", end="")
-
-        if t.help_text:
-            print(" - {t.help_text}")
-        else:
-            print()

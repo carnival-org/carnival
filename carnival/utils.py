@@ -1,9 +1,9 @@
-from carnival.context import conn
+from carnival import context
 
 
 def log(message: str):
-    print(f"{conn.host}> {message}")
+    print(f"💃💃💃 {context.conn.host}> {message}")
 
 
 def run_command(command: str, **kwargs):
-    return conn.run(command, **kwargs)
+    return context.conn.run(command, **kwargs)

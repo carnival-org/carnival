@@ -3,6 +3,7 @@ from typing import List, Any, Dict, Optional
 from dataclasses import dataclass, field
 
 from fabric import Connection
+from invoke.context import Context
 from carnival import context
 
 
@@ -19,6 +20,11 @@ class Host:
 
 
 class Inventory:
+    LOCAL_ADDRS = [
+        'local',
+        'localhost',
+    ]
+
     def __init__(self):
         self.role_hosts: Dict[str, List[Host]] = {}
 
@@ -34,7 +40,12 @@ class Inventory:
 
     @classmethod
     def set_context(cls, host: Host):
-        context.conn = Connection(host.addr)
+        if host.addr in cls.LOCAL_ADDRS:
+            # Host is local machine
+            context.conn = Context()
+        else:
+            # Host is remote ssh machine
+            context.conn = Connection(host.addr)
         context.host_context = host.context
 
     def host(self, role: str, addr: str, **host_context):

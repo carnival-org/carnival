@@ -1,10 +1,17 @@
-# Lets define our inventory
+# Inventory
+Inventory is group of hosts.
+* `role` role for host
+* `address` host address  
+    * `local` or `localhost` for local shell execution 
+    * ip or hostname or user@hostname for ssh execution 
+* `context` - additional context for runtime use
 
-Host's ssh connection address `1.2.3.4`  
+## Lets define our inventory
 One role `db`  
-Context variable `contextvar`
+Host's ssh connection address `1.2.3.4`      
+Context variable `contextvar`  
 
-and another similar
+and another `1.2.3.5` with similar fields.
 
 ```python
 from carnival import inv, task

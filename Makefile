@@ -5,3 +5,7 @@ test:
 	flake8 .
 	mypy .
 	pytest .
+
+
+todos:
+	grep -r TODO carnival

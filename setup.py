@@ -4,6 +4,7 @@ version = '0.1'
 
 requirements = [
     'Fabric==2.5.0',
+    'patchwork==1.0.1',
 ]
 
 

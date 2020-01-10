@@ -14,6 +14,13 @@ cmd.systemd.disable(service_name: str, daemon_reload=False, stop_now=True):
 cmd.docker.install_ce(version=None) -> bool:
 cmd.docker.install_compose(version="1.25.1", dest=".usr.local.bin.docker-compose"):
 
+cmd.transfer.rsync(source, target, exclude=(), delete=False, strict_host_keys=True, rsync_opts='', ssh_opts=''):
+cmd.transfer.get(remote: str, local: str, preserve_mode: bool) -> Result:
+cmd.transfer.put(local: str, remote: str, preserve_mode: bool) -> Result:
+cmd.transfer.is_file_contains(filename, text, exact=False, escape=True, sudo=False):
+cmd.transfer.is_file_exists(path, sudo=False) -> bool:
+cmd.transfer.is_dir_exists(path, user=None, group=None, mode=None, sudo=False,) -> bool:
+
 cmd.cli.run(command: str, **kwargs):
 
 cmd.apt.get_installed_version(pkgname: str) -> Optional[str]:

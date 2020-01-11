@@ -19,4 +19,4 @@ dist:
 	python3 setup.py sdist
 	twine upload dist/*
 	git tag `python3 -c "from carnival import __version__; print(__version__)"`
-
+	git push --tags

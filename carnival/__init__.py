@@ -1,13 +1,10 @@
-from carnival.core.inventory import Inventory
-from carnival.tasks import task
+from carnival.role import Role
+from carnival.host import Host
 from carnival import secrets
 
 
-inv = Inventory()
-
-
 __all__ = [
-    'task',
-    'inv',
+    'Role',
+    'Host',
     'secrets',
 ]

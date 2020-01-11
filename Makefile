@@ -1,3 +1,5 @@
+.PHONY: dist
+
 clean:
 	rm -rf fabric_spt.egg-info
 
@@ -9,3 +11,10 @@ test:
 
 todos:
 	grep -r TODO carnival
+
+install:
+	python3 setup.py install
+
+dist:
+	python3 setup.py sdist
+	twine upload dist/*

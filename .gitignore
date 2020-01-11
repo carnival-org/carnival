@@ -7,3 +7,6 @@ venv
 __pycache__
 *.py[cod]
 carnival_file.py
+build
+dist
+.mypy_cache

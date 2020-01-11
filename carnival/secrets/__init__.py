@@ -2,15 +2,15 @@ import warnings
 import getpass
 import os
 
-from carnival.context import secrets
+from carnival import global_context
 from carnival.secrets.base import SecretGetter
 
 
 def secret(var_name: str, secret_get_method: SecretGetter):
-    if var_name in secrets.keys():
+    if var_name in global_context.secrets.keys():
         warnings.warn(f"Secret {var_name} already defined. Skipping.")
 
-    secrets[var_name] = secret_get_method.get_secret(var_name)
+    global_context.secrets[var_name] = secret_get_method.get_secret(var_name)
 
 
 class FromCli(SecretGetter):

@@ -32,9 +32,13 @@ cmd.apt.install_multiple(*pkg_names: str, update=True):
 
 ## Lets enable nginx
 ```python
-from carnival import cmd, task
+from carnival import Role, Host, cmd
 
-@task()
-def t():
-    cmd.systemd.enable("nginx")
+class Frontend(Role):
+    hosts = [
+        Host("1.2.3.4", can="give", additional="context")
+    ]
+
+    def run(self):
+        cmd.systemd.enable("nginx")
 ```

@@ -1,10 +1,19 @@
 import importlib.util
-import argparse
-from typing import List
+import re
+import os
+from typing import Iterable, Type, Dict
 
-from carnival import inv
-from carnival.context import tasks
-from carnival.core.tasks import Task
+import click
+
+from carnival.role import Role, RoleExecutor
+
+
+def _underscore(word: str) -> str:
+    # https://github.com/jpvanhal/inflection/blob/master/inflection.py
+    word = re.sub(r"([A-Z]+)([A-Z][a-z])", r'\1_\2', word)
+    word = re.sub(r"([a-z\d])([A-Z])", r'\1_\2', word)
+    word = word.replace("-", "_")
+    return word.lower()
 
 
 def import_file(module_path: str):
@@ -13,38 +22,37 @@ def import_file(module_path: str):
     return spec.loader.exec_module(_module)
 
 
-def load_tasks_file(tasks_file: str):
+def load_roles_file(tasks_file: str) -> Dict[str, Type[Role]]:
     import_file(tasks_file)
+    roles: Dict[str, Type[Role]] = {}
+
+    for r in Role.__subclasses__():
+        if not r.name:
+            r.name = _underscore(r.__name__)
+            assert r.name not in roles, f"Role {r.name} already defined"
+            roles[r.name] = r
+
+    return roles
 
 
-def run_tasks(task_name: List[str], tasks_file: str, dry_run: bool):
-    load_tasks_file(tasks_file)
-
-    tasks_to_run: List[Task] = []
-
-    for tn in task_name:
-        task = tasks.get_task(tn)
-        if task is None:
-            raise ValueError(f"Task {tn} not exists.")
-
-        tasks_to_run.append(task)
-
-    for task in tasks_to_run:
-        hosts = inv.get_by_role(task.roles)
-
-        for host in hosts:
-            print(f"💃💃💃 Runing {task} at {host}")
-
-            if not dry_run:
-                inv.set_context(host)
-                task.run()
+def run_tasks(role: Iterable[str], dry_run: bool, roles: Dict[str, Type[Role]]):
+    for r in role:
+        executor = RoleExecutor(roles[r])
+        executor.run(dry_run=dry_run)
 
 
 def main():
-    parser = argparse.ArgumentParser('Carnival')
-    parser.add_argument('-f', '--tasks_file', default="carnival_file.py")
-    parser.add_argument('-d', '--dry_run', action='store_true')
-    parser.add_argument('task_name', nargs='+')
-    args = parser.parse_args()
+    carnival_file = os.getenv("CARNIVAL_FILE", "carnival_file.py")
+    try:
+        roles = load_roles_file(carnival_file)
+    except FileNotFoundError:
+        print(f"Carnival file ({carnival_file}) not found.")
+        return
 
-    run_tasks(**vars(args))
+    @click.command()
+    @click.option('-d', '--dry_run', is_flag=True, default=False)
+    @click.argument('role', required=True, type=click.Choice(roles.keys()), nargs=-1)
+    def cli(dry_run: bool, role: Iterable[str]):
+        run_tasks(role=role, dry_run=dry_run, roles=roles)
+
+    cli()

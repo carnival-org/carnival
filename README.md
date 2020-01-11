@@ -1,4 +1,7 @@
 # Carnival [WIP]
+[![PyPI version](https://badge.fury.io/py/carnival.svg)](https://badge.fury.io/py/carnival)
+[![PyPI](https://img.shields.io/pypi/pyversions/carnival.svg)](https://pypi.python.org/pypi/carnival)
+
 Software provisioning tool, built on top of [Fabric](http://www.fabfile.org/)
 
 * Easy to use

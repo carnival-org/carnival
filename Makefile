@@ -1,7 +1,7 @@
 .PHONY: dist
 
 clean:
-	rm -rf fabric_spt.egg-info
+	rm -rf fabric_spt.egg-info dist
 
 test:
 	flake8 .

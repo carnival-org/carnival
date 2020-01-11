@@ -5,6 +5,7 @@ Then you can access secrets in role `run` method with `global_context` property
 
 
 ## Secret getters
+* secrets.Static(value: str) - static hardcoded secret for testing
 * secrets.FromCli() - from cli
 * secrets.FromEnv(self, default=None, required=False) - from env
 

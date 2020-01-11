@@ -2,7 +2,7 @@ from fabric.transfer import Transfer, Result
 from patchwork import files
 from patchwork import transfers
 
-from carnival.context import conn
+from carnival.global_context import conn
 
 
 def rsync(source, target, exclude=(), delete=False, strict_host_keys=True, rsync_opts='', ssh_opts=''):

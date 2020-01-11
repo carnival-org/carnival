@@ -1,25 +1,11 @@
-import importlib.util
-import re
 import os
 from typing import Iterable, Type, Dict
 
 import click
 
-from carnival.role import Role, RoleExecutor
-
-
-def _underscore(word: str) -> str:
-    # https://github.com/jpvanhal/inflection/blob/master/inflection.py
-    word = re.sub(r"([A-Z]+)([A-Z][a-z])", r'\1_\2', word)
-    word = re.sub(r"([a-z\d])([A-Z])", r'\1_\2', word)
-    word = word.replace("-", "_")
-    return word.lower()
-
-
-def import_file(module_path: str):
-    spec = importlib.util.spec_from_file_location(f"carnival.__{module_path}", module_path)
-    _module = importlib.util.module_from_spec(spec)
-    return spec.loader.exec_module(_module)
+from carnival.role import Role
+from carnival.core.role import RoleExecutor
+from carnival.core.utils import import_file, underscore
 
 
 def load_roles_file(tasks_file: str) -> Dict[str, Type[Role]]:
@@ -28,7 +14,7 @@ def load_roles_file(tasks_file: str) -> Dict[str, Type[Role]]:
 
     for r in Role.__subclasses__():
         if not r.name:
-            r.name = _underscore(r.__name__)
+            r.name = underscore(r.__name__)
             assert r.name not in roles, f"Role {r.name} already defined"
             roles[r.name] = r
 

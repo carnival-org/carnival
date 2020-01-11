@@ -4,6 +4,7 @@ version = '0.2'
 
 requirements = [
     'Fabric==2.5.0',
+    'invoke==1.4.0',
     'patchwork==1.0.1',
     'Jinja2==2.10.3',
     "Click==7.0",

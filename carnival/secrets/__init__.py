@@ -13,6 +13,14 @@ def secret(var_name: str, secret_get_method: SecretGetter):
     global_context.secrets[var_name] = secret_get_method.get_secret(var_name)
 
 
+class Static(SecretGetter):
+    def __init__(self, value: str):
+        self._value = value
+
+    def get_secret(self, var_name: str):
+        return self._value
+
+
 class FromCli(SecretGetter):
     """
     Ask in cli

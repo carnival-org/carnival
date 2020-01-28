@@ -4,6 +4,7 @@ from carnival.cmd import (
     systemd,
     apt,
     docker,
+    transfer,
 )
 
 __all__ = [
@@ -12,4 +13,5 @@ __all__ = [
     'systemd',
     'apt',
     'docker',
+    'transfer',
 ]

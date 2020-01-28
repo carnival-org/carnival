@@ -19,7 +19,7 @@ def get_installed_version(pkgname: str) -> Optional[str]:
             return None
         raise ValueError from ex
 
-    _, v = ver.split("Version: ")
+    _, v = ver.split("Version: ", maxsplit=1)
     return v.strip()
 
 

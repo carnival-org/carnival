@@ -1,5 +1,4 @@
 from setuptools import setup, find_packages
-from carnival import __version__
 
 requirements = [
     'Fabric==2.5.0',
@@ -12,7 +11,7 @@ requirements = [
 
 setup(
     name='carnival',
-    version=__version__,
+    version='0.3',
     packages=find_packages(),
     url='https://github.com/a1fred/carnival',
     license='MIT',

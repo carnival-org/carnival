@@ -31,16 +31,16 @@ def put(local: str, remote: str, preserve_mode: bool) -> Result:
     return t.put(local=local, remote=remote, preserve_mode=preserve_mode)
 
 
-def is_file_contains(filename, text, exact=False, escape=True, sudo=False):
+def is_file_contains(filename, text, exact=False, escape=True):
     # https://fabric-patchwork.readthedocs.io/en/latest/api/files.html#patchwork.files.contains
-    return files.contains(conn, filename=filename, text=text, exact=exact, escape=escape, sudo=sudo)
+    return files.contains(conn, runner=conn.run, filename=filename, text=text, exact=exact, escape=escape)
 
 
-def is_file_exists(path, sudo=False) -> bool:
+def is_file_exists(path) -> bool:
     # https://fabric-patchwork.readthedocs.io/en/latest/api/files.html#patchwork.files.exists
-    return files.exists(conn, path=path, sudo=sudo)
+    return files.exists(conn, runner=conn.run, path=path)
 
 
-def is_dir_exists(path, user=None, group=None, mode=None, sudo=False,) -> bool:
+def is_dir_exists(path, user=None, group=None, mode=None) -> bool:
     # https://fabric-patchwork.readthedocs.io/en/latest/api/files.html#patchwork.files.directory
-    return files.directory(conn, path=path, user=user, group=group, mode=mode, sudo=sudo)
+    return files.directory(conn, runner=conn.run, path=path, user=user, group=group, mode=mode)

@@ -11,3 +11,5 @@ build
 dist
 .mypy_cache
 templates
+contrib
+.DS_Store

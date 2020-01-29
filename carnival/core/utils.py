@@ -1,5 +1,6 @@
 import importlib.util
 import re
+import os
 
 from carnival import global_context
 
@@ -17,6 +18,4 @@ def underscore(word: str) -> str:
 
 
 def import_file(module_path: str):
-    spec = importlib.util.spec_from_file_location(f"carnival.__{module_path}", module_path)
-    _module = importlib.util.module_from_spec(spec)
-    return spec.loader.exec_module(_module)
+    return __import__(os.path.splitext(module_path)[0])

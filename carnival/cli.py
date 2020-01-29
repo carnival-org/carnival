@@ -1,4 +1,5 @@
 import os
+import sys
 from typing import Iterable, Type, Dict
 
 import click
@@ -28,6 +29,7 @@ def run_tasks(role: Iterable[str], dry_run: bool, roles: Dict[str, Type[Role]]):
 
 
 def main():
+    sys.path.insert(0, os.getcwd())
     carnival_file = os.getenv("CARNIVAL_FILE", "carnival_file.py")
     try:
         roles = load_roles_file(carnival_file)

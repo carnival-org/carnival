@@ -22,6 +22,19 @@ class HostBase(abc.ABC):
             # Host is remote ssh machine
             return Connection(self.addr, connect_timeout=10)
 
+    @property
+    def host(self) -> str:
+        # Remove user and port parts
+
+        h = self.addr
+        if '@' in self.addr:
+            h = h.split("@", maxsplit=1)[1]
+
+        if ':' in self.addr:
+            h = h.split(":", maxsplit=1)[0]
+
+        return h
+
     def __str__(self):
         return f"🖥 {self.addr}"
 

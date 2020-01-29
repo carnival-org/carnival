@@ -17,6 +17,9 @@ def stop(service_name: str, reload_daemon=False):
     cmd.cli.run(f"sudo systemctl stop {service_name}")
 
 
+def restart(service_name: str):
+    cmd.cli.run(f"sudo systemctl restart {service_name}")
+
 def enable(service_name: str, reload_daemon=False, start_now=True):
     if reload_daemon:
         daemon_reload()

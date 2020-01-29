@@ -10,3 +10,4 @@ carnival_file.py
 build
 dist
 .mypy_cache
+templates

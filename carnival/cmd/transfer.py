@@ -8,7 +8,7 @@ from carnival import global_context
 from carnival.templates import render
 
 
-def rsync(source, target, exclude=(), delete=False, strict_host_keys=True, rsync_opts='', ssh_opts=''):
+def rsync(source, target, exclude=(), delete=False, strict_host_keys=True, rsync_opts="--progress -pthrvz", ssh_opts=''):
     # https://fabric-patchwork.readthedocs.io/en/latest/api/transfers.html#patchwork.transfers.rsync
     return transfers.rsync(
         c=global_context.conn,

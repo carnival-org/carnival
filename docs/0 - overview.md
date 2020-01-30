@@ -12,9 +12,9 @@ Then you can run `carnival` task on your inventory.
 ## Quick example
 Define role in `carnival_file.py`.
 ```python
-from carnival import Role, Host, cmd, secrets, global_context
+from carnival import Role, Host, cmd, secrets_manager
 
-secrets.secret("root_password", secrets.FromCli())
+secrets_manager.secret("root_password", secrets_manager.FromCli())
 
 class Frontend(Role):
     # name is optional, carnival generates if not given
@@ -24,9 +24,9 @@ class Frontend(Role):
         Host("1.2.3.4", packages=["htop", ])
     ]
 
-    def run(self):
-        cmd.apt.install_multiple(global_context.context['packages'])
-        cmd.system.set_password('root', global_context.secrets['root_password'])
+    def run(self, packages, secrets):
+        cmd.apt.install_multiple(packages)
+        cmd.system.set_password('root', secrets['root_password'])
         cmd.docker.install_ce()
         cmd.docker.install_compose()
 ```

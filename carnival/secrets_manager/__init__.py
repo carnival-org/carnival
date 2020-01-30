@@ -3,7 +3,7 @@ import getpass
 import os
 
 from carnival import global_context
-from carnival.secrets.base import SecretGetter
+from carnival.secrets_manager.base import SecretGetter
 
 
 def secret(var_name: str, secret_get_method: SecretGetter):

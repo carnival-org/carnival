@@ -7,5 +7,5 @@ class Role:
     name: str = ""
     hosts: List[Host] = []
 
-    def run(self):
+    def run(self, **kwargs):
         raise NotImplementedError

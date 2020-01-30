@@ -11,16 +11,16 @@ Then you can access secrets in role `run` method with `global_context` property
 
 # Example
 ```python
-from carnival import secrets, Role, Host, global_context
+from carnival import secrets_manager, Role, Host
 
 # Tell how to get secret
-secrets.secret("root_password", secrets.FromCli())
+secrets_manager.secret("root_password", secrets_manager.FromCli())
 
 class Frontend(Role):
     hosts = [
         Host("1.2.3.4"),
     ]
 
-    def run(self):
-        print(global_context.secrets['root_password'])
+    def run(self, secrets):
+        print(secrets['root_password'])
 ```

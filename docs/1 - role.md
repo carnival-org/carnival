@@ -12,7 +12,7 @@ class Frontend(Role):
         Host("1.2.3.4", can="give", additional="context")
     ]
 
-    def run(self):
+    def run(self, **kwargs):
         cmd.apt.install_multiple("htop")
         cmd.docker.install_ce()
         cmd.docker.install_compose()

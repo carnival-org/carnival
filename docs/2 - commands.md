@@ -43,9 +43,9 @@ from carnival import Role, Host, cmd
 
 class Frontend(Role):
     hosts = [
-        Host("1.2.3.4", can="give", additional="context")
+        Host("1.2.3.4", can="give", to_enable="nginx")
     ]
 
-    def run(self):
-        cmd.systemd.enable("nginx")
+    def run(self, to_enable):
+        cmd.systemd.enable(to_enable)
 ```

@@ -44,7 +44,7 @@ class DeployFrontend(Role):
         Host("1.2.3.5", can="context", additional="give"),
     ]
 
-    def run(self):
+    def run(self, can, additional, **kwargs):
         cmd.apt.install_multiple("htop", "nginx")
         cmd.systemd.enable("nginx", start_now=True)
 
@@ -55,7 +55,7 @@ class DeployBackend(Role):
         Host("1.2.3.7", can="context", additional="give"),
     ]
 
-    def run(self):
+    def run(self, can, additional, **kwargs):
         cmd.apt.install_multiple("htop")
         cmd.docker.install_ce()
         cmd.docker.install_compose()

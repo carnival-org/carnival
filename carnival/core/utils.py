@@ -1,6 +1,8 @@
 import importlib.util
+import inspect
 import re
 import os
+from typing import List
 
 from carnival import global_context
 
@@ -19,3 +21,11 @@ def underscore(word: str) -> str:
 
 def import_file(module_path: str):
     return __import__(os.path.splitext(module_path)[0])
+
+
+def get_arg_names(fn) -> List[str]:
+    arg_names = []
+    spec = inspect.getfullargspec(fn)
+    arg_names += spec.args
+    arg_names += spec.kwonlyargs
+    return arg_names

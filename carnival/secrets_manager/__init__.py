@@ -1,16 +1,19 @@
 import warnings
 import getpass
 import os
+from typing import Dict, Any
 
-from carnival import global_context
 from carnival.secrets_manager.base import SecretGetter
 
 
+secrets_storage: Dict[str, Any] = {}
+
+
 def secret(var_name: str, secret_get_method: SecretGetter):
-    if var_name in global_context.secrets.keys():
+    if var_name in secrets_storage.keys():
         warnings.warn(f"Secret {var_name} already defined. Skipping.")
 
-    global_context.secrets[var_name] = secret_get_method.get_secret(var_name)
+    secrets_storage[var_name] = secret_get_method.get_secret(var_name)
 
 
 class Static(SecretGetter):

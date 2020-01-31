@@ -7,13 +7,15 @@ def set_password(username: str, password: str):
     raise NotImplementedError  # TODO
 
 
-def ssh_append_id(ssh_key: str):
+def ssh_append_id(ssh_key: str, keys_file=".ssh/authorized_keys"):
+    ssh_key = ssh_key.strip()
+
     cmd.cli.run("mkdir -p ~/.ssh")
     cmd.cli.run("chmod 700 ~/.ssh")
-    cmd.cli.run("touch ~/.ssh/authorized_keys")
+    cmd.cli.run(f"touch {keys_file}")
 
-    if not cmd.transfer.is_file_contains("~/.ssh/authorized_keys", ssh_key):
-        cmd.cli.run(f"echo '{ssh_key}' >> ~/.ssh/authorized_keys")
+    if not cmd.transfer.is_file_contains(keys_file, ssh_key, escape=True):
+        cmd.cli.run(f"echo '{ssh_key}' >> {keys_file}")
 
 
 def ssh_ensure_keys(ssh_keys: List[str]):

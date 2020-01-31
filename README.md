@@ -22,8 +22,9 @@ $ carnival --help
 Usage: carnival [OPTIONS] [deploy_frontend|deploy_backend]...
 
 Options:
-  -d, --dry_run
-  --help         Show this message and exit.
+  -d, --dry_run    Simulate run
+  -H, --host TEXT  Filter hosts on each role
+  --help           Show this message and exit.
 ```
 
 ### Competion

@@ -23,7 +23,6 @@ Usage: carnival [OPTIONS] [deploy_frontend|deploy_backend]...
 
 Options:
   -d, --dry_run    Simulate run
-  -H, --host TEXT  Filter hosts on each role
   --help           Show this message and exit.
 ```
 
@@ -36,26 +35,34 @@ Options:
 
 Lets create one.
 ```python
-from carnival import Role, Host, cmd
+from carnival import Role, Host, Task, cmd
+
+class Deploy(Task):
+    def run(self):
+        self.run_role(
+            DeployFrontend(),
+            [
+                Host("root@1.2.3.4", can="give", additional="context"),
+                Host("root@1.2.3.5", can="context", additional="give"),
+            ]
+        )
+    
+        self.run_role(
+            DeployFrontend(),
+            [
+                Host("root@1.2.3.6", can="give", additional="context"),
+                Host("root@1.2.3.7", can="context", additional="give"),
+            ]
+        )
 
 
 class DeployFrontend(Role):
-    hosts = [
-        Host("1.2.3.4", can="give", additional="context"),
-        Host("1.2.3.5", can="context", additional="give"),
-    ]
-
     def run(self, can, additional, **kwargs):
         cmd.apt.install_multiple("htop", "nginx")
         cmd.systemd.enable("nginx", start_now=True)
 
 
 class DeployBackend(Role):
-    hosts = [
-        Host("1.2.3.6", can="give", additional="context"),
-        Host("1.2.3.7", can="context", additional="give"),
-    ]
-
     def run(self, can, additional, **kwargs):
         cmd.apt.install_multiple("htop")
         cmd.docker.install_ce()
@@ -64,7 +71,7 @@ class DeployBackend(Role):
 
 Run
 ```
-$  python3 -m carnival deploy_frontend
+$  python3 -m carnival deploy
 💃💃💃 Runing ⛏frontend at 🖥 1.2.3.4
 ...
 💃💃💃 Runing ⛏frontend at 🖥 1.2.3.5

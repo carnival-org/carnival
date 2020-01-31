@@ -10,7 +10,11 @@ from carnival.core.utils import import_file, underscore
 
 
 def load_roles_file(tasks_file: str) -> Dict[str, Type[Role]]:
-    import_file(tasks_file)
+    try:
+        import_file(tasks_file)
+    except ModuleNotFoundError:
+        return {}
+
     roles: Dict[str, Type[Role]] = {}
 
     for r in Role.__subclasses__():

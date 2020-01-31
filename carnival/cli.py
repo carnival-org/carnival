@@ -1,6 +1,6 @@
 import os
 import sys
-from typing import Iterable, Type, Dict
+from typing import Iterable, Type, Dict, List
 
 import click
 
@@ -26,9 +26,9 @@ def load_roles_file(tasks_file: str) -> Dict[str, Type[Role]]:
     return roles
 
 
-def run_tasks(role: Iterable[str], dry_run: bool, roles: Dict[str, Type[Role]]):
+def run_tasks(role: Iterable[str], dry_run: bool, roles: Dict[str, Type[Role]], hosts: List[str]):
     for r in role:
-        executor = RoleExecutor(roles[r])
+        executor = RoleExecutor(roles[r], hosts=hosts)
         executor.run(dry_run=dry_run)
 
 
@@ -42,9 +42,9 @@ def main():
         return
 
     @click.command()
-    @click.option('-d', '--dry_run', is_flag=True, default=False)
+    @click.option('-d', '--dry_run', is_flag=True, default=False, help="Simulate run")
+    @click.option('-H', '--host', multiple=True, help="Filter hosts on each role")
     @click.argument('role', required=True, type=click.Choice(roles.keys()), nargs=-1)
-    def cli(dry_run: bool, role: Iterable[str]):
-        run_tasks(role=role, dry_run=dry_run, roles=roles)
-
+    def cli(dry_run: bool, role: Iterable[str], host: List[str]):
+        run_tasks(role=role, dry_run=dry_run, roles=roles, hosts=host)
     cli()

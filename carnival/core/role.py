@@ -26,12 +26,16 @@ def build_kwargs(fn, context: Dict[str, Any], secrets):
 
 
 class RoleExecutor:
-    def __init__(self, role: Type['Role']):
+    def __init__(self, role: Type['Role'], hosts: List[str]):
         self.role = role
+        self.hosts = hosts
 
     def run(self, dry_run=False):
         for host in self.role.hosts:
-            print(f"💃💃💃 Runing {self.role.name} at {host}")
+            if self.hosts and host.addr not in self.hosts:
+                print(f"💃💃💃 Skipping {self.role.name} at {host}")
+                continue
+            print(f"💃💃💃 Running {self.role.name} at {host}")
             set_context(host)
             role = self.role()
             if not dry_run:

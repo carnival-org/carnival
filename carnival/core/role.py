@@ -1,13 +1,10 @@
-from typing import Type, TYPE_CHECKING, List, Dict, Any
+from typing import List, Dict, Any
 
 from carnival.host import Host
 
-from carnival import global_context
+from carnival import global_context, Role
 from carnival.core.utils import get_arg_names
 from carnival.secrets_manager import secrets_storage
-
-if TYPE_CHECKING:
-    from carnival.role import Role
 
 
 def build_kwargs(fn, context: Dict[str, Any], secrets, host: Host):
@@ -26,18 +23,17 @@ def build_kwargs(fn, context: Dict[str, Any], secrets, host: Host):
 
 
 class RoleExecutor:
-    def __init__(self, role: Type['Role'], hosts: List[str]):
-        self.role = role
+    def __init__(self, roles: List[Role], hosts: List[Host]):
+        self.roles = roles
         self.hosts = hosts
 
     def run(self, dry_run=False):
-        for host in self.role.hosts:
-            if self.hosts and host.addr not in self.hosts:
-                print(f"💃💃💃 Skipping {self.role.name} at {host}")
-                continue
-            print(f"💃💃💃 Running {self.role.name} at {host}")
+        for host in self.hosts:
             global_context.set_context(host)
-            role = self.role()
-            if not dry_run:
-                kwargs = build_kwargs(role.run, context=host.context, secrets=secrets_storage, host=host)
-                role.run(**kwargs)
+
+            for role in self.roles:
+                name = role.name if role.name else role.__class__.__name__
+                print(f"💃💃💃 Running {name} at {host}")
+                if not dry_run:
+                    kwargs = build_kwargs(role.run, context=host.context, secrets=secrets_storage, host=host)
+                    role.run(**kwargs)

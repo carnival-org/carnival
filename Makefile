@@ -3,11 +3,14 @@
 clean:
 	rm -rf fabric_spt.egg-info dist
 
+test_deps:
+	pip3 install -qr requirements_dev.txt
+	pip3 install -qe .
+
 test:
 	flake8 .
-	mypy .
-	pytest .
-
+	mypy --warn-unused-ignores --package carnival
+	pytest --cov-fail-under=50 --cov-report term --cov=carnival tests/
 
 todos:
 	grep -r TODO carnival

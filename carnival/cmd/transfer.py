@@ -1,7 +1,7 @@
 from io import StringIO
 
-from fabric.transfer import Transfer, Result
-from patchwork import files
+from fabric.transfer import Transfer, Result  # type:ignore
+from patchwork import files  # type:ignore
 from patchwork import transfers
 
 from carnival import global_context

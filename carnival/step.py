@@ -7,7 +7,7 @@ from carnival.secrets_manager import secrets_storage
 
 
 def _get_arg_names(fn) -> List[str]:
-    arg_names = []
+    arg_names: List[str] = []
     spec = inspect.getfullargspec(fn)
     arg_names += spec.args
     arg_names += spec.kwonlyargs
@@ -23,7 +23,7 @@ def _build_kwargs(fn, context: Dict[str, Any]):
             kwargs[context_name] = context_val
     return kwargs
 
-w
+
 class Step:
     def __init__(self, **context):
         self.context = context

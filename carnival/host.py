@@ -1,8 +1,8 @@
 from typing import Union, Dict, Any
 import abc
 
-from fabric import Connection
-from invoke import Context
+from fabric import Connection  # type: ignore
+from invoke import Context  # type: ignore
 
 LOCAL_ADDRS = [
     'local',

@@ -13,3 +13,4 @@ dist
 templates
 contrib
 .DS_Store
+.coverage

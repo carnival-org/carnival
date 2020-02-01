@@ -1,6 +1,6 @@
 from typing import Optional
 
-import invoke
+import invoke  # type:ignore
 
 from carnival import cmd
 from carnival.utils import log

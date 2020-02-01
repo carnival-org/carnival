@@ -1,7 +1,7 @@
 from typing import Union
 
-from fabric import Connection
-from invoke import Context
+from fabric import Connection  # type:ignore
+from invoke import Context  # type:ignore
 
 from carnival.host import Host
 
@@ -9,7 +9,7 @@ from carnival.host import Host
 # noinspection PyTypeChecker
 conn: Union[Connection, Context] = None
 # noinspection PyTypeChecker
-host: Host = None
+host: Host = None  # type:ignore
 
 
 def set_context(h: Host):

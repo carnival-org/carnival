@@ -5,7 +5,7 @@ $ grep -r def carnival/cmd | sed -e 's/.py:def /./g' | sed -e 's/\//./g' | sed -
 
 ```
 cmd.system.set_password(username: str, password: str):
-cmd.system.ssh_append_id(ssh_key: str):
+cmd.system.ssh_append_id(ssh_key: str, keys_file=".ssh.authorized_keys"):
 cmd.system.ssh_ensure_keys(ssh_keys: List[str]):
 
 cmd.systemd.daemon_reload():
@@ -26,6 +26,7 @@ cmd.transfer.is_file_contains(filename, text, exact=False, escape=True):
 cmd.transfer.is_file_exists(path) -> bool:
 cmd.transfer.is_dir_exists(path, user=None, group=None, mode=None) -> bool:
 
+cmd.cli._run_command(command: str, **kwargs):
 cmd.cli.run(command: str, **kwargs):
 cmd.cli.pty(command: str, **kwargs):
 cmd.cli.mkdirs(*dirs: str):
@@ -39,13 +40,9 @@ cmd.apt.install_multiple(*pkg_names: str, update=True):
 
 ## Lets enable nginx
 ```python
-from carnival import Role, Host, cmd
+from carnival import Step, cmd
 
-class Frontend(Role):
-    hosts = [
-        Host("1.2.3.4", can="give", to_enable="nginx")
-    ]
-
+class Frontend(Step):
     def run(self, to_enable):
         cmd.systemd.enable(to_enable)
 ```

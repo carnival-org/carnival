@@ -35,19 +35,16 @@ Options:
 
 Lets create one.
 ```python
-from carnival import Role, Host, Task, cmd
+from carnival import Step, Host, Task, cmd
 
 class Deploy(Task):
     def run(self):
-        self.run_role(
+        self.step(
             DeployFrontend(),
-            [
-                Host("root@1.2.3.4", can="give", additional="context"),
-                Host("root@1.2.3.5", can="context", additional="give"),
-            ]
+            Host("1.2.3.5", ssh_user="root", can="context", additional="give"),
         )
     
-        self.run_role(
+        self.step(
             DeployFrontend(),
             [
                 Host("root@1.2.3.6", can="give", additional="context"),
@@ -56,13 +53,13 @@ class Deploy(Task):
         )
 
 
-class DeployFrontend(Role):
+class DeployFrontend(Step):
     def run(self, can, additional, **kwargs):
         cmd.apt.install_multiple("htop", "nginx")
         cmd.systemd.enable("nginx", start_now=True)
 
 
-class DeployBackend(Role):
+class DeployBackend(Step):
     def run(self, can, additional, **kwargs):
         cmd.apt.install_multiple("htop")
         cmd.docker.install_ce()

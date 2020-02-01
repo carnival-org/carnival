@@ -1,4 +1,4 @@
-from carnival.role import Role
+from carnival.step import Step
 from carnival.host import Host
 from carnival.task import Task
 from carnival import secrets_manager
@@ -7,7 +7,7 @@ from carnival.utils import log
 
 
 __all__ = [
-    'Role',
+    'Step',
     'Host',
     'Task',
     'secrets_manager',

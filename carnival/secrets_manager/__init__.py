@@ -16,6 +16,10 @@ def secret(var_name: str, secret_get_method: SecretGetter):
     secrets_storage[var_name] = secret_get_method.get_secret(var_name)
 
 
+class SecretGetError(Exception):
+    pass
+
+
 class Static(SecretGetter):
     def __init__(self, value: str):
         self._value = value
@@ -44,6 +48,6 @@ class FromEnv(SecretGetter):
         res = os.getenv(var_name, None)
         if res is None:
             if self.required is True:
-                raise ValueError(f"{var_name} is not set in environment")
+                raise SecretGetError(f"{var_name} is not set in environment")
             return self.default
         return res

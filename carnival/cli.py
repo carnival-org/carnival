@@ -28,7 +28,7 @@ def main():
         task_types = load_tasks_file(carnival_file)
     except FileNotFoundError:
         print(f"Carnival file ({carnival_file}) not found.")
-        return
+        return 1
 
     @click.command()
     @click.option('-d', '--dry_run', is_flag=True, default=False, help="Simulate run")

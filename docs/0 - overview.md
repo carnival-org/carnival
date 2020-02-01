@@ -1,16 +1,16 @@
 # Overview
 
 ## Docs index
-* [role](1%20-%20step.md)
+* [step](1%20-%20step.md)
 * [commands](2%20-%20commands.md)
 * [secrets](3%20-%20secrets.md)
 
 ## Cli
-Define role in `carnival_file.py`.  
+Define task in `carnival_file.py`.  
 Then you can run `carnival` task on your inventory.
 
 ## Quick example
-Define role in `carnival_file.py`.
+Define task in `carnival_file.py`.
 ```python
 from carnival import Step, Host, cmd, secrets_manager, Task
 

@@ -1,5 +1,5 @@
 # Step
-Role is group of given commands.
+Step is group of given commands.
 
 ```python
 from carnival import Step, cmd

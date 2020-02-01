@@ -1,5 +1,4 @@
-from typing import Union, Dict, Any
-import abc
+from typing import Union
 
 from fabric import Connection  # type: ignore
 from invoke import Context  # type: ignore
@@ -7,13 +6,11 @@ from invoke import Context  # type: ignore
 LOCAL_ADDRS = [
     'local',
     'localhost',
+    '127.0.0.1',
 ]
 
 
-class Host(abc.ABC):
-    addr: str
-    context: Dict[str, Any]
-
+class Host:
     def __init__(
         self,
         addr: str,
@@ -64,7 +61,7 @@ class Host(abc.ABC):
         return h
 
     def __str__(self):
-        return f"🖥 {self.addr}"
+        return f"🖥 {self.host}"
 
     def __hash__(self):
         return hash(self.addr)

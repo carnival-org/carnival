@@ -1,0 +1,21 @@
+name: Python application
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.6, 3.7, 3.8]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v1
+    - name: Install dependencies
+      run: |
+        make test_deps
+    - name: Test
+      run: |
+        make test

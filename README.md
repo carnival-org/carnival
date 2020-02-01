@@ -1,5 +1,5 @@
 # Carnival [WIP]
-[![Python application](https://github.com/a1fred/carnival/workflows/Python%20application/badge.svg?branch=master)](https://github.com/a1fred/carnival/actions)
+[![Test](https://github.com/a1fred/carnival/workflows/Test/badge.svg?branch=master)](https://github.com/a1fred/carnival/actions)
 [![PyPI version](https://badge.fury.io/py/carnival.svg)](https://badge.fury.io/py/carnival)
 [![PyPI](https://img.shields.io/pypi/pyversions/carnival.svg)](https://pypi.python.org/pypi/carnival)
 

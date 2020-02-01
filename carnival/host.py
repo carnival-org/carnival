@@ -30,7 +30,7 @@ class Host:
         self.ssh_connect_timeout = ssh_connect_timeout
 
     def is_connection_local(self):
-        return self.addr in LOCAL_ADDRS
+        return self.host in LOCAL_ADDRS
 
     def connect(self) -> Union[Connection, Context]:
         if self.is_connection_local():

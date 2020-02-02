@@ -12,6 +12,12 @@ test:
 	mypy --warn-unused-ignores --package carnival
 	pytest --cov-fail-under=60 --cov-report term --cov=carnival tests/
 
+dev:
+	docker-compose up --build -d
+
+nodev:
+	docker-compose rm -sf
+
 todos:
 	grep -r TODO carnival
 

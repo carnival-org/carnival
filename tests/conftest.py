@@ -12,11 +12,6 @@ def noop_step() -> Step:
     return NoopStep()
 
 
-@pytest.fixture(scope="function", params=["local", ])
-def host_connection(request):
-    return Host(request.param)
-
-
 @pytest.fixture(scope='function')
 def suspend_capture(pytestconfig):
     # https://github.com/pytest-dev/pytest/issues/1599
@@ -36,5 +31,14 @@ def suspend_capture(pytestconfig):
 
 
 @pytest.fixture(scope="function")
-def host_connection_context(host_connection):
-    global_context.set_context(host_connection)
+def local_host_connection_context():
+    global_context.set_context(Host("local"))
+    return global_context.host
+
+
+@pytest.fixture(scope="function")
+def ubuntu_ssh_host_connection():
+    global_context.set_context(
+        Host("127.0.0.1", ssh_user="root", ssh_password="THEPASSWORDYOUCREATED", ssh_port=22222)
+    )
+    return global_context.host

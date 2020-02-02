@@ -1,7 +1,5 @@
 from typing import Optional
 
-import invoke  # type:ignore
-
 from carnival import cmd
 from carnival.utils import log
 
@@ -11,16 +9,13 @@ def get_installed_version(pkgname: str) -> Optional[str]:
     Get installed package version
     Returns None if package not installed
     """
-    try:
-        ver = cmd.cli.run(f"dpkg -s {pkgname} | grep Version", hide='both').stdout
-    except invoke.exceptions.UnexpectedExit as ex:
-        stderr = ex.result.tail("stderr")
-        if 'is not installed and no information is available' in stderr:
-            return None
-        raise ValueError from ex
-
-    _, v = ver.split("Version: ", maxsplit=1)
-    return v.strip()
+    result = cmd.cli.run(f"dpkg -l {pkgname}", hide=True, warn=True)
+    if result.ok is False:
+        return None
+    installed, pkgn, ver, arch, *desc = result.stdout.strip().split("\n")[-1].split()
+    if installed != 'ii':
+        return None
+    return ver.strip()
 
 
 def is_pkg_installed(pkgname: str, version=None) -> bool:
@@ -39,7 +34,7 @@ def is_pkg_installed(pkgname: str, version=None) -> bool:
     return False
 
 
-def force_install(pkgname, version=None, update=False):
+def force_install(pkgname, version=None, update=False, hide=False):
     """
     Install apt package
     """
@@ -47,12 +42,12 @@ def force_install(pkgname, version=None, update=False):
         pkgname = f"{pkgname}={version}"
 
     if update:
-        cmd.cli.run("sudo apt-get update", pty=True)
+        cmd.cli.run("sudo apt-get update", pty=True, hide=hide)
 
-    cmd.cli.run(f"sudo apt-get install -y {pkgname}", pty=True)
+    cmd.cli.run(f"sudo apt-get install -y {pkgname}", pty=True, hide=hide)
 
 
-def install(pkgname, version=None, update=True) -> bool:
+def install(pkgname, version=None, update=True, hide=False) -> bool:
     """
     Install apt package if not installed
     Returns true if installed, false if was already installed
@@ -63,18 +58,23 @@ def install(pkgname, version=None, update=True) -> bool:
         else:
             log(f"{pkgname} already installed")
         return False
-    force_install(pkgname=pkgname, version=version, update=update)
+    force_install(pkgname=pkgname, version=version, update=update, hide=hide)
     return True
 
 
-def install_multiple(*pkg_names: str, update=True):
+def install_multiple(*pkg_names: str, update=True, hide=False):
     if all([is_pkg_installed(x) for x in pkg_names]):
         log(f"{','.join(pkg_names)} already installed")
         return False
 
     if update:
-        cmd.cli.run("sudo apt-get update", pty=True)
+        cmd.cli.run("sudo apt-get update", pty=True, hide=hide)
 
     for pkg in pkg_names:
-        install(pkg, update=False)
+        install(pkg, update=False, hide=hide)
     return True
+
+
+def remove(*pkg_names: str, hide=False):
+    assert pkg_names, "pkg_names is empty"
+    cmd.cli.run(f"sudo apt-get remove -y {' '.join(pkg_names)}", hide=hide)

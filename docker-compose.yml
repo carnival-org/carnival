@@ -1,0 +1,7 @@
+version: '2'
+
+services:
+  ubuntu_sshd:
+    build: .
+    ports:
+      - "22222:22"

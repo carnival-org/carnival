@@ -1,7 +1,13 @@
+from pytest_cases import fixture_ref, parametrize_plus
+
 from carnival import cmd
 
 
-def test_run(host_connection_context, suspend_capture):
+@parametrize_plus('host_context', [
+    fixture_ref('local_host_connection_context'),
+    fixture_ref('ubuntu_ssh_host_connection'),
+])
+def test_run(suspend_capture, host_context):
     with suspend_capture:
         result = cmd.cli.run("ls -1 /", hide=True)
         assert result.ok is True
@@ -15,7 +21,11 @@ def test_run(host_connection_context, suspend_capture):
         assert 'sbin' in root_files
 
 
-def test_pty(host_connection_context, suspend_capture):
+@parametrize_plus('host_context', [
+    fixture_ref('local_host_connection_context'),
+    fixture_ref('ubuntu_ssh_host_connection'),
+])
+def test_pty(suspend_capture, host_context):
     with suspend_capture:
         result = cmd.cli.pty("ls -1 / | grep bin", hide=True)
         assert result.ok is True

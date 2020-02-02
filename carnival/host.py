@@ -6,7 +6,6 @@ from invoke import Context  # type: ignore
 LOCAL_ADDRS = [
     'local',
     'localhost',
-    '127.0.0.1',
 ]
 
 

@@ -1,6 +1,12 @@
 import pytest
 
 from carnival import secrets_manager
+from carnival.secrets_manager import SecretGetter
+
+
+def test_secrets_manager():
+    with pytest.raises(NotImplementedError):
+        SecretGetter().get_secret("TEST")
 
 
 def test_secrets_manager_static():

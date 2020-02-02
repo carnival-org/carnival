@@ -10,7 +10,7 @@ test_deps:
 test:
 	flake8 .
 	mypy --warn-unused-ignores --package carnival
-	pytest --cov-fail-under=58 --cov-report term --cov=carnival tests/
+	pytest --cov-fail-under=60 --cov-report term --cov=carnival tests/
 
 todos:
 	grep -r TODO carnival

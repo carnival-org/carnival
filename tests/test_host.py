@@ -11,8 +11,6 @@ def test_host_create():
     assert Host("local").is_connection_local() is True
     assert Host("localhost").is_connection_local() is True
     assert Host("user@localhost").is_connection_local() is True
-    assert Host("127.0.0.1").is_connection_local() is True
-    assert Host("root@127.0.0.1").is_connection_local() is True
 
     assert Host("1.2.3.4").is_connection_local() is False
     assert Host("root@1.2.3.4").is_connection_local() is False

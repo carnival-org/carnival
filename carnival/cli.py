@@ -9,8 +9,9 @@ from carnival.task import Task
 
 def load_tasks_file(tasks_file: str) -> Dict[str, Type[Task]]:
     try:
-        __import__(os.path.splitext(tasks_file)[0])
+        __import__(os.path.splitext(tasks_file)[0].replace("/", '.'))
     except ModuleNotFoundError:
+        print(f"[WARN] {tasks_file} not exists", file=sys.stderr)
         return {}
 
     tasks: Dict[str, Type[Task]] = {}
@@ -27,7 +28,6 @@ def main():
     try:
         task_types = load_tasks_file(carnival_file)
     except FileNotFoundError:
-        print(f"Carnival file ({carnival_file}) not found.")
         return 1
 
     @click.command()

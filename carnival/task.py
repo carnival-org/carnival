@@ -25,9 +25,9 @@ class Task:
     def __init__(self, dry_run: bool):
         self.dry_run = dry_run
 
-    def step(self, roles: Union[Step, List[Step]], hosts: Union[Host, List[Host]]):
-        if not isinstance(roles, list) and not isinstance(roles, tuple):
-            roles = [roles, ]
+    def step(self, steps: Union[Step, List[Step]], hosts: Union[Host, List[Host]]):
+        if not isinstance(steps, list) and not isinstance(steps, tuple):
+            steps = [steps, ]
 
         if not isinstance(hosts, list) and not isinstance(hosts, tuple):
             hosts = [hosts, ]
@@ -35,11 +35,11 @@ class Task:
         for host in hosts:
             global_context.set_context(host)
 
-            for role in roles:
-                role_name = _underscore(role.__class__.__name__)
-                print(f"💃💃💃 Running {role_name} at {host}")
+            for step in steps:
+                step_name = _underscore(step.__class__.__name__)
+                print(f"💃💃💃 Running {step_name} at {host}")
                 if not self.dry_run:
-                    role.run_with_context(host=host)
+                    step.run_with_context(host=host)
 
     def run(self, **kwargs):
         raise NotImplementedError

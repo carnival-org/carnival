@@ -31,11 +31,13 @@ cmd.cli.run(command: str, **kwargs):
 cmd.cli.pty(command: str, **kwargs):
 cmd.cli.mkdirs(*dirs: str):
 
+cmd.apt.get_pkg_versions(pkgname: str) -> List[str]:
 cmd.apt.get_installed_version(pkgname: str) -> Optional[str]:
 cmd.apt.is_pkg_installed(pkgname: str, version=None) -> bool:
-cmd.apt.force_install(pkgname, version=None, update=False):
-cmd.apt.install(pkgname, version=None, update=True) -> bool:
-cmd.apt.install_multiple(*pkg_names: str, update=True):
+cmd.apt.force_install(pkgname, version=None, update=False, hide=False):
+cmd.apt.install(pkgname, version=None, update=True, hide=False) -> bool:
+cmd.apt.install_multiple(*pkg_names: str, update=True, hide=False) -> bool:
+cmd.apt.remove(*pkg_names: str, hide=False):
 ```
 
 ## Lets enable nginx

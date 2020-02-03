@@ -4,7 +4,8 @@ from carnival import cmd
 def test_apt_install(suspend_capture, ubuntu_ssh_host_connection):
     with suspend_capture:
         assert cmd.transfer.is_file_exists("/usr/bin/mc") is False
-        cmd.apt.install("mc", hide=True)
+        assert cmd.apt.install("mc", hide=True) is True
+        assert cmd.apt.install("mc", hide=True) is False
         assert cmd.transfer.is_file_exists("/usr/bin/mc") is True
         cmd.apt.remove("mc", hide=True)
 
@@ -13,7 +14,8 @@ def test_apt_install_multiple(suspend_capture, ubuntu_ssh_host_connection):
     with suspend_capture:
         assert cmd.transfer.is_file_exists("/usr/bin/mc") is False
         assert cmd.transfer.is_file_exists("/usr/bin/htop") is False
-        cmd.apt.install_multiple("htop", "mc", hide=True)
+        assert cmd.apt.install_multiple("htop", "mc", hide=True) is True
+        assert cmd.apt.install_multiple("htop", "mc", hide=True) is False
         assert cmd.transfer.is_file_exists("/usr/bin/mc") is True
         assert cmd.transfer.is_file_exists("/usr/bin/htop") is True
         cmd.apt.remove("mc", "htop", hide=True)
@@ -29,6 +31,7 @@ def test_apt_get_installed_version(suspend_capture, ubuntu_ssh_host_connection):
 
             assert cmd.transfer.is_file_exists("/usr/bin/mc") is True
             ver = cmd.apt.get_installed_version("mc")
+            assert ver in cmd.apt.get_pkg_versions("mc")
             assert isinstance(ver, str)
             assert " " not in ver
             cmd.apt.remove("mc", hide=True)

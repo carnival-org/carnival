@@ -1,7 +1,19 @@
-from typing import Optional
+from typing import Optional, List
 
 from carnival import cmd
 from carnival.utils import log
+
+
+def get_pkg_versions(pkgname: str) -> List[str]:
+    versions = []
+    result = cmd.cli.run(f"apt-cache madison {pkgname}", hide=True, warn=True)
+    if result.ok is False:
+        return []
+
+    for line in result.stdout.strip().split("\n"):
+        n, ver, r = line.split("|")
+        versions.append(ver.strip())
+    return versions
 
 
 def get_installed_version(pkgname: str) -> Optional[str]:
@@ -54,17 +66,20 @@ def install(pkgname, version=None, update=True, hide=False) -> bool:
     """
     if is_pkg_installed(pkgname, version):
         if version:
-            log(f"{pkgname}={version} already installed")
+            if not hide:
+                log(f"{pkgname}={version} already installed")
         else:
-            log(f"{pkgname} already installed")
+            if not hide:
+                log(f"{pkgname} already installed")
         return False
     force_install(pkgname=pkgname, version=version, update=update, hide=hide)
     return True
 
 
-def install_multiple(*pkg_names: str, update=True, hide=False):
+def install_multiple(*pkg_names: str, update=True, hide=False) -> bool:
     if all([is_pkg_installed(x) for x in pkg_names]):
-        log(f"{','.join(pkg_names)} already installed")
+        if not hide:
+            log(f"{','.join(pkg_names)} already installed")
         return False
 
     if update:

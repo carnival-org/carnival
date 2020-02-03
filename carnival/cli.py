@@ -1,10 +1,25 @@
 import os
 import sys
-from typing import Iterable, Type, Dict
+import abc
+from typing import Iterable, Type, Dict, Set
 
 import click
 
 from carnival.task import Task
+
+
+def task_subclasses(cls) -> Set[Task]:
+    # Get subclasses of task, which not abstract
+
+    subclasses = set()
+    for sc in cls.__subclasses__():
+        # Skip if last MRO base is ABC
+        if abc.ABC != sc.__mro__[1]:
+            subclasses.add(sc)
+
+        subclasses.update(task_subclasses(sc))
+
+    return subclasses
 
 
 def load_tasks_file(tasks_file: str) -> Dict[str, Type[Task]]:
@@ -16,7 +31,7 @@ def load_tasks_file(tasks_file: str) -> Dict[str, Type[Task]]:
 
     tasks: Dict[str, Type[Task]] = {}
 
-    for task_class in Task.__subclasses__():
+    for task_class in task_subclasses(Task):
         tasks[task_class.get_name()] = task_class
 
     return tasks

@@ -1,4 +1,5 @@
 from typing import List, Union
+import abc
 
 import re
 
@@ -45,7 +46,7 @@ class Task:
         raise NotImplementedError
 
 
-class SimpleTask(Task):
+class SimpleTask(abc.ABC, Task):
     hosts = List[Host]
     steps = List[Step]
 

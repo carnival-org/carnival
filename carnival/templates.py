@@ -1,10 +1,12 @@
+import os
+
 from jinja2 import Environment, FileSystemLoader
 
 from carnival import global_context
 from carnival.secrets_manager import secrets_storage
 
 j2_env = Environment(
-    loader=FileSystemLoader('./templates')
+    loader=FileSystemLoader(os.getcwd())
 )
 
 

@@ -43,3 +43,14 @@ class Task:
 
     def run(self, **kwargs):
         raise NotImplementedError
+
+
+class SimpleTask(Task):
+    hosts = List[Host]
+    steps = List[Step]
+
+    def run(self):
+        self.step(
+            steps=self.steps,
+            hosts=self.hosts,
+        )

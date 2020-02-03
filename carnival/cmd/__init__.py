@@ -5,6 +5,7 @@ from carnival.cmd import (
     apt,
     docker,
     transfer,
+    fs,
 )
 
 __all__ = [
@@ -14,4 +15,5 @@ __all__ = [
     'apt',
     'docker',
     'transfer',
+    'fs',
 ]

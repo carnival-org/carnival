@@ -92,4 +92,4 @@ def install_multiple(*pkg_names: str, update=True, hide=False) -> bool:
 
 def remove(*pkg_names: str, hide=False):
     assert pkg_names, "pkg_names is empty"
-    cmd.cli.run(f"sudo apt-get remove -y {' '.join(pkg_names)}", hide=hide)
+    cmd.cli.run(f"sudo apt-get remove --auto-remove -y {' '.join(pkg_names)}", hide=hide)

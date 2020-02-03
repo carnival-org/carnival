@@ -1,8 +1,7 @@
 from io import StringIO
 
 from fabric.transfer import Transfer, Result  # type:ignore
-from patchwork import files  # type:ignore
-from patchwork import transfers
+from patchwork import transfers  # type:ignore
 
 from carnival import global_context
 from carnival.templates import render
@@ -38,18 +37,3 @@ def put_template(template_path: str, remote: str, **context) -> Result:
     filestr = render(template_path=template_path, **context)
     t = Transfer(global_context.conn)
     return t.put(local=StringIO(filestr), remote=remote, preserve_mode=False)
-
-
-def is_file_contains(filename, text, exact=False, escape=True):
-    # https://fabric-patchwork.readthedocs.io/en/latest/api/files.html#patchwork.files.contains
-    return files.contains(global_context.conn, runner=global_context.conn.run, filename=filename, text=text, exact=exact, escape=escape)
-
-
-def is_file_exists(path) -> bool:
-    # https://fabric-patchwork.readthedocs.io/en/latest/api/files.html#patchwork.files.exists
-    return files.exists(global_context.conn, runner=global_context.conn.run, path=path)
-
-
-def is_dir_exists(path, user=None, group=None, mode=None) -> bool:
-    # https://fabric-patchwork.readthedocs.io/en/latest/api/files.html#patchwork.files.directory
-    return files.directory(global_context.conn, runner=global_context.conn.run, path=path, user=user, group=group, mode=mode)

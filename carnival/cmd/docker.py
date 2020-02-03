@@ -2,7 +2,7 @@ from carnival import cmd
 from carnival.utils import log
 
 
-def install_ce(version=None) -> bool:
+def install_ce_ubuntu(version=None) -> bool:
     """
     Returns true if installed, false if was already installed
     """
@@ -21,7 +21,7 @@ def install_ce(version=None) -> bool:
     cmd.cli.run("curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -", pty=True)
     cmd.cli.run('sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"')
 
-    apt.force_install(pkgname=pkgname, version=version)
+    apt.force_install(pkgname=pkgname, version=version, update=True, hide=True)
     return True
 
 

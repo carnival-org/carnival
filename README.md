@@ -1,4 +1,4 @@
-# Carnival [WIP]
+# Carnival
 [![Test](https://github.com/a1fred/carnival/workflows/Test/badge.svg?branch=master)](https://github.com/a1fred/carnival/actions)
 [![PyPI version](https://badge.fury.io/py/carnival.svg)](https://badge.fury.io/py/carnival)
 [![PyPI](https://img.shields.io/pypi/pyversions/carnival.svg)](https://pypi.python.org/pypi/carnival)
@@ -63,7 +63,7 @@ class DeployFrontend(Step):
 class DeployBackend(Step):
     def run(self, can, additional, **kwargs):
         cmd.apt.install_multiple("htop")
-        cmd.docker.install_ce()
+        cmd.docker.install_ce_ubuntu()
         cmd.docker.install_compose()
 ```
 
@@ -74,4 +74,19 @@ $  python3 -m carnival deploy
 ...
 💃💃💃 Runing ⛏frontend at 🖥 1.2.3.5
 ...
+```
+
+
+## Develop
+### Run tests
+```bash
+$ make dev  # run testing containers
+$ make test_deps  # Install test dependencies
+$ make test  # run static analyzers and tests
+$ make qs  # Run static analyzers only
+```
+
+### Run carnival from dev env
+```bash
+$ python3 -m carnival --help
 ```

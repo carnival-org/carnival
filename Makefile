@@ -12,7 +12,7 @@ qa:
 	mypy --warn-unused-ignores --package carnival
 
 test: qa
-	pytest -x --cov-fail-under=60 --cov-report term --cov=carnival tests/
+	pytest -x --cov-fail-under=80 --cov-report term --cov=carnival tests/
 
 dev:
 	docker-compose up --build -d --remove-orphans --force-recreate

@@ -47,8 +47,8 @@ class Task:
 
 
 class SimpleTask(abc.ABC, Task):
-    hosts = List[Host]
-    steps = List[Step]
+    hosts: List[Host]
+    steps: List[Step]
 
     def run(self):
         self.step(

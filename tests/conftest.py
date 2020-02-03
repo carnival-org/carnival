@@ -1,15 +1,26 @@
+from typing import Type
+
 import pytest
 
 from carnival import Step, Host, global_context
 
 
 @pytest.fixture(scope="function")
-def noop_step() -> Step:
+def noop_step_class() -> Type[Step]:
     class NoopStep(Step):
         def run(self):
             pass
+    return NoopStep
 
-    return NoopStep()
+
+@pytest.fixture(scope="function")
+def noop_step(noop_step_class) -> Step:
+    return noop_step_class()
+
+
+@pytest.fixture(scope="function")
+def noop_step_context(noop_step_class) -> Step:
+    return noop_step_class(additional="context")
 
 
 @pytest.fixture(scope='function')

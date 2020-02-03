@@ -14,3 +14,4 @@ templates
 contrib
 .DS_Store
 .coverage
+.ideaDataSources

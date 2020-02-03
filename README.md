@@ -5,8 +5,8 @@
 
 Software provisioning tool, built on top of [Fabric](http://www.fabfile.org/)
 
-* Easy to use
-* Batteries included
+* Runs on MacOs and Linux
+* Tested automation on Ubuntu and CentOS
 
 ## Install
 ```bash
@@ -80,10 +80,11 @@ $  python3 -m carnival deploy
 ## Develop
 ### Run tests
 ```bash
-$ make dev  # run testing containers
+$ make dev  # Run docker containers for testing
 $ make test_deps  # Install test dependencies
 $ make test  # run static analyzers and tests
 $ make qs  # Run static analyzers only
+$ make nodev  # Stop docker containers
 ```
 
 ### Run carnival from dev env

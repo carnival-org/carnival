@@ -1,4 +1,4 @@
-name: Test
+name: Tests
 
 on: [push]
 
@@ -16,6 +16,6 @@ jobs:
     - name: Install dependencies
       run: |
         make test_deps
-    - name: QS
+    - name: QA
       run: |
         make qa

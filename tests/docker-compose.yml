@@ -1,0 +1,19 @@
+version: '2'
+
+services:
+  ubuntu_sshd:
+    build:
+      dockerfile: Dockerfile_ubuntu
+      context: .
+    ports:
+      - "22222:22"
+
+  centos_sshd:
+    build:
+      dockerfile: Dockerfile_centos
+      context: .
+    ports:
+      - "22223:22"
+
+
+

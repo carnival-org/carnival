@@ -50,6 +50,14 @@ def local_host_connection_context():
 @pytest.fixture(scope="function")
 def ubuntu_ssh_host_connection():
     global_context.set_context(
-        Host("127.0.0.1", ssh_user="root", ssh_password="THEPASSWORDYOUCREATED", ssh_port=22222)
+        Host("127.0.0.1", ssh_user="root", ssh_password="secret", ssh_port=22222)
+    )
+    return global_context.host
+
+
+@pytest.fixture(scope="function")
+def centos_ssh_host_connection():
+    global_context.set_context(
+        Host("127.0.0.1", ssh_user="root", ssh_password="secret", ssh_port=22223)
     )
     return global_context.host

@@ -1,4 +1,5 @@
 from typing import List
+import os
 
 from carnival import cmd
 
@@ -28,3 +29,7 @@ def ssh_authorized_keys_list() -> List[str]:
 def ssh_authorized_keys_ensure(*ssh_keys: str) -> None:
     for ssh_key in ssh_keys:
         ssh_authorized_keys_add(ssh_key)
+
+
+def ssh_copy_id(pubkey_file="~/.ssh/id_rsa.pub") -> None:
+    ssh_authorized_keys_add(open(os.path.expanduser(pubkey_file)).read().strip())

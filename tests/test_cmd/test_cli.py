@@ -6,6 +6,7 @@ from carnival import cmd
 @parametrize_plus('host_context', [
     fixture_ref('local_host_connection_context'),
     fixture_ref('ubuntu_ssh_host_connection'),
+    fixture_ref('centos_ssh_host_connection'),
 ])
 def test_run(suspend_capture, host_context):
     with suspend_capture:
@@ -24,6 +25,7 @@ def test_run(suspend_capture, host_context):
 @parametrize_plus('host_context', [
     fixture_ref('local_host_connection_context'),
     fixture_ref('ubuntu_ssh_host_connection'),
+    fixture_ref('centos_ssh_host_connection'),
 ])
 def test_pty(suspend_capture, host_context):
     with suspend_capture:

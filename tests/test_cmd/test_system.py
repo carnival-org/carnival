@@ -1,9 +1,15 @@
+from pytest_cases import fixture_ref, parametrize_plus
+
 from carnival import cmd
 
 KEY = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCzlL9Wo8ywEFXSvMJ8FYmxP6HHHMDTyYAWwM3AOtsc96DcYVQIJ5VsydZf5/4NWuq55MqnzdnGB2IfjQvOrW4JEn0cI5UFTvAG4PkfYZb00Hbvwho8JsSAwChvWU6IuhgiiUBofKSMMifKg+pEJ0dLjks2GUcfxeBwbNnAgxsBvY6BCXRfezIddPlqyfWfnftqnafIFvuiRFB1DeeBr24kik/550MaieQpJ848+MgIeVCjko4NPPLssJ/1jhGEHOTlGJpWKGDqQK+QBaOQZh7JB7ehTK+pwIFHbUaeAkr66iVYJuC05iA7ot9FZX8XGkxgmhlnaFHNf0l8ynosanqt example@laptop"  # noqa
 
 
-def test_ssh_authorized_keys_list(suspend_capture, ubuntu_ssh_host_connection):
+@parametrize_plus('host_context', [
+    fixture_ref('ubuntu_ssh_host_connection'),
+    fixture_ref('centos_ssh_host_connection'),
+])
+def test_ssh_authorized_keys_list(suspend_capture, host_context):
     with suspend_capture:
         assert cmd.system.ssh_authorized_keys_list() == []
         cmd.system.ssh_authorized_keys_add(KEY)
@@ -20,7 +26,11 @@ def test_ssh_authorized_keys_list(suspend_capture, ubuntu_ssh_host_connection):
         cmd.cli.run(f"rm ~/.ssh/authorized_keys", hide=True)
 
 
-def test_ssh_authorized_keys_ensure(suspend_capture, ubuntu_ssh_host_connection):
+@parametrize_plus('host_context', [
+    fixture_ref('ubuntu_ssh_host_connection'),
+    fixture_ref('centos_ssh_host_connection'),
+])
+def test_ssh_authorized_keys_ensure(suspend_capture, host_context):
     with suspend_capture:
         assert cmd.system.ssh_authorized_keys_list() == []
         cmd.system.ssh_authorized_keys_ensure(KEY)

@@ -8,7 +8,7 @@ import click
 from carnival.task import Task
 
 
-def task_subclasses(cls) -> Set[Task]:
+def task_subclasses(cls) -> Set[Type[Task]]:
     # Get subclasses of task, which not abstract
 
     subclasses = set()

@@ -16,6 +16,6 @@ jobs:
     - name: Install dependencies
       run: |
         make test_deps
-    - name: Test
+    - name: QS
       run: |
-        make test
+        make qa

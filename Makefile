@@ -7,9 +7,11 @@ test_deps:
 	pip3 install -qr requirements_dev.txt
 	pip3 install -qe .
 
-test:
+qa:
 	flake8 .
 	mypy --warn-unused-ignores --package carnival
+
+test: qa
 	pytest --cov-fail-under=60 --cov-report term --cov=carnival tests/
 
 dev:

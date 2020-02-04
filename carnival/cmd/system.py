@@ -33,3 +33,15 @@ def ssh_authorized_keys_ensure(*ssh_keys: str) -> None:
 
 def ssh_copy_id(pubkey_file="~/.ssh/id_rsa.pub") -> None:
     ssh_authorized_keys_add(open(os.path.expanduser(pubkey_file)).read().strip())
+
+
+def get_current_user_name() -> str:
+    return cmd.cli.run("id -u -n", hide=True).stdout.strip()
+
+
+def get_current_user_id() -> int:
+    return int(cmd.cli.run("id -u", hide=True).stdout.strip())
+
+
+def is_current_user_root() -> bool:
+    return get_current_user_id() == 0

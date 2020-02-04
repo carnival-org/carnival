@@ -1,4 +1,4 @@
-.PHONY: dist
+.PHONY: dist clean qa test dev nodev todos install
 
 clean:
 	rm -rf fabric_spt.egg-info dist

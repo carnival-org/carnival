@@ -45,3 +45,30 @@ def test_ssh_authorized_keys_ensure(suspend_capture, host_context):
         assert KEY in keys
 
         cmd.cli.run(f"rm ~/.ssh/authorized_keys", hide=True)
+
+
+@parametrize_plus('host_context', [
+    fixture_ref('ubuntu_ssh_host_connection'),
+    fixture_ref('centos_ssh_host_connection'),
+])
+def test_get_current_user_name(suspend_capture, host_context):
+    with suspend_capture:
+        assert cmd.system.get_current_user_name() == 'root'
+
+
+@parametrize_plus('host_context', [
+    fixture_ref('ubuntu_ssh_host_connection'),
+    fixture_ref('centos_ssh_host_connection'),
+])
+def test_get_current_user_id(suspend_capture, host_context):
+    with suspend_capture:
+        assert cmd.system.get_current_user_id() == 0
+
+
+@parametrize_plus('host_context', [
+    fixture_ref('ubuntu_ssh_host_connection'),
+    fixture_ref('centos_ssh_host_connection'),
+])
+def test_is_current_user_root(suspend_capture, host_context):
+    with suspend_capture:
+        assert cmd.system.is_current_user_root() is True

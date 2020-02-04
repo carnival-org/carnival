@@ -8,6 +8,10 @@ cmd.system.set_password(username: str, password: str):
 cmd.system.ssh_authorized_keys_add(ssh_key: str, keys_file=".ssh.authorized_keys"):
 cmd.system.ssh_authorized_keys_list() -> List[str]:
 cmd.system.ssh_authorized_keys_ensure(*ssh_keys: str) -> None:
+cmd.system.ssh_copy_id(pubkey_file="~..ssh.id_rsa.pub") -> None:
+cmd.system.get_current_user_name() -> str:
+cmd.system.get_current_user_id() -> int:
+cmd.system.is_current_user_root() -> bool:
 
 cmd.systemd.daemon_reload():
 cmd.systemd.start(service_name: str, reload_daemon=False):

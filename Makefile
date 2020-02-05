@@ -29,5 +29,5 @@ install:
 dist:
 	python3 setup.py sdist
 	twine upload dist/*
-	git tag `python3 -c "print(open('VERSION').read().strip())"`
+	git tag `cat setup.py | grep VERSION | grep -v version | cut -d= -f2 | tr -d "[:space:]"`
 	git push --tags

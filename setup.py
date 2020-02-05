@@ -9,9 +9,11 @@ requirements = [
     "Click==7.0",
 ]
 
+VERSION = 0.7
+
 setup(
     name='carnival',
-    version=open("VERSION").read().strip(),
+    version=VERSION,
     packages=find_packages(),
     url='https://github.com/a1fred/carnival',
     license='MIT',

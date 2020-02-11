@@ -9,7 +9,7 @@ requirements = [
     "Click==7.0",
 ]
 
-VERSION = 0.7
+VERSION = 0.8
 
 setup(
     name='carnival',

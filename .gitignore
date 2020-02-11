@@ -6,7 +6,9 @@ venv
 .idea
 __pycache__
 *.py[cod]
-carnival_file.py
+carnival_tasks.py
+carnival_tasks.1
+carnival_tasks
 build
 dist
 .mypy_cache

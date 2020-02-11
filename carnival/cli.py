@@ -22,26 +22,38 @@ def task_subclasses(cls) -> Set[Type]:
     return subclasses
 
 
-def load_tasks_file(tasks_file: str) -> Dict[str, Type[Task]]:
+def get_task_full_name(carnival_tasks_module: str, task_class: Type[Task]) -> str:
+    task_name = task_class.get_name()
+
+    task_mod = task_class.__module__
+    task_full_name = f"{task_mod}.{task_name}"
+
+    if task_full_name.startswith(carnival_tasks_module):
+        task_full_name = task_full_name[len(carnival_tasks_module) + 1:]
+
+    return task_full_name
+
+
+def load_tasks_file(carnival_tasks_module: str) -> Dict[str, Type[Task]]:
     try:
-        __import__(os.path.splitext(tasks_file)[0].replace("/", '.'))
+        __import__(carnival_tasks_module)
     except ModuleNotFoundError:
-        print(f"[WARN] {tasks_file} not exists", file=sys.stderr)
+        print(f"[WARN] Cannot import {carnival_tasks_module}", file=sys.stderr)
         return {}
 
     tasks: Dict[str, Type[Task]] = {}
 
     for task_class in task_subclasses(Task):
-        tasks[task_class.get_name()] = task_class
+        tasks[get_task_full_name(carnival_tasks_module, task_class)] = task_class
 
     return tasks
 
 
 def main():
     sys.path.insert(0, os.getcwd())
-    carnival_file = os.getenv("CARNIVAL_FILE", "carnival_file.py")
+    carnival_tasks_module = os.getenv("CARNIVAL_TASKS_MODULE", "carnival_tasks")
     try:
-        task_types = load_tasks_file(carnival_file)
+        task_types = load_tasks_file(carnival_tasks_module)
     except FileNotFoundError:
         return 1
 

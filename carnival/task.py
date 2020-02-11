@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Union, Any
+from typing import List, Union, Any, Type
 import abc
 
 import re
@@ -34,6 +34,9 @@ class Task:
     def __init__(self, dry_run: bool):
         self.dry_run = dry_run
 
+    def call_task(self, task_class: Type['Task']):
+        return task_class(dry_run=self.dry_run).run()
+
     def step(self, steps: Union[Step, List[Step]], hosts: Union[Host, List[Host]]) -> List[TaskResult]:
         if not isinstance(steps, list) and not isinstance(steps, tuple):
             steps = [steps, ]
@@ -48,7 +51,7 @@ class Task:
 
             for step in steps:
                 step_name = _underscore(step.__class__.__name__)
-                print(f"💃💃💃 Running {step_name} at {host}")
+                print(f"💃💃💃 Running {self.get_name()}:{step_name} at {host}")
                 if not self.dry_run:
                     r = TaskResult(
                         host=host,
@@ -56,9 +59,11 @@ class Task:
                         result=step.run_with_context(host=host),
                     )
                     results.append(r)
+
+            global_context.flush_context()
         return results
 
-    def run(self, **kwargs):
+    def run(self):
         raise NotImplementedError
 
 

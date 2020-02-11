@@ -1,4 +1,5 @@
-from typing import List, Union
+from dataclasses import dataclass
+from typing import List, Union, Any
 import abc
 
 import re
@@ -16,6 +17,13 @@ def _underscore(word: str) -> str:
     return word.lower()
 
 
+@dataclass
+class TaskResult:
+    host: Host
+    step: Step
+    result: Any
+
+
 class Task:
     name: str = ""
 
@@ -26,12 +34,14 @@ class Task:
     def __init__(self, dry_run: bool):
         self.dry_run = dry_run
 
-    def step(self, steps: Union[Step, List[Step]], hosts: Union[Host, List[Host]]):
+    def step(self, steps: Union[Step, List[Step]], hosts: Union[Host, List[Host]]) -> List[TaskResult]:
         if not isinstance(steps, list) and not isinstance(steps, tuple):
             steps = [steps, ]
 
         if not isinstance(hosts, list) and not isinstance(hosts, tuple):
             hosts = [hosts, ]
+
+        results = []
 
         for host in hosts:
             global_context.set_context(host)
@@ -40,7 +50,13 @@ class Task:
                 step_name = _underscore(step.__class__.__name__)
                 print(f"💃💃💃 Running {step_name} at {host}")
                 if not self.dry_run:
-                    step.run_with_context(host=host)
+                    r = TaskResult(
+                        host=host,
+                        step=step,
+                        result=step.run_with_context(host=host),
+                    )
+                    results.append(r)
+        return results
 
     def run(self, **kwargs):
         raise NotImplementedError

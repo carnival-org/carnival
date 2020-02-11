@@ -26,9 +26,14 @@ def get_task_full_name(carnival_tasks_module: str, task_class: Type[Task]) -> st
     task_name = task_class.get_name()
 
     task_mod = task_class.__module__
+
+    # Internal tasks always in root
+    if task_mod.startswith("carnival."):
+        return task_name
+
     task_full_name = f"{task_mod}.{task_name}"
 
-    if task_full_name.startswith(carnival_tasks_module):
+    if task_mod.startswith(carnival_tasks_module):
         task_full_name = task_full_name[len(carnival_tasks_module) + 1:]
 
     return task_full_name
@@ -37,9 +42,8 @@ def get_task_full_name(carnival_tasks_module: str, task_class: Type[Task]) -> st
 def load_tasks_file(carnival_tasks_module: str) -> Dict[str, Type[Task]]:
     try:
         __import__(carnival_tasks_module)
-    except ModuleNotFoundError:
-        print(f"[WARN] Cannot import {carnival_tasks_module}", file=sys.stderr)
-        return {}
+    except (ModuleNotFoundError, FileNotFoundError) as ex:
+        print(f"Cannot import {carnival_tasks_module}: {ex}", file=sys.stderr)
 
     tasks: Dict[str, Type[Task]] = {}
 
@@ -49,13 +53,15 @@ def load_tasks_file(carnival_tasks_module: str) -> Dict[str, Type[Task]]:
     return tasks
 
 
-def main():
+def get_tasks() -> Dict[str, Type[Task]]:
     sys.path.insert(0, os.getcwd())
+    from carnival import internal_tasks  # noqa
     carnival_tasks_module = os.getenv("CARNIVAL_TASKS_MODULE", "carnival_tasks")
-    try:
-        task_types = load_tasks_file(carnival_tasks_module)
-    except FileNotFoundError:
-        return 1
+    return load_tasks_file(carnival_tasks_module)
+
+
+def main():
+    task_types = get_tasks()
 
     @click.command()
     @click.option('-d', '--dry_run', is_flag=True, default=False, help="Simulate run")

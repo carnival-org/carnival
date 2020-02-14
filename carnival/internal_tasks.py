@@ -2,10 +2,12 @@ from carnival import Task
 
 
 class Help(Task):
-    def run(self):
-        from carnival.cli import get_tasks
-        tasklist = list(get_tasks().keys())
-        tasklist.sort()
+    module_name = ""
 
-        for task in tasklist:
+    def run(self):
+        from carnival.cli import task_types
+        task_list = list(task_types.keys())
+        task_list.sort()
+
+        for task in task_list:
             print(f" * {task}")

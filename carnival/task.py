@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Union, Any, Type
+from typing import List, Union, Any, Type, Optional
 import abc
 
 import re
@@ -26,6 +26,7 @@ class TaskResult:
 
 class Task:
     name: str = ""
+    module_name: Optional[str] = None
 
     @classmethod
     def get_name(cls) -> str:
@@ -47,20 +48,17 @@ class Task:
         results = []
 
         for host in hosts:
-            global_context.set_context(host)
-
-            for step in steps:
-                step_name = _underscore(step.__class__.__name__)
-                print(f"💃💃💃 Running {self.get_name()}:{step_name} at {host}")
-                if not self.dry_run:
-                    r = TaskResult(
-                        host=host,
-                        step=step,
-                        result=step.run_with_context(host=host),
-                    )
-                    results.append(r)
-
-            global_context.flush_context()
+            with global_context.SetContext(host):
+                for step in steps:
+                    step_name = _underscore(step.__class__.__name__)
+                    print(f"💃💃💃 Running {self.get_name()}:{step_name} at {host}")
+                    if not self.dry_run:
+                        r = TaskResult(
+                            host=host,
+                            step=step,
+                            result=step.run_with_context(host=host),
+                        )
+                        results.append(r)
         return results
 
     def run(self):

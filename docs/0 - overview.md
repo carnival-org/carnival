@@ -1,9 +1,10 @@
 # Overview
 
 ## Docs index
-* [step](1%20-%20step.md)
-* [commands](2%20-%20commands.md)
-* [secrets](3%20-%20secrets.md)
+* [task](1%20-%20task.md)
+* [step](20%20-%20step.md)
+* [commands](3%20-%20commands.md)
+* [secrets](4%20-%20secrets.md)
 
 ## Cli
 Define task in `carnival_file.py`.  

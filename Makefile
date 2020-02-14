@@ -12,13 +12,16 @@ qa:
 	mypy --warn-unused-ignores --package carnival
 
 test: qa
-	pytest -x --cov-fail-under=90 --cov-report term --cov=carnival tests/
+	pytest -x --cov-report term --cov=carnival -vv tests/
+
+test_fast: qa
+	pytest -x --cov-report term --cov=carnival -vv -m "not slow" tests/
 
 dev:
-	docker-compose -f tests/docker-compose.yml up --build -d --remove-orphans --force-recreate
+	docker-compose -f testdata/docker-compose.yml up --build -d --remove-orphans --force-recreate
 
 nodev:
-	docker-compose -f tests/docker-compose.yml rm -sf
+	docker-compose -f testdata/docker-compose.yml rm -sf
 
 todos:
 	grep -r TODO carnival

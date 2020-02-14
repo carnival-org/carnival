@@ -2,7 +2,13 @@ from typing import Type
 
 import pytest
 
-from carnival import Step, Host, global_context
+from carnival import Step, Host
+
+
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers", "slow: slow tests"
+    )
 
 
 @pytest.fixture(scope="function")
@@ -42,22 +48,15 @@ def suspend_capture(pytestconfig):
 
 
 @pytest.fixture(scope="function")
-def local_host_connection_context():
-    global_context.set_context(Host("local"))
-    return global_context.host
+def local_host():
+    return Host("local")
 
 
 @pytest.fixture(scope="function")
-def ubuntu_ssh_host_connection():
-    global_context.set_context(
-        Host("127.0.0.1", ssh_user="root", ssh_password="secret", ssh_port=22222)
-    )
-    return global_context.host
+def ubuntu_ssh_host():
+    return Host("127.0.0.1", ssh_user="root", ssh_password="secret", ssh_port=22222)
 
 
 @pytest.fixture(scope="function")
-def centos_ssh_host_connection():
-    global_context.set_context(
-        Host("127.0.0.1", ssh_user="root", ssh_password="secret", ssh_port=22223)
-    )
-    return global_context.host
+def centos_ssh_host():
+    return Host("127.0.0.1", ssh_user="root", ssh_password="secret", ssh_port=22223)

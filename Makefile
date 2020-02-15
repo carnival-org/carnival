@@ -1,4 +1,4 @@
-.PHONY: dist clean qa test dev nodev todos install
+.PHONY: dist clean qa test dev nodev todos install docs
 
 clean:
 	rm -rf fabric_spt.egg-info dist
@@ -34,3 +34,9 @@ dist:
 	twine upload dist/*
 	git tag `cat setup.py | grep VERSION | grep -v version | cut -d= -f2 | tr -d "[:space:]"`
 	git push --tags
+
+
+docs:
+	pip install sphinx sphinx-markdown-builder
+	DOCS_VERSION=`cat setup.py | grep VERSION | grep -v version | cut -d= -f2 | tr -d "[:space:]"` \
+		make -C docs_ru html markdown

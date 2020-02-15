@@ -19,12 +19,29 @@ def _underscore(word: str) -> str:
 
 @dataclass
 class TaskResult:
+    """
+    Возвращается вызовом метода Task.step
+    """
     host: Host
     step: Step
     result: Any
 
 
 class Task:
+    """
+    Задача это единица выполнения одного или несколькоих шагов на определенных хостах.
+
+    Именование задач.
+
+    Полное имя задачи состоит из двух частей. <module_name>.<name>.
+    carnival автоматически генерирует имена задач из этих частей, но есть возможность управлять этим вручную,
+    используя два атрибута класса Task.
+
+    name: название задачи. если не определено имя будет сгенерировано автоматически.
+    module_name: имя модуля. если назначить пустую строку, полное имя будет включать только название задачи.
+    """
+
+    # Имя задачи
     name: str = ""
     module_name: Optional[str] = None
 
@@ -36,9 +53,18 @@ class Task:
         self.dry_run = dry_run
 
     def call_task(self, task_class: Type['Task']):
+        """
+        Запустить другую задачу
+        Возвращает результат работы задачи
+        """
         return task_class(dry_run=self.dry_run).run()
 
     def step(self, steps: Union[Step, List[Step]], hosts: Union[Host, List[Host]]) -> List[TaskResult]:
+        """
+        Запустить шаг(и) на хост(ах)
+        Возвращает объект TaskResult для получения результатов работы каждого шага на каждом хосте
+        """
+
         if not isinstance(steps, list) and not isinstance(steps, tuple):
             steps = [steps, ]
 
@@ -61,11 +87,19 @@ class Task:
                         results.append(r)
         return results
 
+    @abc.abstractmethod
     def run(self):
+        """
+        Реализация выполнения задачи
+        """
         raise NotImplementedError
 
 
 class SimpleTask(abc.ABC, Task):
+    """
+    Запустить шаги `self.steps` на хостах `self.hosts`
+    """
+
     hosts: List[Host]
     steps: List[Step]
 

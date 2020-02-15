@@ -2,6 +2,9 @@ from carnival import Task
 
 
 class Help(Task):
+    """
+    Показать список доступных задач
+    """
     module_name = ""
 
     def run(self):

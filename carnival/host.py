@@ -10,6 +10,33 @@ LOCAL_ADDRS = [
 
 
 class Host:
+    """
+    Объект, представляющий единицу оборудования.
+
+    Carnival не предоставляет никаких сложных абстракций для работы с группами хостов,
+    подразумевая что вы будете использовать встроенные коллекции python и организуете
+    работу так, как будет удобно для вашей задачи.
+
+    >>> class SetupFrontend(Task):
+    >>>    def run(self, **kwargs):
+    >>>        self.step(Frontend(), Host("1.2.3.4", packages=["htop", ]))
+
+    В более сложных, создать списки в файле `inventory.py`
+
+    >>> # inventory.py
+    >>> frontends = [
+    >>>     Host("1.2.3.4"),
+    >>>     Host("1.2.3.5"),
+    >>> ]
+
+    >>> # carnival_tasks.py
+    >>> import inventory as i
+    >>> class SetupFrontend(Task):
+    >>>    def run(self, **kwargs):
+    >>>        self.step(Frontend(), i.frontends)
+
+
+    """
     def __init__(
         self,
         addr: str,
@@ -18,9 +45,14 @@ class Host:
         **context
      ):
         """
-        Defined host to operate in
-        :param addr: user@host, host, ip for remote, one if LOCAL_ADDRS for local execution
-        :param context: Some context vars for use in runtime
+        В простом случае, можно передавать хосты прямо в коде файла `carnival_tasks.py`.
+
+        :param addr: Адрес сервера
+        :param ssh_user: Пользователь SSH
+        :param ssh_password: Пароль SSH
+        :param ssh_port: SSH порт
+        :param ssh_connect_timeout: SSH таймаут соединения
+        :param context: Контекст хоста
         """
         self.addr = addr
         self.ssh_port = ssh_port
@@ -29,7 +61,10 @@ class Host:
         self.ssh_password = ssh_password
         self.ssh_connect_timeout = ssh_connect_timeout
 
-    def is_connection_local(self):
+    def is_connection_local(self) -> bool:
+        """
+        Check if host's connection is local
+        """
         return self.host.lower() in LOCAL_ADDRS
 
     def connect(self) -> Union[Connection, Context]:
@@ -50,7 +85,9 @@ class Host:
 
     @property
     def host(self) -> str:
-        # Remove user and port parts
+        """
+        Remove user and port parts, return just address
+        """
 
         h = self.addr
         if '@' in self.addr:

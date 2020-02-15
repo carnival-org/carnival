@@ -8,6 +8,8 @@ __pycache__
 *.py[cod]
 carnival_tasks.py
 carnival_tasks.1
+doc
+docs_ru/build
 carnival_tasks
 build
 dist

@@ -1,5 +1,6 @@
 import inspect
 from typing import List, Dict, Any
+import abc
 
 from carnival.host import Host
 
@@ -25,7 +26,32 @@ def _build_kwargs(fn, context: Dict[str, Any]):
 
 
 class Step:
+    """
+    Объект, предназначенный для выполнения группы комманд с какой-то целью.
+    Вызывается из класса `carnival.Task` для выполнения комманд (`carnival.cmd`) на определенных хостах.
+
+    Может требовать наличие определенных контекстных переменных для работы, указав их в аргументах метода `run`.
+    Может вернуть значение для дальнейшего использования.
+
+    В следующем примере переменная `disk_name` будет передана в run, а `install` пропущена.
+
+    >>> host = Host(
+    >>>     #  Адрес
+    >>>     "1.2.3.4",
+    >>>
+    >>>     # Контекст хоста
+    >>>     disk_name="/dev/sda1", install=['nginx', 'htop', ]
+    >>> )
+    >>> ...
+    >>> class DiskUsage(Step):
+    >>>     def run(self, disk_name: str):
+    >>>         ...
+
+    """
     def __init__(self, **context):
+        """
+        :param context: Переменные контекста, назначенные при вызове Шага
+        """
         self.context = context
 
     def _build_context(self, host: Host) -> Dict[str, Any]:
@@ -41,5 +67,11 @@ class Step:
         kwargs = _build_kwargs(self.run, context)
         return self.run(**kwargs)
 
+    @abc.abstractmethod
     def run(self, **kwargs):
+        """
+        Метод который нужно определить для выполнения комманд
+
+        :param kwargs: Автоматические подставляемые переменные контекста
+        """
         raise NotImplementedError

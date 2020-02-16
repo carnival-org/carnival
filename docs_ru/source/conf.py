@@ -12,7 +12,6 @@ print(f"DOCS_VERSION: {release}")
 
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx_markdown_builder',
 ]
 autodoc_default_options = {
     'members': True,

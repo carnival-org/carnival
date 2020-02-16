@@ -13,6 +13,8 @@ autodoc_mock_imports = [
     'fabric',
     'invoke',
     'patchwork',
+    'jinja2',
+    'click',
 ]
 master_doc = 'index'
 autodoc_default_flags = ['members', ]

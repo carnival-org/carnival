@@ -15,7 +15,7 @@ $ pip3 install carnival
 ```
 
 ## Docs
-Documentation available at [rtfd](https://carnival.readthedocs.io/ru/latest/)
+Documentation available at [readthedocs.org](https://carnival.readthedocs.io/ru/latest/)
 
 ## Cli
 ### Usage

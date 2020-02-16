@@ -39,4 +39,4 @@ dist:
 docs:
 	pip install sphinx sphinx-markdown-builder
 	DOCS_VERSION=`cat setup.py | grep VERSION | grep -v version | cut -d= -f2 | tr -d "[:space:]"` \
-		make -C docs_ru html markdown
+		make -C docs_ru html

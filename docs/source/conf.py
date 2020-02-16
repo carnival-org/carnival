@@ -12,6 +12,7 @@ extensions = [
 autodoc_mock_imports = [
     'fabric',
     'invoke',
+    'patchwork',
 ]
 master_doc = 'index'
 autodoc_default_flags = ['members', ]

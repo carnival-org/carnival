@@ -9,6 +9,9 @@ author = 'Dmitry Simonov'
 extensions = [
     'sphinx.ext.autodoc',
 ]
+autodoc_mock_imports = [
+    'fabric',
+]
 master_doc = 'index'
 autodoc_default_flags = ['members', ]
 templates_path = ['_templates']

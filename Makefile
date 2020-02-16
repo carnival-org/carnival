@@ -11,7 +11,7 @@ qa:
 	flake8 .
 	mypy --warn-unused-ignores --package carnival
 
-test: qa
+test: qa docs
 	pytest -x --cov-report term --cov=carnival -vv tests/
 
 test_fast: qa
@@ -29,13 +29,12 @@ todos:
 install:
 	python3 setup.py install
 
+docs:
+	pip install sphinx
+	make -C docs html
+
 dist:
 	python3 setup.py sdist
 	twine upload dist/*
 	git tag `cat setup.py | grep VERSION | grep -v version | cut -d= -f2 | tr -d "[:space:]"`
 	git push --tags
-
-
-docs:
-	pip install sphinx
-	make -C docs html

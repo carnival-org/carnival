@@ -38,4 +38,4 @@ dist:
 
 docs:
 	pip install sphinx
-	make -C docs_ru html
+	make -C docs html

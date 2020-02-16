@@ -9,6 +9,7 @@ author = 'Dmitry Simonov'
 extensions = [
     'sphinx.ext.autodoc',
 ]
+master_doc = 'index'
 autodoc_default_flags = ['members', ]
 templates_path = ['_templates']
 language = 'ru'

@@ -9,9 +9,7 @@ author = 'Dmitry Simonov'
 extensions = [
     'sphinx.ext.autodoc',
 ]
-autodoc_default_options = {
-    'members': True,
-}
+autodoc_default_flags = ['members', ]
 templates_path = ['_templates']
 language = 'ru'
 exclude_patterns = []

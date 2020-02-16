@@ -6,10 +6,6 @@ project = 'Carnival'
 copyright = '2020, Dmitry Simonov'
 author = 'Dmitry Simonov'
 
-release = os.getenv('DOCS_VERSION', None)
-assert release, release
-print(f"DOCS_VERSION: {release}")
-
 extensions = [
     'sphinx.ext.autodoc',
 ]

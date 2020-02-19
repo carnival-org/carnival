@@ -32,7 +32,7 @@ def get_task_full_name(carnival_tasks_module: str, task_class: Type[Task]) -> st
 
     task_full_name = f"{task_mod}.{task_name}"
 
-    if task_mod.startswith(f"{carnival_tasks_module}."):
+    if task_mod.startswith(f"{carnival_tasks_module}"):
         task_full_name = task_full_name[len(carnival_tasks_module) + 1:]
 
     return task_full_name

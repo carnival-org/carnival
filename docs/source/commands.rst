@@ -14,12 +14,6 @@ Cli
 .. automodule:: carnival.cmd.cli
     :undoc-members:
 
-Docker
-=======
-
-.. automodule:: carnival.cmd.docker
-    :undoc-members:
-
 Filesystem
 ==========
 

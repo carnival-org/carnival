@@ -1,5 +1,5 @@
 # Carnival
-[![Test](https://github.com/a1fred/carnival/workflows/Test/badge.svg?branch=master)](https://github.com/a1fred/carnival/actions)
+![Tests](https://github.com/carnival-org/carnival/workflows/Tests/badge.svg?branch=master)
 [![PyPI version](https://badge.fury.io/py/carnival.svg)](https://badge.fury.io/py/carnival)
 [![PyPI](https://img.shields.io/pypi/pyversions/carnival.svg)](https://pypi.python.org/pypi/carnival)
 [![Documentation Status](https://readthedocs.org/projects/carnival/badge/?version=latest)](https://carnival.readthedocs.io/en/latest/?badge=latest)

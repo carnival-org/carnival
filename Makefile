@@ -1,17 +1,17 @@
-.PHONY: dist clean qa test dev nodev todos install docs
+.PHONY: dist clean qa test dev nodev todos install docs test_deps
 
 clean:
 	rm -rf fabric_spt.egg-info dist
 
 test_deps:
 	pip3 install -qr requirements_dev.txt
-	pip3 install -qe .
+	python setup.py develop
 
 qa:
 	flake8 .
 	mypy --warn-unused-ignores --package carnival
 
-test: qa docs
+test: qa docs test_deps
 	pytest -x --cov-report term --cov=carnival -vv tests/
 
 test_fast: qa

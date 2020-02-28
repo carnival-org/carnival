@@ -15,7 +15,7 @@ setup(
     name='carnival',
     version=VERSION,
     packages=find_packages(),
-    url='https://github.com/a1fred/carnival',
+    url='https://github.com/carnival-org/carnival',
     license='MIT',
     author='a1fred',
     author_email='demalf@gmail.com',

@@ -12,7 +12,7 @@ def is_completion_script(complete_var: str) -> bool:
     return os.getenv(complete_var, None) is not None
 
 
-task_types = {}
+task_types: dict = {}
 
 
 def main():

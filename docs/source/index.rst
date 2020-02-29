@@ -18,6 +18,16 @@ Carnival |release|
    secrets.rst
    commands.rst
 
+.. toctree::
+   :maxdepth: 2
+   :caption: See also:
+
+   Carnival contrib <https://carnival.readthedocs.io/ru/latest/>
+
+See also
+=============
+`Carnival contrib <https://carnival.readthedocs.io/ru/latest/>`_.
+
 
 Indices and tables
 ==================

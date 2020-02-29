@@ -6,12 +6,16 @@
 
 Software provisioning tool, built on top of [Fabric](http://www.fabfile.org/)
 
+Also [carnival contrib package](https://github.com/carnival-org/carnival-contrib)
+available.
+
 * Runs on MacOs and Linux
-* Tested automation on Ubuntu and CentOS
+* Tested on Ubuntu and CentOS
 
 ## Install
 ```bash
 $ pip3 install carnival
+$ pip3 install carnival_contrib  # Optional community receipts
 ```
 
 ## Docs

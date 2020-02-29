@@ -1,6 +1,8 @@
-import inspect
 from typing import List, Dict, Any
+from typing import no_type_check
+
 import abc
+import inspect
 
 from carnival.host import Host
 
@@ -68,6 +70,7 @@ class Step:
         return self.run(**kwargs)
 
     @abc.abstractmethod
+    @no_type_check
     def run(self, **kwargs):
         """
         Метод который нужно определить для выполнения комманд

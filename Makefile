@@ -1,7 +1,7 @@
 .PHONY: dist clean qa test dev nodev todos install docs test_deps
 
 clean:
-	rm -rf fabric_spt.egg-info dist
+	rm -rf carnival.egg-info dist build
 
 test_deps:
 	pip3 install -qr requirements_dev.txt
@@ -27,7 +27,7 @@ todos:
 	grep -r TODO carnival
 
 install:
-	python3 setup.py install
+	pip3 install --force-reinstall .
 
 docs:
 	pip install sphinx

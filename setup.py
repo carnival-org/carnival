@@ -14,6 +14,7 @@ VERSION = "0.10"
 setup(
     name='carnival',
     version=VERSION,
+    include_package_data=True,
     packages=find_packages(),
     url='https://github.com/carnival-org/carnival',
     license='MIT',

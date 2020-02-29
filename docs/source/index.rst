@@ -24,10 +24,6 @@ Carnival |release|
 
    Carnival contrib <https://carnival.readthedocs.io/ru/latest/>
 
-See also
-=============
-`Carnival contrib <https://carnival.readthedocs.io/ru/latest/>`_.
-
 
 Indices and tables
 ==================

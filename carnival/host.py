@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Optional
 
 from fabric import Connection  # type: ignore
 from invoke import Context  # type: ignore
@@ -41,7 +41,9 @@ class Host:
         self,
         addr: str,
         ssh_user: str = None, ssh_password: str = None, ssh_port=22,
+        ssh_gateway: Optional['Host'] = None,
         ssh_connect_timeout: int = 10,
+
         **context
      ):
         """
@@ -52,6 +54,7 @@ class Host:
         :param ssh_password: Пароль SSH
         :param ssh_port: SSH порт
         :param ssh_connect_timeout: SSH таймаут соединения
+        :param ssh_gateway: Gateway
         :param context: Контекст хоста
         """
         self.addr = addr
@@ -60,6 +63,7 @@ class Host:
         self.ssh_user = ssh_user
         self.ssh_password = ssh_password
         self.ssh_connect_timeout = ssh_connect_timeout
+        self.ssh_gateway: Optional['Host'] = ssh_gateway
 
     def is_connection_local(self) -> bool:
         """
@@ -73,11 +77,18 @@ class Host:
             return Context()
         else:
             # Host is remote ssh machine
+
+            gateway = None
+            if self.ssh_gateway:
+                gateway = self.ssh_gateway.connect()
+                assert isinstance(gateway, Connection), f"{self.ssh_gateway} is not ssh connection"
+
             return Connection(
                 host=self.addr,
                 port=self.ssh_port,
                 user=self.ssh_user,
                 connect_timeout=self.ssh_connect_timeout,
+                gateway=gateway,
                 connect_kwargs={
                     'password': self.ssh_password,
                 }

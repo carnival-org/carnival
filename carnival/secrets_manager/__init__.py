@@ -38,7 +38,7 @@ class FromCli(SecretGetter):
 
 class FromEnv(SecretGetter):
     """
-    Get from environment
+    Get from environment for .env file
     """
     def __init__(self, default=None, required=False):
         self.default = default

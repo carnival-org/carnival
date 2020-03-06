@@ -2,8 +2,13 @@ import os
 from typing import Iterable
 
 import click
+import dotenv
 
 from carnival.tasks_loader import get_tasks
+
+# Load dotenv first
+carnival_dotenv = os.getenv("CARNIVAL_DOTENV", None)
+dotenv.load_dotenv(dotenv_path=carnival_dotenv)
 
 carnival_tasks_module = os.getenv("CARNIVAL_TASKS_MODULE", "carnival_tasks")
 

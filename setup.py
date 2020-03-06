@@ -7,6 +7,7 @@ requirements = [
     'patchwork==1.0.1',
     'Jinja2==2.10.3',
     "Click==7.0",
+    'python-dotenv==0.12.0',
 ]
 
 VERSION = "0.11"

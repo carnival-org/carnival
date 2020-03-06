@@ -8,7 +8,11 @@ from carnival.tasks_loader import get_tasks
 
 # Load dotenv first
 carnival_dotenv = os.getenv("CARNIVAL_DOTENV", None)
-dotenv.load_dotenv(dotenv_path=carnival_dotenv)
+try:
+    dotenv.load_dotenv(dotenv_path=carnival_dotenv)
+except OSError:
+    # dotenv file not found
+    pass
 
 carnival_tasks_module = os.getenv("CARNIVAL_TASKS_MODULE", "carnival_tasks")
 

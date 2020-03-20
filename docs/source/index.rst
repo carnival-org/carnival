@@ -15,7 +15,6 @@ Carnival |release|
    tasks.rst
    cli.rst
    templates.rst
-   secrets.rst
    commands.rst
 
 .. toctree::

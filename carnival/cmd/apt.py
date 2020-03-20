@@ -5,6 +5,9 @@ from carnival.utils import log
 
 
 def get_pkg_versions(pkgname: str) -> List[str]:
+    """
+    Получить список доступных версий пакета
+    """
     versions = []
     result = cmd.cli.run(f"apt-cache madison {pkgname}", hide=True, warn=True)
     if result.ok is False:
@@ -18,8 +21,9 @@ def get_pkg_versions(pkgname: str) -> List[str]:
 
 def get_installed_version(pkgname: str) -> Optional[str]:
     """
-    Get installed package version
-    Returns None if package not installed
+    Получить установленную версию пакета
+
+    :return: Версия пакета если установлен, `None` если пакет не установлен
     """
     result = cmd.cli.run(f"dpkg -l {pkgname}", hide=True, warn=True)
     if result.ok is False:
@@ -32,8 +36,8 @@ def get_installed_version(pkgname: str) -> Optional[str]:
 
 def is_pkg_installed(pkgname: str, version=None) -> bool:
     """
-    Check is package installed?
-    If version not specified - check any version
+    Проверить установлен ли пакет
+    Если версия не указана - проверяется любая
     """
 
     pkgver = get_installed_version(pkgname)
@@ -48,7 +52,7 @@ def is_pkg_installed(pkgname: str, version=None) -> bool:
 
 def force_install(pkgname, version=None, update=False, hide=False):
     """
-    Install apt package
+    Установить пакет без проверки установлен ли он
     """
     if version:
         pkgname = f"{pkgname}={version}"
@@ -61,8 +65,13 @@ def force_install(pkgname, version=None, update=False, hide=False):
 
 def install(pkgname, version=None, update=True, hide=False) -> bool:
     """
-    Install apt package if not installed
-    Returns true if installed, false if was already installed
+    Установить пакет если он еще не установлен в системе
+
+    :param pkgname: название пакета
+    :param version: версия
+    :param update: запустить apt-get update перед установкой
+    :param hide: скрыть вывод этапов
+    :return: `True` если пакет был установлен, `False` если пакет уже был установлен ранее
     """
     if is_pkg_installed(pkgname, version):
         if version:
@@ -77,6 +86,14 @@ def install(pkgname, version=None, update=True, hide=False) -> bool:
 
 
 def install_multiple(*pkg_names: str, update=True, hide=False) -> bool:
+    """
+    Установить несколько пакетов, если они не установлены
+
+    :param pkg_names: список пакетов которые нужно установить
+    :param update: запустить apt-get update перед установкой
+    :param hide: скрыть вывод этапов
+    :return: `True` если хотя бы один пакет был установлен, `False` если все пакеты уже были установлен ранее
+    """
     if all([is_pkg_installed(x) for x in pkg_names]):
         if not hide:
             log(f"{','.join(pkg_names)} already installed")
@@ -91,5 +108,11 @@ def install_multiple(*pkg_names: str, update=True, hide=False) -> bool:
 
 
 def remove(*pkg_names: str, hide=False):
+    """
+    Удалить пакет
+
+    :param pkg_names: список пакетов которые нужно удалить
+    :param hide: скрыть вывод этапов
+    """
     assert pkg_names, "pkg_names is empty"
     cmd.cli.run(f"sudo apt-get remove --auto-remove -y {' '.join(pkg_names)}", hide=hide)

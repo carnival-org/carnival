@@ -1,30 +1,9 @@
-from typing import List, Dict, Any
 from typing import no_type_check
 
 import abc
-import inspect
 
+from carnival.context import build_context, build_kwargs
 from carnival.host import Host
-
-from carnival.secrets_manager import secrets_storage
-
-
-def _get_arg_names(fn) -> List[str]:
-    arg_names: List[str] = []
-    spec = inspect.getfullargspec(fn)
-    arg_names += spec.args
-    arg_names += spec.kwonlyargs
-    return arg_names
-
-
-def _build_kwargs(fn, context: Dict[str, Any]):
-    arg_names: List[str] = _get_arg_names(fn)
-    kwargs = {}
-
-    for context_name, context_val in context.items():
-        if context_name in arg_names:
-            kwargs[context_name] = context_val
-    return kwargs
 
 
 class Step:
@@ -56,17 +35,9 @@ class Step:
         """
         self.context = context
 
-    def _build_context(self, host: Host) -> Dict[str, Any]:
-        run_context = {'secrets': secrets_storage, 'host': host}
-        if host.context:
-            run_context.update(host.context)
-        if self.context:
-            run_context.update(self.context)
-        return run_context
-
     def run_with_context(self, host: Host):
-        context = self._build_context(host)
-        kwargs = _build_kwargs(self.run, context)
+        context = build_context(self, host)
+        kwargs = build_kwargs(self.run, context)
         return self.run(**kwargs)
 
     @abc.abstractmethod
@@ -75,6 +46,7 @@ class Step:
         """
         Метод который нужно определить для выполнения комманд
 
-        :param kwargs: Автоматические подставляемые переменные контекста
+        :param kwargs: Автоматические подставляемые переменные контекста, поддерживается `**kwargs`
         """
+
         raise NotImplementedError

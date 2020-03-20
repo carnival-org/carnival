@@ -114,3 +114,6 @@ class Host:
 
     def __hash__(self):
         return hash(self.addr)
+
+    def __repr__(self):
+        return f"<Host object {self.host}>"

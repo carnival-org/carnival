@@ -10,7 +10,7 @@ requirements = [
     'python-dotenv==0.12.0',
 ]
 
-VERSION = "0.2"
+VERSION = "0.13"
 
 setup(
     name='carnival',

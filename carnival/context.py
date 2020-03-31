@@ -1,3 +1,4 @@
+from itertools import chain
 import inspect
 import os
 from typing import List, Dict, Any, TYPE_CHECKING
@@ -54,8 +55,27 @@ def build_context(step: 'Step', host: 'Host') -> Dict[str, Any]:
         if env_name.startswith(env_prefix):
             run_context[env_name[len(env_prefix):]] = env_val
 
-    if host.context:
-        run_context.update(host.context)
     if step.context:
-        run_context.update(step.context)
+        for var_name, var_val in chain(host.context.items(), step.context.items()):
+            if isinstance(var_val, context_ref):
+                try:
+                    run_context[var_name] = run_context[var_val.context_var_name]
+                except KeyError as e:
+                    raise KeyError(f"There is no '{var_val.context_var_name}' variable in context") from e
+            else:
+                run_context[var_name] = var_val
     return run_context
+
+
+class context_ref:
+    """
+    Ссылка на другую переменную контекста
+
+    Например, так можно передать в переменную c именем `name` `Step` другую переменную контекста с именем `dns_domain`
+    >>> TestStep(
+    >>>   name=context_ref('dns_domain'),
+    >>> ),
+
+    """
+    def __init__(self, context_var_name: str):
+        self.context_var_name = context_var_name

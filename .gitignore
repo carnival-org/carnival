@@ -19,3 +19,4 @@ contrib
 .DS_Store
 .coverage
 .ideaDataSources
+.env

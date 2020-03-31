@@ -7,14 +7,8 @@
 Основные шаги доступны в отдельном репозитории: <https://github.com/carnival-org/carnival-contrib>.
 """
 
-from carnival.cmd import (
-    cli,
-    system,
-    systemd,
-    apt,
-    transfer,
-    fs,
-)
+from carnival.cmd import cli, system, systemd, apt, transfer, fs
+
 
 __all__ = [
     'cli',

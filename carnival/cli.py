@@ -7,7 +7,7 @@ import dotenv
 from carnival.tasks_loader import get_tasks
 
 # Load dotenv first
-carnival_dotenv = os.getenv("CARNIVAL_DOTENV", os.getcwd())
+carnival_dotenv = os.getenv("CARNIVAL_DOTENV", '.env')
 try:
     dotenv.load_dotenv(dotenv_path=carnival_dotenv)
 except OSError:

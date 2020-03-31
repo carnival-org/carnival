@@ -55,15 +55,15 @@ def build_context(step: 'Step', host: 'Host') -> Dict[str, Any]:
         if env_name.startswith(env_prefix):
             run_context[env_name[len(env_prefix):]] = env_val
 
-    if step.context:
-        for var_name, var_val in chain(host.context.items(), step.context.items()):
-            if isinstance(var_val, context_ref):
-                try:
-                    run_context[var_name] = run_context[var_val.context_var_name]
-                except KeyError as e:
-                    raise KeyError(f"There is no '{var_val.context_var_name}' variable in context") from e
-            else:
-                run_context[var_name] = var_val
+    for var_name, var_val in chain(host.context.items(), step.context.items()):
+        if isinstance(var_val, context_ref):
+            try:
+                run_context[var_name] = run_context[var_val.context_var_name]
+            except KeyError as e:
+                raise KeyError(f"There is no '{var_val.context_var_name}' variable in context") from e
+        else:
+            run_context[var_name] = var_val
+
     return run_context
 
 

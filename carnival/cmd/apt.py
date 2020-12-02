@@ -9,7 +9,7 @@ def get_pkg_versions(pkgname: str) -> List[str]:
     Получить список доступных версий пакета
     """
     versions = []
-    result = cmd.cli.run(f"apt-cache madison {pkgname}", hide=True, warn=True)
+    result = cmd.cli.run(f"DEBIAN_FRONTEND=noninteractive apt-cache madison {pkgname}", hide=True, warn=True)
     if result.ok is False:
         return []
 
@@ -25,7 +25,7 @@ def get_installed_version(pkgname: str) -> Optional[str]:
 
     :return: Версия пакета если установлен, `None` если пакет не установлен
     """
-    result = cmd.cli.run(f"dpkg -l {pkgname}", hide=True, warn=True)
+    result = cmd.cli.run(f"DEBIAN_FRONTEND=noninteractive dpkg -l {pkgname}", hide=True, warn=True)
     if result.ok is False:
         return None
     installed, pkgn, ver, arch, *desc = result.stdout.strip().split("\n")[-1].split()
@@ -58,9 +58,9 @@ def force_install(pkgname, version=None, update=False, hide=False):
         pkgname = f"{pkgname}={version}"
 
     if update:
-        cmd.cli.run("sudo apt-get update", pty=True, hide=hide)
+        cmd.cli.run("DEBIAN_FRONTEND=noninteractive sudo apt-get update", pty=True, hide=hide)
 
-    cmd.cli.run(f"sudo apt-get install -y {pkgname}", pty=True, hide=hide)
+    cmd.cli.run(f"DEBIAN_FRONTEND=noninteractive sudo apt-get install -y {pkgname}", pty=True, hide=hide)
 
 
 def install(pkgname, version=None, update=True, hide=False) -> bool:
@@ -100,7 +100,7 @@ def install_multiple(*pkg_names: str, update=True, hide=False) -> bool:
         return False
 
     if update:
-        cmd.cli.run("sudo apt-get update", pty=True, hide=hide)
+        cmd.cli.run("DEBIAN_FRONTEND=noninteractive sudo apt-get update", pty=True, hide=hide)
 
     for pkg in pkg_names:
         install(pkg, update=False, hide=hide)
@@ -115,4 +115,4 @@ def remove(*pkg_names: str, hide=False):
     :param hide: скрыть вывод этапов
     """
     assert pkg_names, "pkg_names is empty"
-    cmd.cli.run(f"sudo apt-get remove --auto-remove -y {' '.join(pkg_names)}", hide=hide)
+    cmd.cli.run(f"DEBIAN_FRONTEND=noninteractive sudo apt-get remove --auto-remove -y {' '.join(pkg_names)}", hide=hide)

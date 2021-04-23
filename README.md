@@ -4,6 +4,8 @@
 [![PyPI](https://img.shields.io/pypi/pyversions/carnival.svg)](https://pypi.python.org/pypi/carnival)
 [![Documentation Status](https://readthedocs.org/projects/carnival/badge/?version=latest)](https://carnival.readthedocs.io/)
 
+![MIT](https://img.shields.io/github/license/carnival-org/carnival)
+
 Software provisioning tool, built on top of [Fabric](http://www.fabfile.org/)
 
 Also [carnival contrib package](https://github.com/carnival-org/carnival-contrib)

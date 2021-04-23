@@ -19,7 +19,7 @@ def test_ssh_authorized_keys_list(suspend_capture, ubuntu_ssh_host, centos_ssh_h
                 assert len(keys) == 1
                 assert KEY in keys
 
-                cmd.cli.run(f"rm ~/.ssh/authorized_keys", hide=True)
+                cmd.cli.run("rm ~/.ssh/authorized_keys", hide=True)
 
 
 def test_ssh_authorized_keys_ensure(suspend_capture, ubuntu_ssh_host, centos_ssh_host):
@@ -38,7 +38,7 @@ def test_ssh_authorized_keys_ensure(suspend_capture, ubuntu_ssh_host, centos_ssh
                 assert len(keys) == 1
                 assert KEY in keys
 
-                cmd.cli.run(f"rm ~/.ssh/authorized_keys", hide=True)
+                cmd.cli.run("rm ~/.ssh/authorized_keys", hide=True)
 
 
 def test_get_current_user_name(suspend_capture, ubuntu_ssh_host, centos_ssh_host):

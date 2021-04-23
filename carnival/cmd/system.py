@@ -1,9 +1,8 @@
-from typing import List
 import os
-
-from invoke import Result  # type: ignore
+from typing import List
 
 from carnival import cmd
+from invoke import Result  # type: ignore
 
 
 def set_password(username: str, password: str) -> Result:
@@ -16,7 +15,7 @@ def set_password(username: str, password: str) -> Result:
     return cmd.cli.pty(f"echo '{username}:{password}' | chpasswd", hide=True)
 
 
-def ssh_authorized_keys_add(ssh_key: str, keys_file=".ssh/authorized_keys") -> bool:
+def ssh_authorized_keys_add(ssh_key: str, keys_file: str = ".ssh/authorized_keys") -> bool:
     """
     Добавить ssh ключ в `authorized_keys`
 
@@ -43,7 +42,8 @@ def ssh_authorized_keys_list() -> List[str]:
     if cmd.fs.is_file_exists("~/.ssh/authorized_keys") is False:
         return []
 
-    return cmd.cli.run("cat ~/.ssh/authorized_keys", hide=True).stdout.strip().split("\n")
+    keys_file: str = cmd.cli.run("cat ~/.ssh/authorized_keys", hide=True).stdout.strip()
+    return keys_file.split("\n")
 
 
 def ssh_authorized_keys_ensure(*ssh_keys: str) -> List[bool]:
@@ -56,7 +56,7 @@ def ssh_authorized_keys_ensure(*ssh_keys: str) -> List[bool]:
     return [ssh_authorized_keys_add(x) for x in ssh_keys]
 
 
-def ssh_copy_id(pubkey_file="~/.ssh/id_rsa.pub") -> bool:
+def ssh_copy_id(pubkey_file: str = "~/.ssh/id_rsa.pub") -> bool:
     """
     Добавить публичный ssh-ключ текущего пользователя в авторизованные
 
@@ -70,7 +70,8 @@ def get_current_user_name() -> str:
     """
     Получить имя текущего пользователя
     """
-    return cmd.cli.run("id -u -n", hide=True).stdout.strip()
+    id_res: str = cmd.cli.run("id -u -n", hide=True).stdout
+    return id_res.strip()
 
 
 def get_current_user_id() -> int:

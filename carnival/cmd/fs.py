@@ -1,11 +1,8 @@
-from typing import List
+from typing import List, Optional
 
-from patchwork import files  # type:ignore
+from carnival import cmd, global_context
 from invoke import Result  # type: ignore
-
-from carnival import cmd
-
-from carnival import global_context
+from patchwork import files  # type:ignore
 
 
 def mkdirs(*dirs: str) -> List[Result]:
@@ -23,10 +20,10 @@ def is_dir_exists(dir_path: str) -> bool:
 
     :param dir_path: путь до директории
     """
-    return cmd.cli.run(f"test -d {dir_path}", warn=True, hide=True).ok
+    return bool(cmd.cli.run(f"test -d {dir_path}", warn=True, hide=True).ok)
 
 
-def is_file_contains(filename, text, exact=False, escape=True) -> bool:
+def is_file_contains(filename: str, text: str, exact: bool = False, escape: bool = True) -> bool:
     """
     Содержит ли файл текст
     См <https://fabric-patchwork.readthedocs.io/en/latest/api/files.html#patchwork.files.contains>
@@ -38,21 +35,26 @@ def is_file_contains(filename, text, exact=False, escape=True) -> bool:
 
 
     """
+    assert global_context.conn is not None, "No connection"
+    return bool(files.contains(
+        global_context.conn,
+        runner=global_context.conn.run,
+        filename=filename, text=text, exact=exact, escape=escape
+    ))
 
-    return files.contains(global_context.conn, runner=global_context.conn.run, filename=filename, text=text, exact=exact, escape=escape)
 
-
-def is_file_exists(path) -> bool:
+def is_file_exists(path: str) -> bool:
     """
     Проверить существует ли файл
     <https://fabric-patchwork.readthedocs.io/en/latest/api/files.html#patchwork.files.exists>
 
     :param path: путь до файла
     """
-    return files.exists(global_context.conn, runner=global_context.conn.run, path=path)
+    assert global_context.conn is not None, "No connection"
+    return bool(files.exists(global_context.conn, runner=global_context.conn.run, path=path))
 
 
-def ensure_dir_exists(path, user=None, group=None, mode=None) -> None:
+def ensure_dir_exists(path: str, user: Optional[str] = None, group: Optional[str] = None, mode: Optional[str] = None) -> None:
     """
     Проверить что директория существует и параметры соответствуют заданным
 
@@ -63,4 +65,5 @@ def ensure_dir_exists(path, user=None, group=None, mode=None) -> None:
     :param group: группа
     :param mode: права
     """
+    assert global_context.conn is not None, "No connection"
     files.directory(global_context.conn, runner=global_context.conn.run, path=path, user=user, group=group, mode=mode)

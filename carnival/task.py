@@ -1,11 +1,9 @@
-from dataclasses import dataclass
-from typing import List, Union, Any, Type, Optional
 import abc
-
 import re
+from dataclasses import dataclass
+from typing import Any, List, Optional, Type, Union
 
-from carnival import global_context, Step
-
+from carnival import Step, global_context
 from carnival.host import Host
 
 
@@ -52,7 +50,7 @@ class Task:
     def __init__(self, dry_run: bool):
         self.dry_run = dry_run
 
-    def call_task(self, task_class: Type['Task']):
+    def call_task(self, task_class: Type['Task']) -> Any:
         """
         Запустить другую задачу
         Возвращает результат работы задачи
@@ -88,7 +86,7 @@ class Task:
         return results
 
     @abc.abstractmethod
-    def run(self):
+    def run(self) -> Any:
         """
         Реализация выполнения задачи
         """
@@ -103,7 +101,7 @@ class SimpleTask(abc.ABC, Task):
     hosts: List[Host]
     steps: List[Step]
 
-    def run(self):
+    def run(self) -> None:
         self.step(
             steps=self.steps,
             hosts=self.hosts,

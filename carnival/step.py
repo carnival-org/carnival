@@ -1,6 +1,5 @@
-from typing import no_type_check
-
 import abc
+from typing import Any, no_type_check
 
 from carnival.context import build_context, build_kwargs
 from carnival.host import Host
@@ -29,13 +28,13 @@ class Step:
     >>>         ...
 
     """
-    def __init__(self, **context):
+    def __init__(self, **context: Any):
         """
         :param context: Переменные контекста, назначенные при вызове Шага
         """
         self.context = context
 
-    def run_with_context(self, host: Host):
+    def run_with_context(self, host: Host) -> Any:
         context = build_context(self, host)
         kwargs = build_kwargs(self.run, context)
         return self.run(**kwargs)

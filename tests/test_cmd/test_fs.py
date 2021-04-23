@@ -21,4 +21,4 @@ def test_mkdirs(suspend_capture, local_host, ubuntu_ssh_host, centos_ssh_host):
                 assert cmd.fs.is_dir_exists("/tmp/.carnivaltestdir1") is True
                 assert cmd.fs.is_dir_exists("/tmp/.carnivaltestdir2") is True
 
-                cmd.cli.run(f"rm -rf /tmp/.carnivaltestdir1 /tmp/.carnivaltestdir2")
+                cmd.cli.run("rm -rf /tmp/.carnivaltestdir1 /tmp/.carnivaltestdir2")

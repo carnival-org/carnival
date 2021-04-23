@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import List, Optional
 
 from carnival import cmd
 from carnival.utils import log
@@ -31,10 +31,12 @@ def get_installed_version(pkgname: str) -> Optional[str]:
     installed, pkgn, ver, arch, *desc = result.stdout.strip().split("\n")[-1].split()
     if installed != 'ii':
         return None
+
+    assert isinstance(ver, str)
     return ver.strip()
 
 
-def is_pkg_installed(pkgname: str, version=None) -> bool:
+def is_pkg_installed(pkgname: str, version: Optional[str] = None) -> bool:
     """
     Проверить установлен ли пакет
     Если версия не указана - проверяется любая
@@ -50,7 +52,7 @@ def is_pkg_installed(pkgname: str, version=None) -> bool:
     return False
 
 
-def force_install(pkgname, version=None, update=False, hide=False):
+def force_install(pkgname: str, version: Optional[str] = None, update: bool = False, hide: bool = False) -> None:
     """
     Установить пакет без проверки установлен ли он
     """
@@ -63,7 +65,7 @@ def force_install(pkgname, version=None, update=False, hide=False):
     cmd.cli.run(f"DEBIAN_FRONTEND=noninteractive sudo apt-get install -y {pkgname}", pty=True, hide=hide)
 
 
-def install(pkgname, version=None, update=True, hide=False) -> bool:
+def install(pkgname: str, version: Optional[str] = None, update: bool = True, hide: bool = False) -> bool:
     """
     Установить пакет если он еще не установлен в системе
 
@@ -85,7 +87,7 @@ def install(pkgname, version=None, update=True, hide=False) -> bool:
     return True
 
 
-def install_multiple(*pkg_names: str, update=True, hide=False) -> bool:
+def install_multiple(*pkg_names: str, update: bool = True, hide: bool = False) -> bool:
     """
     Установить несколько пакетов, если они не установлены
 
@@ -107,7 +109,7 @@ def install_multiple(*pkg_names: str, update=True, hide=False) -> bool:
     return True
 
 
-def remove(*pkg_names: str, hide=False):
+def remove(*pkg_names: str, hide: bool = False) -> None:
     """
     Удалить пакет
 

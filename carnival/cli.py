@@ -1,10 +1,11 @@
 import os
 import sys
-from typing import Iterable
+from typing import Any, Dict, Iterable, Type
 
 import click
 import dotenv
 
+from carnival.task import Task
 from carnival.tasks_loader import get_tasks
 
 # Load dotenv first
@@ -22,14 +23,14 @@ def is_completion_script(complete_var: str) -> bool:
     return os.getenv(complete_var, None) is not None
 
 
-task_types: dict = {}
+task_types: Dict[str, Type[Task]] = {}
 
 
-def except_hook(type, value, traceback):
+def except_hook(type: Type[Any], value: Any, traceback: Any) -> None:
     print(f"{type} was raised. You can use --debug flag to see full traceback.")
 
 
-def main():
+def main() -> int:
     global task_types
 
     complete_var = os.getenv("COMPLETE_VAR", "_CARNIVAL_COMPLETE")
@@ -42,7 +43,7 @@ def main():
     @click.option('-d', '--dry_run', is_flag=True, default=False, help="Simulate run")
     @click.option('--debug', is_flag=True, default=False, help="Turn on debug mode")
     @click.argument('tasks', required=True, type=click.Choice(task_types.keys()), nargs=-1)
-    def cli(dry_run: bool, debug: False, tasks: Iterable[str]):
+    def cli(dry_run: bool, debug: bool, tasks: Iterable[str]) -> None:
         if debug is True:
             print("Debug mode on.")
         else:
@@ -52,3 +53,4 @@ def main():
             task_types[task](dry_run=dry_run).run()
 
     cli(complete_var=complete_var)
+    return 0

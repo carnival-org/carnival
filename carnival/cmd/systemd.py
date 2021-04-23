@@ -1,16 +1,15 @@
-from invoke import Result  # type: ignore
-
 from carnival import cmd
+from invoke import Result  # type: ignore
 
 
 def daemon_reload() -> Result:
     """
     Перегрузить systemd
     """
-    return cmd.cli.run(f"sudo systemctl --system daemon-reload")
+    return cmd.cli.run("sudo systemctl --system daemon-reload")
 
 
-def start(service_name: str, reload_daemon=False) -> Result:
+def start(service_name: str, reload_daemon: bool = False) -> Result:
     """
     Запустить сервис
 
@@ -23,7 +22,7 @@ def start(service_name: str, reload_daemon=False) -> Result:
     return cmd.cli.run(f"sudo systemctl start {service_name}")
 
 
-def stop(service_name: str, reload_daemon=False) -> Result:
+def stop(service_name: str, reload_daemon: bool = False) -> Result:
     """
     Остановить сервис
 
@@ -44,7 +43,7 @@ def restart(service_name: str) -> Result:
     return cmd.cli.run(f"sudo systemctl restart {service_name}")
 
 
-def enable(service_name: str, reload_daemon=False, start_now=True) -> Result:
+def enable(service_name: str, reload_daemon: bool = False, start_now: bool = True) -> Result:
     """
     Добавить сервис в автозапуск
 
@@ -63,7 +62,7 @@ def enable(service_name: str, reload_daemon=False, start_now=True) -> Result:
     return res
 
 
-def disable(service_name: str, reload_daemon=False, stop_now=True) -> Result:
+def disable(service_name: str, reload_daemon: bool = False, stop_now: bool = True) -> Result:
     """
     Убрать сервис из автозапуска
 

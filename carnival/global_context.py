@@ -1,22 +1,21 @@
-from typing import Union
+from typing import Any, Optional, Type, Union
 
 from fabric import Connection  # type:ignore
 from invoke import Context  # type:ignore
 
 from carnival.host import Host
 
-
 # noinspection PyTypeChecker
-conn: Union[Connection, Context] = None
+conn: Union[Connection, Context, None] = None
 # noinspection PyTypeChecker
-host: Host = None  # type:ignore
+host: Optional[Host] = None
 
 
 class SetContext:
     def __init__(self, h: Host):
         self.host = h
 
-    def __enter__(self):
+    def __enter__(self) -> None:
         global conn
         global host
 
@@ -26,7 +25,7 @@ class SetContext:
         conn = self.host.connect()
         host = self.host
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Type[Any], exc_val: Any, exc_tb: Any) -> None:
         global conn
         global host
         conn = None

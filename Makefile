@@ -9,7 +9,7 @@ test_deps:
 
 qa:
 	flake8 .
-	mypy --warn-unused-ignores --package carnival
+	mypy --strict --warn-unused-ignores carnival
 
 test: qa docs test_deps
 	pytest -x --cov-report term --cov=carnival -vv tests/

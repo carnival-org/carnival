@@ -1,4 +1,4 @@
-from typing import Union, Optional
+from typing import Any, Optional, Union
 
 from fabric import Connection  # type: ignore
 from invoke import Context  # type: ignore
@@ -40,11 +40,11 @@ class Host:
     def __init__(
         self,
         addr: str,
-        ssh_user: str = None, ssh_password: str = None, ssh_port=22,
+        ssh_user: Optional[str] = None, ssh_password: Optional[str] = None, ssh_port: int = 22,
         ssh_gateway: Optional['Host'] = None,
         ssh_connect_timeout: int = 10,
 
-        **context
+        **context: Any
      ):
         """
         В простом случае, можно передавать хосты прямо в коде файла `carnival_tasks.py`.
@@ -109,11 +109,11 @@ class Host:
 
         return h
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"🖥 {self.host}"
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.addr)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Host object {self.host}>"

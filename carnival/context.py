@@ -1,7 +1,7 @@
-from itertools import chain
 import inspect
 import os
-from typing import List, Dict, Any, TYPE_CHECKING
+from itertools import chain
+from typing import TYPE_CHECKING, Any, Callable, Dict, List
 
 if TYPE_CHECKING:
     from carnival.host import Host
@@ -12,7 +12,7 @@ class PassAllArgs(BaseException):
     pass
 
 
-def _get_arg_names(fn) -> List[str]:
+def _get_arg_names(fn: Callable[..., Any]) -> List[str]:
     arg_names: List[str] = []
     spec = inspect.getfullargspec(fn)
 
@@ -32,7 +32,7 @@ def _get_arg_names(fn) -> List[str]:
     return arg_names
 
 
-def build_kwargs(fn, context: Dict[str, Any]):
+def build_kwargs(fn: Callable[..., Any], context: Dict[str, Any]) -> Dict[str, Any]:
     try:
         arg_names: List[str] = _get_arg_names(fn)
     except PassAllArgs:

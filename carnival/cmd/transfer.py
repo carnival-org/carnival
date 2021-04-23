@@ -1,13 +1,19 @@
 from io import StringIO
-
-from fabric.transfer import Transfer, Result  # type:ignore
-from patchwork import transfers  # type:ignore
+from typing import Any, Iterable
 
 from carnival import global_context
 from carnival.templates import render
+from fabric.transfer import Result, Transfer  # type:ignore
+from patchwork import transfers  # type:ignore
 
 
-def rsync(source, target, exclude=(), delete=False, strict_host_keys=True, rsync_opts="--progress -pthrvz", ssh_opts=''):
+def rsync(
+    source: str, target: str,
+    exclude: Iterable[str] = (),
+    delete: bool = False, strict_host_keys: bool = True,
+    rsync_opts: str = "--progress -pthrvz",
+    ssh_opts: str = ''
+) -> Result:
     """
     <https://fabric-patchwork.readthedocs.io/en/latest/api/transfers.html#patchwork.transfers.rsync>
     """
@@ -49,7 +55,7 @@ def put(local: str, remote: str, preserve_mode: bool = True) -> Result:
     return t.put(local=local, remote=remote, preserve_mode=preserve_mode)
 
 
-def put_template(template_path: str, remote: str, **context) -> Result:
+def put_template(template_path: str, remote: str, **context: Any) -> Result:
     """
     Отрендерить файл с помощью jinja-шаблонов и закачать на сервер
     См раздел templates.

@@ -1,6 +1,8 @@
 import os
+from typing import Any
 
-from jinja2 import Environment, FileSystemLoader, ChoiceLoader, PrefixLoader, PackageLoader
+from jinja2 import (ChoiceLoader, Environment, FileSystemLoader, PackageLoader,
+                    PrefixLoader)
 
 from carnival import global_context
 from carnival.plugins import discover_plugins
@@ -14,7 +16,7 @@ j2_env = Environment(loader=ChoiceLoader([
 ]))
 
 
-def render(template_path: str, **context) -> str:
+def render(template_path: str, **context: Any) -> str:
     template = j2_env.get_template(template_path)
     return template.render(
         conn=global_context.conn,

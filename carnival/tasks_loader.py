@@ -1,12 +1,12 @@
+import abc
 import os
 import sys
-import abc
-from typing import Type, Dict, Set
+from typing import Any, Dict, Set, Type
 
 from carnival.task import Task
 
 
-def task_subclasses(cls) -> Set[Type]:
+def task_subclasses(cls: Type[Any]) -> Set[Type[Any]]:
     # Get subclasses of task, which not abstract
 
     subclasses = set()

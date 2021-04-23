@@ -27,9 +27,10 @@ Documentation available at [readthedocs.org](https://carnival.readthedocs.io/ru/
 $ carnival --help
 Usage: carnival [OPTIONS] [deploy_frontend|deploy_backend]...
 
-Options:
-  -d, --dry_run    Simulate run
-  --help           Show this message and exit.
+    Options:
+    -d, --dry_run  Simulate run
+    --debug        Turn on debug mode
+    --help         Show this message and exit.
 ```
 
 ### Competion
@@ -49,7 +50,7 @@ class Deploy(Task):
             DeployFrontend(),
             Host("1.2.3.5", ssh_user="root", can="context", additional="give"),
         )
-    
+
         self.step(
             DeployFrontend(),
             [

@@ -1,5 +1,4 @@
-from setuptools import setup, find_packages
-
+from setuptools import find_packages, setup
 
 requirements = [
     'Fabric==2.5.0',
@@ -10,7 +9,7 @@ requirements = [
     'python-dotenv==0.12.0',
 ]
 
-VERSION = "0.15"
+VERSION = "0.2"
 
 setup(
     name='carnival',

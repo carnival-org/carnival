@@ -4,7 +4,7 @@ requirements = [
     'Fabric==2.5.0',
     'invoke==1.4.0',
     'patchwork==1.0.1',
-    'Jinja2==2.10.3',
+    'Jinja2>=2.11.3',
     "Click==7.0",
     'python-dotenv==0.12.0',
 ]

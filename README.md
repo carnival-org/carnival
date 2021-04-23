@@ -1,8 +1,8 @@
 # Carnival
-![Tests](https://github.com/carnival-org/carnival/workflows/Tests/badge.svg?branch=master)
+[![Tests](https://github.com/carnival-org/carnival/workflows/Tests/badge.svg?branch=master)](https://github.com/carnival-org/carnival/actions?query=branch%3Amaster)
 [![PyPI version](https://badge.fury.io/py/carnival.svg)](https://badge.fury.io/py/carnival)
 [![PyPI](https://img.shields.io/pypi/pyversions/carnival.svg)](https://pypi.python.org/pypi/carnival)
-[![Documentation Status](https://readthedocs.org/projects/carnival/badge/?version=latest)](https://carnival.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://carnival.readthedocs.io/)](https://carnival.readthedocs.io/en/latest/?badge=latest)
 
 Software provisioning tool, built on top of [Fabric](http://www.fabfile.org/)
 

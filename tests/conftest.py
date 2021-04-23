@@ -1,14 +1,12 @@
 from typing import Type
 
 import pytest
-
-from carnival import Step, Host
+from carnival import Host, Step
 
 
 def pytest_configure(config):
-    config.addinivalue_line(
-        "markers", "slow: slow tests"
-    )
+    config.addinivalue_line("markers", "slow: slow tests")
+    config.addinivalue_line("markers", "remote: remote connection required")
 
 
 @pytest.fixture(scope="function")

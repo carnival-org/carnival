@@ -19,3 +19,7 @@ jobs:
     - name: QA
       run: |
         make qa
+    - name: Test
+      run: |
+        make test_deps
+        make test_local

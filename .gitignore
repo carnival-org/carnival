@@ -20,3 +20,4 @@ contrib
 .coverage
 .ideaDataSources
 .env
+.pytest_cache

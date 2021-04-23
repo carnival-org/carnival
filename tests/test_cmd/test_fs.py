@@ -1,6 +1,8 @@
+import pytest
 from carnival import cmd, global_context
 
 
+@pytest.mark.remote
 def test_is_dir_exists(suspend_capture, local_host, ubuntu_ssh_host, centos_ssh_host):
     for host in [local_host, ubuntu_ssh_host, centos_ssh_host]:
         with suspend_capture:
@@ -9,6 +11,7 @@ def test_is_dir_exists(suspend_capture, local_host, ubuntu_ssh_host, centos_ssh_
                 assert cmd.fs.is_dir_exists("/bin")
 
 
+@pytest.mark.remote
 def test_mkdirs(suspend_capture, local_host, ubuntu_ssh_host, centos_ssh_host):
     for host in [local_host, ubuntu_ssh_host, centos_ssh_host]:
         with suspend_capture:

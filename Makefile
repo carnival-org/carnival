@@ -12,10 +12,13 @@ qa:
 	mypy --strict --warn-unused-ignores carnival
 
 test: qa docs test_deps
-	pytest -x --cov-report term --cov=carnival -vv tests/
+	python3 -m pytest -x --cov-report term --cov=carnival -vv tests/
 
-test_fast: qa
-	pytest -x --cov-report term --cov=carnival -vv -m "not slow" tests/
+test_fast:
+	python3 -m pytest -x --cov-report term --cov=carnival -vv -m "not slow" tests/
+
+test_local:
+	python3 -m pytest -x --cov-report term --cov=carnival -vv -m "not remote" tests/
 
 dev:
 	docker-compose -f testdata/docker-compose.yml up --build -d --remove-orphans --force-recreate

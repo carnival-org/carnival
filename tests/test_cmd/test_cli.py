@@ -1,6 +1,8 @@
+import pytest
 from carnival import cmd, global_context
 
 
+@pytest.mark.remote
 def test_run(suspend_capture, local_host, ubuntu_ssh_host, centos_ssh_host):
     for host in [local_host, ubuntu_ssh_host, centos_ssh_host]:
         with suspend_capture:
@@ -17,6 +19,7 @@ def test_run(suspend_capture, local_host, ubuntu_ssh_host, centos_ssh_host):
                 assert 'sbin' in root_files
 
 
+@pytest.mark.remote
 def test_pty(suspend_capture, local_host, ubuntu_ssh_host, centos_ssh_host):
     for host in [local_host, ubuntu_ssh_host, centos_ssh_host]:
         with suspend_capture:

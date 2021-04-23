@@ -1,8 +1,9 @@
-from jinja2 import Environment, DictLoader
-
+import pytest
 from carnival import cmd, global_context
+from jinja2 import DictLoader, Environment
 
 
+@pytest.mark.remote
 def test_put_template(suspend_capture, mocker, ubuntu_ssh_host, centos_ssh_host):
     for host in [ubuntu_ssh_host, centos_ssh_host]:
         with suspend_capture:
@@ -17,6 +18,7 @@ def test_put_template(suspend_capture, mocker, ubuntu_ssh_host, centos_ssh_host)
                 cmd.cli.run("rm /index")
 
 
+@pytest.mark.remote
 def test_rsync(suspend_capture, ubuntu_ssh_host, centos_ssh_host):
     for host in [ubuntu_ssh_host, centos_ssh_host]:
         with suspend_capture:

@@ -1,9 +1,9 @@
 import pytest
-
 from carnival import cmd, global_context
 
 
 @pytest.mark.slow
+@pytest.mark.remote
 def test_apt_install(suspend_capture, ubuntu_ssh_host):
     with suspend_capture:
         with global_context.SetContext(ubuntu_ssh_host):
@@ -15,6 +15,7 @@ def test_apt_install(suspend_capture, ubuntu_ssh_host):
 
 
 @pytest.mark.slow
+@pytest.mark.remote
 def test_apt_install_multiple(suspend_capture, ubuntu_ssh_host):
     with suspend_capture:
         with global_context.SetContext(ubuntu_ssh_host):
@@ -28,6 +29,7 @@ def test_apt_install_multiple(suspend_capture, ubuntu_ssh_host):
 
 
 @pytest.mark.slow
+@pytest.mark.remote
 def test_apt_get_installed_version(suspend_capture, ubuntu_ssh_host):
     with suspend_capture:
         with global_context.SetContext(ubuntu_ssh_host):
@@ -45,6 +47,7 @@ def test_apt_get_installed_version(suspend_capture, ubuntu_ssh_host):
 
 
 @pytest.mark.slow
+@pytest.mark.remote
 def test_apt_is_pkg_installed(suspend_capture, ubuntu_ssh_host):
     with suspend_capture:
         with global_context.SetContext(ubuntu_ssh_host):

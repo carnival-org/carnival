@@ -11,7 +11,7 @@ requirements = [
     'python-dotenv==0.12.0',
 ]
 
-VERSION = "1.2"
+VERSION = "1.3"
 
 # read the contents of your README file
 this_directory = path.abspath(path.dirname(__file__))

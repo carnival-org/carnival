@@ -42,6 +42,7 @@ class Task:
     # Имя задачи
     name: str = ""
     module_name: Optional[str] = None
+    help: str = ""
 
     @classmethod
     def get_name(cls) -> str:

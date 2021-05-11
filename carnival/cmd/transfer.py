@@ -1,4 +1,4 @@
-from io import StringIO
+from io import BytesIO
 from typing import Any, Iterable
 
 from carnival import global_context
@@ -68,4 +68,4 @@ def put_template(template_path: str, remote: str, **context: Any) -> Result:
     """
     filestr = render(template_path=template_path, **context)
     t = Transfer(global_context.conn)
-    return t.put(local=StringIO(filestr), remote=remote, preserve_mode=False)
+    return t.put(local=BytesIO(filestr.encode()), remote=remote, preserve_mode=False)

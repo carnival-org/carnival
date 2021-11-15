@@ -14,7 +14,9 @@ class Help(Task):
         task_list = list(task_types.keys())
         task_list.sort()
 
-        ralign = max([len(x) for x in task_list]) + 4
+        ralign = 4
+        if task_list:
+            ralign += max([len(x) for x in task_list])
 
         for task_name in task_types.keys():
             help_text = task_types[task_name].help

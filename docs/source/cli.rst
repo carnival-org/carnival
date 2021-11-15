@@ -3,4 +3,5 @@
 ##################################
 
 .. automodule:: carnival.cli
-    :undoc-members:
+    :undoc-members: main
+    :members: main

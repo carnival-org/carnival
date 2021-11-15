@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "carnival"
+version = "1.3.2"
+description = "Fabric-based software provisioning tool"
+authors = ["Dmirty Simonov <demalf@gmail.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.6"
+Fabric = "2.6.0"
+invoke = "1.6.0"
+patchwork = "1.0.1"
+Jinja2 = "3.0.3"
+Click = "8.0.3"
+python-dotenv = "0.19.2"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.5"
+pytest-cov = "^3.0.0"
+pytest-mock = "^3.6.1"
+flake8 = "^4.0.1"
+mypy = "^0.910"
+Sphinx = "^4.3.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

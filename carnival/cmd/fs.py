@@ -54,7 +54,12 @@ def is_file_exists(path: str) -> bool:
     return bool(files.exists(global_context.conn, runner=global_context.conn.run, path=path))
 
 
-def ensure_dir_exists(path: str, user: Optional[str] = None, group: Optional[str] = None, mode: Optional[str] = None) -> None:
+def ensure_dir_exists(
+    path: str,
+    user: Optional[str] = None,
+    group: Optional[str] = None,
+    mode: Optional[str] = None,
+) -> None:
     """
     Проверить что директория существует и параметры соответствуют заданным
 

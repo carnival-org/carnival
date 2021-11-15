@@ -37,11 +37,11 @@ class Step:
     def run_with_context(self, host: Host) -> Any:
         context = build_context(self, host)
         kwargs = build_kwargs(self.run, context)
-        return self.run(**kwargs)
+        return self.run(**kwargs)  # type: ignore
 
     @abc.abstractmethod
     @no_type_check
-    def run(self, **kwargs):
+    def run(self, **kwargs) -> None:
         """
         Метод который нужно определить для выполнения комманд
 

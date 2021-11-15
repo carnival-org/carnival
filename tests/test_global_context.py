@@ -1,10 +1,11 @@
 from invoke import Context
 
-from carnival import global_context, Host
+from carnival import global_context
+from carnival.host import LocalHost
 
 
 def test_global_context():
-    h = Host("local")
+    h = LocalHost()
     assert global_context.host is None
     assert global_context.conn is None
 

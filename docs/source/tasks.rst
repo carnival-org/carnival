@@ -19,10 +19,12 @@
 carnival имеет встроенные задачи для удобства использования
 
 .. automodule:: carnival.internal_tasks
-    :exclude-members: run
+    :undoc-members:
+    :members:
 
 Результат выполнения Task.step
 =================================
 
 .. autoclass:: carnival.task.TaskResult
     :undoc-members:
+    :members:

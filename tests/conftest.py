@@ -2,6 +2,7 @@ from typing import Type
 
 import pytest
 from carnival import Host, Step
+from paramiko.client import WarningPolicy
 
 
 def pytest_configure(config):
@@ -52,9 +53,17 @@ def local_host():
 
 @pytest.fixture(scope="function")
 def ubuntu_ssh_host():
-    return Host("127.0.0.1", ssh_user="root", ssh_password="secret", ssh_port=22222)
+    return Host(
+        "127.0.0.1",
+        ssh_user="root", ssh_password="secret", ssh_port=22222,
+        missing_host_key_policy=WarningPolicy
+    )
 
 
 @pytest.fixture(scope="function")
 def centos_ssh_host():
-    return Host("127.0.0.1", ssh_user="root", ssh_password="secret", ssh_port=22223)
+    return Host(
+        "127.0.0.1",
+        ssh_user="root", ssh_password="secret", ssh_port=22223,
+        missing_host_key_policy=WarningPolicy
+    )

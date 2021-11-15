@@ -4,3 +4,4 @@
 
 .. automodule:: carnival.templates
     :undoc-members:
+    :members:

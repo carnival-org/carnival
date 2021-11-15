@@ -1,24 +1,23 @@
 .PHONY: dist clean qa test dev nodev todos install docs test_deps
 
 clean:
-	rm -rf carnival.egg-info dist build
+	rm -rf carnival.egg-info dist build __pycache__ .mypy_cache .pytest_cache .coverage
 
 test_deps:
-	pip3 install -qr requirements_dev.txt
-	python setup.py develop
+	poetry install --no-root
 
 qa:
-	flake8 .
-	mypy --strict --warn-unused-ignores carnival
+	poetry run flake8 .
+	poetry run mypy .
 
 test: qa docs test_deps
-	python3 -m pytest -x --cov-report term --cov=carnival -vv tests/
+	poetry run python3 -m pytest -x --cov-report term --cov=carnival -vv tests/
 
 test_fast:
-	python3 -m pytest -x --cov-report term --cov=carnival -vv -m "not slow" tests/
+	poetry run python3 -m pytest -x --cov-report term --cov=carnival -vv -m "not slow" tests/
 
 test_local:
-	python3 -m pytest -x --cov-report term --cov=carnival -vv -m "not remote" tests/
+	poetry run python3 -m pytest -x --cov-report term --cov=carnival -vv -m "not remote" tests/
 
 dev:
 	docker-compose -f testdata/docker-compose.yml up --build -d --remove-orphans --force-recreate
@@ -29,15 +28,10 @@ nodev:
 todos:
 	grep -r TODO carnival
 
-install:
-	pip3 install --force-reinstall .
-
 docs:
-	pip install sphinx
-	make -C docs html
+	poetry run make -C docs html
 
 dist:
-	python3 setup.py sdist
-	twine upload dist/*
-	git tag `cat setup.py | grep VERSION | grep -v version | cut -d= -f2 | tr -d "[:space:]"`
+	poetry publish
+	git tag `poetry version -s`
 	git push --tags

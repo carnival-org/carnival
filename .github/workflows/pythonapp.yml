@@ -15,6 +15,7 @@ jobs:
       uses: actions/setup-python@v1
     - name: Install dependencies
       run: |
+        pip3 install poetry
         make test_deps
     - name: QA
       run: |

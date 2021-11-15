@@ -4,7 +4,7 @@ import typing
 sys.path.insert(0, os.path.abspath('../../'))
 
 project = 'Carnival'
-copyright = '2020, Dmitry Simonov'
+copyright = '2021, Dmitry Simonov'
 author = 'Dmitry Simonov'
 
 extensions = [
@@ -16,6 +16,7 @@ autodoc_mock_imports = [
     'patchwork',
     'jinja2',
     'click',
+    'paramiko',
 ]
 master_doc = 'index'
 autodoc_default_flags = ['members', ]

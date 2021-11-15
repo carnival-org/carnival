@@ -32,6 +32,6 @@ docs:
 	poetry run make -C docs html
 
 dist:
-	poetry publish
+	poetry publish --build
 	git tag `poetry version -s`
 	git push --tags

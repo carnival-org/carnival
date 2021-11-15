@@ -177,6 +177,10 @@ class Host(SSHHost):
             DeprecationWarning,
             stacklevel=2,
         )
+
+        if "@" in addr:
+            ssh_user, addr = addr.split("@", maxsplit=1)
+
         super().__init__(
             addr,
             ssh_user=ssh_user, ssh_password=ssh_password, ssh_port=ssh_port,

@@ -17,6 +17,7 @@ autodoc_mock_imports = [
     'jinja2',
     'click',
     'paramiko',
+    'dotenv',
 ]
 master_doc = 'index'
 autodoc_default_flags = ['members', ]

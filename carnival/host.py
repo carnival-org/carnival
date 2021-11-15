@@ -147,6 +147,9 @@ class SSHHost(LocalHost):
         return conn
 
 
+AnyHost = Union[LocalHost, SSHHost]
+
+
 class Host(SSHHost):
     """
     :param addr: Адрес сервера для SSH или "local" для локального соединения

@@ -36,8 +36,8 @@ Usage: carnival [OPTIONS] [deploy_frontend|deploy_backend]...
 ```
 
 ### Competion
-* for *Bash*: place `eval "$(_CARNIVAL_COMPLETE=source carnival)"` in .bashrc
-* for *ZSH*: place `eval "$(_CARNIVAL_COMPLETE=source_zsh carnival)"` in .zshrc
+* for *Bash*: place `eval "$(_CARNIVAL_COMPLETE=bash_source carnival)"` in .bashrc
+* for *ZSH*: place `eval "$(_CARNIVAL_COMPLETE=zsh_source carnival)"` in .zshrc
 
 ## Quick example
 `carnival_file.py` - entry point for carnival cli

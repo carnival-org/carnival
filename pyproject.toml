@@ -6,7 +6,7 @@ authors = ["Dmirty Simonov <demalf@gmail.com>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.8"
 Fabric = "2.6.0"
 invoke = "1.6.0"
 patchwork = "1.0.1"

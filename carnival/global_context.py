@@ -3,16 +3,16 @@ from typing import Any, Optional, Type, Union
 from fabric import Connection  # type:ignore
 from invoke import Context  # type:ignore
 
-from carnival.host import Host
+from carnival.host import AnyHost
 
 # noinspection PyTypeChecker
 conn: Union[Connection, Context, None] = None
 # noinspection PyTypeChecker
-host: Optional[Host] = None
+host: Optional[AnyHost] = None
 
 
 class SetContext:
-    def __init__(self, h: Host):
+    def __init__(self, h: AnyHost):
         self.host = h
 
     def __enter__(self) -> None:

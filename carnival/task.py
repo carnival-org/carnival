@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Any, List, Optional, Type, Union
 
 from carnival import Step, global_context
-from carnival.host import Host
+from carnival.host import AnyHost
 
 
 def _underscore(word: str) -> str:
@@ -20,7 +20,7 @@ class TaskResult:
     """
     Возвращается вызовом метода Task.step
     """
-    host: Host
+    host: AnyHost
     step: Step
     result: Any
 
@@ -58,7 +58,7 @@ class Task:
         """
         return task_class(dry_run=self.dry_run).run()
 
-    def step(self, steps: Union[Step, List[Step]], hosts: Union[Host, List[Host]]) -> List[TaskResult]:
+    def step(self, steps: Union[Step, List[Step]], hosts: Union[AnyHost, List[AnyHost]]) -> List[TaskResult]:
         """
         Запустить шаг(и) на хост(ах)
         Возвращает объект TaskResult для получения результатов работы каждого шага на каждом хосте
@@ -99,7 +99,7 @@ class SimpleTask(abc.ABC, Task):
     Запустить шаги `self.steps` на хостах `self.hosts`
     """
 
-    hosts: List[Host]
+    hosts: List[AnyHost]
     steps: List[Step]
 
     def run(self) -> None:

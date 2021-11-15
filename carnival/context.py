@@ -4,7 +4,7 @@ from itertools import chain
 from typing import TYPE_CHECKING, Any, Callable, Dict, List
 
 if TYPE_CHECKING:
-    from carnival.host import Host
+    from carnival.host import AnyHost
     from carnival.step import Step
 
 
@@ -46,7 +46,7 @@ def build_kwargs(fn: Callable[..., Any], context: Dict[str, Any]) -> Dict[str, A
     return kwargs
 
 
-def build_context(step: 'Step', host: 'Host') -> Dict[str, Any]:
+def build_context(step: 'Step', host: 'AnyHost') -> Dict[str, Any]:
     run_context: Dict[str, Any] = {'host': host}
 
     env_prefix = "CARNIVAL_CTX_"

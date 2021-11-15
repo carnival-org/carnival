@@ -51,8 +51,9 @@ class LocalHost:
     Локальный хост, работает по локальному терминалу
     """
 
-    def __init__(self) -> None:
+    def __init__(self, **context: Any) -> None:
         self.addr = "local"
+        self.context = context
 
     def connect(self) -> LocalConnection:
         return LocalConnection()

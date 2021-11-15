@@ -2,7 +2,7 @@ import abc
 from typing import Any, no_type_check
 
 from carnival.context import build_context, build_kwargs
-from carnival.host import Host
+from carnival.host import AnyHost
 
 
 class Step:
@@ -34,7 +34,7 @@ class Step:
         """
         self.context = context
 
-    def run_with_context(self, host: Host) -> Any:
+    def run_with_context(self, host: AnyHost) -> Any:
         context = build_context(self, host)
         kwargs = build_kwargs(self.run, context)
         return self.run(**kwargs)  # type: ignore

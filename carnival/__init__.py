@@ -1,3 +1,5 @@
+import sys
+
 from carnival.step import Step
 from carnival.host import Host, SSHHost, LocalHost
 from carnival.task import Task, SimpleTask
@@ -5,6 +7,12 @@ from carnival import cmd
 from carnival import internal_tasks
 from carnival.utils import log
 from carnival.context import context_ref
+
+
+if not sys.warnoptions:
+    import warnings
+    warnings.simplefilter("default")
+
 
 __all__ = [
     'Step',

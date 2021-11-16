@@ -11,7 +11,10 @@ from carnival.context import context_ref
 
 if not sys.warnoptions:
     import warnings
-    warnings.simplefilter("default")
+    warnings.filterwarnings(
+        action='default',
+        module=r'carnival.*'
+    )
 
 
 __all__ = [

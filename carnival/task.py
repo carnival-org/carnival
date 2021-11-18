@@ -1,10 +1,12 @@
 import abc
 import re
-from dataclasses import dataclass
-from typing import Any, List, Optional, Type, Union
+import typing
 
-from carnival import Step, global_context
-from carnival.host import AnyHost
+from carnival.host._base import HostBaseT, ConnectionBaseT
+from carnival.host import (
+    SSHHost, SSHConnection,
+    AnyHost, AnyConnection,
+)
 
 
 def _underscore(word: str) -> str:
@@ -13,16 +15,6 @@ def _underscore(word: str) -> str:
     word = re.sub(r"([a-z\d])([A-Z])", r'\1_\2', word)
     word = word.replace("-", "_")
     return word.lower()
-
-
-@dataclass
-class TaskResult:
-    """
-    Возвращается вызовом метода Task.step
-    """
-    host: AnyHost
-    step: Step
-    result: Any
 
 
 class Task:
@@ -41,69 +33,86 @@ class Task:
 
     # Имя задачи
     name: str = ""
-    module_name: Optional[str] = None
+    module_name: typing.Optional[str] = None
     help: str = ""
 
     @classmethod
     def get_name(cls) -> str:
         return cls.name if cls.name else _underscore(cls.__name__)
 
-    def __init__(self, dry_run: bool):
-        self.dry_run = dry_run
+    def __init__(self) -> None:
+        pass
 
-    def call_task(self, task_class: Type['Task']) -> Any:
+    def call_task(self, task_class: typing.Type['Task']) -> typing.Any:
         """
         Запустить другую задачу
         Возвращает результат работы задачи
         """
-        return task_class(dry_run=self.dry_run).run()
-
-    def step(self, steps: Union[Step, List[Step]], hosts: Union[AnyHost, List[AnyHost]]) -> List[TaskResult]:
-        """
-        Запустить шаг(и) на хост(ах)
-        Возвращает объект TaskResult для получения результатов работы каждого шага на каждом хосте
-        """
-
-        if not isinstance(steps, list) and not isinstance(steps, tuple):
-            steps = [steps, ]
-
-        if not isinstance(hosts, list) and not isinstance(hosts, tuple):
-            hosts = [hosts, ]
-
-        results = []
-
-        for host in hosts:
-            with global_context.SetContext(host):
-                for step in steps:
-                    step_name = _underscore(step.__class__.__name__)
-                    print(f"💃💃💃 Running {self.get_name()}:{step_name} at {host}")
-                    if not self.dry_run:
-                        r = TaskResult(
-                            host=host,
-                            step=step,
-                            result=step.run_with_context(host=host),
-                        )
-                        results.append(r)
-        return results
+        return task_class().run()
 
     @abc.abstractmethod
-    def run(self) -> Any:
+    def run(self) -> typing.Any:
         """
         Реализация выполнения задачи
         """
         raise NotImplementedError
 
 
-class SimpleTask(abc.ABC, Task):
+class TypedTask(typing.Generic[HostBaseT, ConnectionBaseT], Task, metaclass=abc.ABCMeta):
     """
-    Запустить шаги `self.steps` на хостах `self.hosts`
+    Запустить метод `host_run` хостах `self.hosts`
+
+    Типизировання задача, позволяет задавать необходимый тип хоста и соединения с помощью generics
+
+    .. versionadded:: 2.0
+
+    >>> class LocalTask(TypedTask[YourHost, YourConnection]):
+    >>>     hosts = [
+    >>>         localhost, # mypy error
+    >>>         SSHHost("1.2.3.4"),  # mypy error
+    >>>         YourHost(),        # OK
+    >>>     ]
+    >>>     def host_run(self):
+    >>>         cmd.cli.run(self.c, self.host.command)
     """
 
-    hosts: List[AnyHost]
-    steps: List[Step]
+    hosts: typing.List[HostBaseT]  #: Список хостов для выполнения
+    c: ConnectionBaseT  #: соединение с хостом
+    host: HostBaseT  #: хост с которым в данный момент соединен
 
     def run(self) -> None:
-        self.step(
-            steps=self.steps,
-            hosts=self.hosts,
-        )
+        for host in self.hosts:
+            with host.connect() as c:
+                self.host = host
+                self.c = c  # type: ignore  # https://github.com/python/mypy/issues/3151
+                self.host_run()
+
+    @abc.abstractmethod
+    def host_run(self) -> None:
+        """
+        Реализация выполнения задачи
+        HostConnection доступен через `self.c`
+        """
+        raise NotImplementedError
+
+
+class SSHTask(TypedTask[SSHHost, SSHConnection], metaclass=abc.ABCMeta):
+    """
+    Запустить метод `host_run` хостах `self.hosts`, типизировано для ssh хостов
+    .. versionadded:: 2.0
+    """
+
+
+class AnyTask(TypedTask[AnyHost, AnyConnection], metaclass=abc.ABCMeta):
+    """
+    Запустить метод `host_run` хостах `self.hosts`, типизировано для любых хостов
+    .. versionadded:: 2.0
+    """
+
+
+__all__ = [
+    "Task",
+    "TypedTask",
+    "SSHTask",
+    "AnyTask",
+]

@@ -4,7 +4,6 @@ from typing import Any
 from jinja2 import (ChoiceLoader, Environment, FileSystemLoader, PackageLoader,
                     PrefixLoader)
 
-from carnival import global_context
 from carnival.plugins import discover_plugins
 
 """
@@ -17,10 +16,11 @@ j2_env = Environment(loader=ChoiceLoader([
 
 
 def render(template_path: str, **context: Any) -> str:
+    """
+    Отрендерить файл шаблона в строку
+
+    :param template_path: путь до файла jinja2, можно использовать относительный путь (от корня проекта)
+    :param context: контекст шаблона
+    """
     template = j2_env.get_template(template_path)
-    return template.render(
-        conn=global_context.conn,
-        connected_host=global_context.host,
-        host_context=global_context,
-        **context,
-    )
+    return template.render(**context)

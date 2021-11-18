@@ -18,7 +18,7 @@ dist
 templates
 contrib
 .DS_Store
-.coverage
+.coverage*
 .ideaDataSources
 .env
 .pytest_cache

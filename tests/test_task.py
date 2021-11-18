@@ -1,7 +1,7 @@
 import pytest
 
-from carnival import Host
-from carnival.task import _underscore, Task, SimpleTask
+from carnival.task import _underscore, Task, TypedTask
+from carnival.host.local import localhost, LocalConnection, LocalHost
 
 
 def test_underscore():
@@ -9,57 +9,39 @@ def test_underscore():
 
 
 def test_task_name():
-    class DryTask(Task):
-        pass
+    t: Task
 
-    t = DryTask(True)
+    class DryTask(Task):
+        def run(self):
+            pass
+
+    t = DryTask()
     assert t.get_name() == "dry_task"
 
     class DryNameTask(Task):
         name = "nametask"
 
-    t = DryNameTask(True)
+        def run(self):
+            pass
+
+    t = DryNameTask()
     assert t.get_name() == "nametask"
 
 
-def test_task_dry_run(noop_step, mocker):
-    spy = mocker.spy(noop_step, 'run')
-
-    class DryTask(Task):
-        def run(self):
-            self.step(noop_step, Host("local"))
-    t = DryTask(True)
-
-    t.run()
-    spy.assert_not_called()
-
-
-def test_task(noop_step, mocker):
-    spy = mocker.spy(noop_step, 'run')
-
+def test_task():
     with pytest.raises(NotImplementedError):
-        Task(False).run()
-
-    class DryTask(Task):
-        def run(self):
-            self.step(noop_step, Host("local"))
-            self.step([noop_step, ], [Host("local"), ])
-    t = DryTask(False)
-
-    t.run()
-    spy.assert_called()
+        Task().run()  # type:ignore  # noqa
 
 
-def test_simple_task(noop_step, mocker):
-    spy = mocker.spy(noop_step, 'run')
+def test_typed_task(mocker):
+    class TT(TypedTask[LocalHost, LocalConnection]):
+        hosts = [localhost, ]
 
-    with pytest.raises(NotImplementedError):
-        Task(False).run()
+        def host_run(self) -> None:
+            pass
 
-    class DryTask(SimpleTask):
-        hosts = [Host("local"), ]
-        steps = [noop_step, ]
-    t = DryTask(False)
+    spy = mocker.spy(TT, 'host_run')
 
+    t = TT()
     t.run()
     spy.assert_called()

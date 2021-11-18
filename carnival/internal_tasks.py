@@ -1,4 +1,4 @@
-from carnival import Task
+from carnival.task import Task
 
 
 class Help(Task):
@@ -18,7 +18,7 @@ class Help(Task):
         if task_list:
             ralign += max([len(x) for x in task_list])
 
-        for task_name in task_types.keys():
+        for task_name in task_list:
             help_text = task_types[task_name].help
             if help_text:
                 print(f" {task_name:<{ralign}} {help_text}")

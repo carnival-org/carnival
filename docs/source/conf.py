@@ -11,9 +11,6 @@ extensions = [
     'sphinx.ext.autodoc',
 ]
 autodoc_mock_imports = [
-    'fabric',
-    'invoke',
-    'patchwork',
     'jinja2',
     'click',
     'paramiko',

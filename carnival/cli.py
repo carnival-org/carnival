@@ -3,18 +3,9 @@ import sys
 from typing import Any, Dict, Iterable, Type
 
 import click
-import dotenv
 
 from carnival.task import Task
 from carnival.tasks_loader import get_tasks
-
-# Load dotenv first
-carnival_dotenv = os.getenv("CARNIVAL_DOTENV", '.env')
-try:
-    dotenv.load_dotenv(dotenv_path=carnival_dotenv)
-except OSError:
-    # dotenv file not found
-    pass
 
 carnival_tasks_module = os.getenv("CARNIVAL_TASKS_MODULE", "carnival_tasks")
 
@@ -32,10 +23,9 @@ def except_hook(type: Type[Any], value: Any, traceback: Any) -> None:
 
 def main() -> int:
     """
-        >>> $ poetry run python -m carnival --help
-        >>> Usage: python -m carnival [OPTIONS] {help|test}...
+        >>> $ carnival --help
+        >>> Usage: carnival [OPTIONS] {help|test}...
         >>> Options:
-        >>> -d, --dry_run  Simulate run
         >>> --debug        Turn on debug mode
         >>> --help         Show this message and exit.
     """
@@ -48,17 +38,20 @@ def main() -> int:
     )
 
     @click.command()
-    @click.option('-d', '--dry_run', is_flag=True, default=False, help="Simulate run")
     @click.option('--debug', is_flag=True, default=False, help="Turn on debug mode")
     @click.argument('tasks', required=True, type=click.Choice(list(task_types.keys())), nargs=-1)
-    def cli(dry_run: bool, debug: bool, tasks: Iterable[str]) -> None:
+    def cli(debug: bool, tasks: Iterable[str]) -> None:
         if debug is True:
             print("Debug mode on.")
         else:
             sys.excepthook = except_hook
 
         for task in tasks:
-            task_types[task](dry_run=dry_run).run()
+            try:
+                task_types[task]().run()
+            except KeyboardInterrupt:
+                print("Interrupted.")
+                sys.exit(1)
 
     cli(complete_var=complete_var)
     return 0

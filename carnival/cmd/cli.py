@@ -1,25 +1,12 @@
-from typing import Any
-
-from carnival import global_context
-from invoke import Result  # type: ignore
+from carnival.host import AnyConnection, Result
 
 
-def _run_command(command: str, **kwargs: Any) -> Result:
-    assert global_context.conn is not None, "No connection"
-    return global_context.conn.run(command, **kwargs)
-
-
-def run(command: str, **kwargs: Any) -> Result:
+def run(c: AnyConnection, command: str, hide: bool = False) -> Result:
     """
-    Запустить комманду
-    """
-    return _run_command(command, **kwargs)
+    Запустить комманду и дождаться окончания
 
-
-def pty(command: str, **kwargs: Any) -> Result:
+    :param command: команда для выполнения
+    :param hide: скрыть результаты выполнения команды
     """
-    Запустить комманду, используя псевдотерминальную сессию
-
-    См <https://docs.pyinvoke.org/en/latest/api/runners.html>
-    """
-    return run(command, pty=True, **kwargs)
+    result = c.run(command, hide=hide).wait()
+    return result

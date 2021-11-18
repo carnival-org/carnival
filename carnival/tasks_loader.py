@@ -1,6 +1,6 @@
-import abc
 import os
 import sys
+import inspect
 from typing import Any, Dict, Set, Type
 
 from carnival.task import Task
@@ -12,7 +12,7 @@ def task_subclasses(cls: Type[Any]) -> Set[Type[Any]]:
     subclasses = set()
     for sc in cls.__subclasses__():
         # Skip if last MRO base is ABC
-        if abc.ABC != sc.__mro__[1]:
+        if not inspect.isabstract(sc):
             subclasses.add(sc)
 
         subclasses.update(task_subclasses(sc))

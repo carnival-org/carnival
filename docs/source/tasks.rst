@@ -2,16 +2,20 @@
 Задача (Task)
 ###################
 
-.. autoclass:: carnival.Task
+.. autoclass:: carnival.task.Task
     :members: run
 
-Простые задачи
-================
+Типизированные задачи
+=======================
+carnival 2 был написан с использованием строгой типизации
 
-.. autoclass:: carnival.SimpleTask
-    :undoc-members: hosts, steps
+.. autoclass:: carnival.task.TypedTask
+    :members:
+
+.. autoclass:: carnival.task.SSHTask
+    :members:
+    :undoc-members: hosts, c, host_run
     :exclude-members: run
-
 
 Встроенные задачи
 ===================
@@ -21,10 +25,4 @@ carnival имеет встроенные задачи для удобства и
 .. automodule:: carnival.internal_tasks
     :undoc-members:
     :members:
-
-Результат выполнения Task.step
-=================================
-
-.. autoclass:: carnival.task.TaskResult
-    :undoc-members:
-    :members:
+    :exclude-members: module_name, run

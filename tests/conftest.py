@@ -1,31 +1,11 @@
-from typing import Type
-
 import pytest
-from carnival import Host, Step
+from carnival.host import localhost, SSHHost
 from paramiko.client import WarningPolicy
 
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "slow: slow tests")
     config.addinivalue_line("markers", "remote: remote connection required")
-
-
-@pytest.fixture(scope="function")
-def noop_step_class() -> Type[Step]:
-    class NoopStep(Step):
-        def run(self):
-            pass
-    return NoopStep
-
-
-@pytest.fixture(scope="function")
-def noop_step(noop_step_class) -> Step:
-    return noop_step_class()
-
-
-@pytest.fixture(scope="function")
-def noop_step_context(noop_step_class) -> Step:
-    return noop_step_class(additional="context")
 
 
 @pytest.fixture(scope='function')
@@ -36,7 +16,7 @@ def suspend_capture(pytestconfig):
         def __init__(self):
             self.capmanager = pytestconfig.pluginmanager.getplugin('capturemanager')
 
-        def __enter__(self):
+        def __enter__(self) -> None:
             self.capmanager.suspend_global_capture(in_=True)
             pass
 
@@ -48,22 +28,22 @@ def suspend_capture(pytestconfig):
 
 @pytest.fixture(scope="function")
 def local_host():
-    return Host("local")
+    return localhost
 
 
 @pytest.fixture(scope="function")
-def ubuntu_ssh_host():
-    return Host(
-        "127.0.0.1",
-        ssh_user="root", ssh_password="secret", ssh_port=22222,
+def ubuntu_ssh_host() -> SSHHost:
+    return SSHHost(
+        host="127.0.0.1", port=22222,
+        ssh_user="root", ssh_password="secret",
         missing_host_key_policy=WarningPolicy
     )
 
 
 @pytest.fixture(scope="function")
-def centos_ssh_host():
-    return Host(
-        "127.0.0.1",
-        ssh_user="root", ssh_password="secret", ssh_port=22223,
+def centos_ssh_host() -> SSHHost:
+    return SSHHost(
+        host="127.0.0.1", port=22223,
+        ssh_user="root", ssh_password="secret",
         missing_host_key_policy=WarningPolicy
     )

@@ -11,7 +11,6 @@ Carnival |release|
    :caption: Содержимое:
 
    hosts.rst
-   steps.rst
    tasks.rst
    cli.rst
    templates.rst

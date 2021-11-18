@@ -2,15 +2,30 @@
 Оборудование (Host)
 ###################
 
-.. automodule:: carnival.host
+SSH
+======
+.. autoclass:: carnival.host.SSHHost()
+    :special-members: __init__, connect
+    :members:
 
-.. autoattribute:: carnival.host.LOCAL_ADDRS
+.. autoclass:: carnival.host.SSHConnection()
+    :members: run
 
-.. autoclass:: carnival.host.Host
-    :special-members: __init__
+Локальный хост
+================
+.. autoclass:: carnival.host.LocalHost()
+    :special-members: __init__, connect
+    :members:
 
-.. autoclass:: carnival.host.SSHHost
-    :special-members: __init__
+.. autoclass:: carnival.host.LocalConnection()
+    :members: run
 
-.. autoclass:: carnival.host.LocalHost
-    :special-members: __init__
+
+Результат выполнения команд
+=============================
+
+.. autoclass:: carnival.host.results.ResultPromise()
+    :members:
+
+.. autoclass:: carnival.host.results.Result()
+    :members:

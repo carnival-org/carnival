@@ -6,7 +6,7 @@
 
 ![MIT](https://img.shields.io/github/license/carnival-org/carnival)
 
-Software provisioning tool, built on top of [Fabric](http://www.fabfile.org/)
+Software provisioning tool.
 
 Also [carnival contrib package](https://github.com/carnival-org/carnival-contrib)
 available.
@@ -30,7 +30,6 @@ $ carnival --help
 Usage: carnival [OPTIONS] [deploy_frontend|deploy_backend]...
 
     Options:
-    -d, --dry_run  Simulate run
     --debug        Turn on debug mode
     --help         Show this message and exit.
 ```
@@ -44,44 +43,20 @@ Usage: carnival [OPTIONS] [deploy_frontend|deploy_backend]...
 
 Lets create one.
 ```python
-from carnival import Step, Host, Task, cmd
+from carnival import cli
+from carnival.host import SSHHost
+
+host = SSHHOST("1.2.3.4")
 
 class Deploy(Task):
     def run(self):
-        self.step(
-            DeployFrontend(),
-            Host("1.2.3.5", ssh_user="root", can="context", additional="give"),
-        )
-
-        self.step(
-            DeployFrontend(),
-            [
-                Host("root@1.2.3.6", can="give", additional="context"),
-                Host("root@1.2.3.7", can="context", additional="give"),
-            ]
-        )
-
-
-class DeployFrontend(Step):
-    def run(self, can, additional, **kwargs):
-        cmd.apt.install_multiple("htop", "nginx")
-        cmd.systemd.enable("nginx", start_now=True)
-
-
-class DeployBackend(Step):
-    def run(self, can, additional, **kwargs):
-        cmd.apt.install_multiple("htop")
-        cmd.docker.install_ce_ubuntu()
-        cmd.docker.install_compose()
+        with host.connect() as c:
+            cmd.cli.run("apt-get install -y htop")
 ```
 
 Run
 ```
 $  python3 -m carnival deploy
-💃💃💃 Runing ⛏frontend at 🖥 1.2.3.4
-...
-💃💃💃 Runing ⛏frontend at 🖥 1.2.3.5
-...
 ```
 
 
@@ -91,7 +66,7 @@ $  python3 -m carnival deploy
 $ make dev  # Run docker containers for testing
 $ make test_deps  # Install test dependencies
 $ make test  # run static analyzers and tests
-$ make qs  # Run static analyzers only
+$ make qa  # Run static analyzers only
 $ make nodev  # Stop docker containers
 ```
 

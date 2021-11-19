@@ -21,7 +21,7 @@ class DiskContextProtocol(typing.Protocol):
 DiskContextProtocolT = typing.TypeVar("DiskContextProtocolT", bound=DiskContextProtocol)
 
 
-class CheckDiskSpace(Step[DiskContextProtocolT]):
+class CheckDiskSpace(Step[DiskContextProtocolT]):  # Step for check disk space on any host
     def run(self) -> None:
         with self.host.connect() as c:
             cmd.cli.run(c, f"df {self.host.context.disk}")
@@ -35,7 +35,7 @@ class UploadDataProtocol(typing.Protocol):
 UploadDataProtocolT = typing.TypeVar("UploadDataProtocolT", bound=UploadDataProtocol)
 
 
-class UploadData(SshStep[UploadDataProtocolT]):
+class UploadData(SshStep[UploadDataProtocolT]):  # Step for put file on ssh host (ssh host required)
     def run(self) -> None:
         with self.host.connect() as c:
             cmd.transfer.put(c, self.host.context.local, self.host.context.remote)
@@ -66,7 +66,10 @@ hosts_bad = [
 
 #  ## tasks.py
 class InstallServer(SimpleTask[HostContext]):
-    hosts = hosts_good
+    hosts: SshHost[HostContext] = [
+        SshHost("1.2.3.4", context=HostContext()),
+        localhost.with_context(HostContext()),  # type: ignore  # Oops! UploadData cant run on localhost
+    ]
     steps = [
         CheckDiskSpace[HostContext],
         UploadData[HostContext],

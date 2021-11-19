@@ -1,15 +1,15 @@
 from typing import List, Optional
 
 from carnival import cmd
-from carnival.utils import log
+from carnival.connection import AnyConnection
 
 
-def get_pkg_versions(pkgname: str) -> List[str]:
+def get_pkg_versions(c: AnyConnection, pkgname: str) -> List[str]:
     """
     Получить список доступных версий пакета
     """
     versions = []
-    result = cmd.cli.run(f"DEBIAN_FRONTEND=noninteractive apt-cache madison {pkgname}", hide=True, warn=True)
+    result = cmd.cli.run(c, f"DEBIAN_FRONTEND=noninteractive apt-cache madison {pkgname}", hide=True, warn=True)
     if result.ok is False:
         return []
 
@@ -19,13 +19,13 @@ def get_pkg_versions(pkgname: str) -> List[str]:
     return versions
 
 
-def get_installed_version(pkgname: str) -> Optional[str]:
+def get_installed_version(c: AnyConnection, pkgname: str) -> Optional[str]:
     """
     Получить установленную версию пакета
 
     :return: Версия пакета если установлен, `None` если пакет не установлен
     """
-    result = cmd.cli.run(f"DEBIAN_FRONTEND=noninteractive dpkg -l {pkgname}", hide=True, warn=True)
+    result = cmd.cli.run(c, f"DEBIAN_FRONTEND=noninteractive dpkg -l {pkgname}", hide=True, warn=True)
     if result.ok is False:
         return None
     installed, pkgn, ver, arch, *desc = result.stdout.strip().split("\n")[-1].split()
@@ -36,13 +36,13 @@ def get_installed_version(pkgname: str) -> Optional[str]:
     return ver.strip()
 
 
-def is_pkg_installed(pkgname: str, version: Optional[str] = None) -> bool:
+def is_pkg_installed(c: AnyConnection, pkgname: str, version: Optional[str] = None) -> bool:
     """
     Проверить установлен ли пакет
     Если версия не указана - проверяется любая
     """
 
-    pkgver = get_installed_version(pkgname)
+    pkgver = get_installed_version(c, pkgname)
     if version is None and pkgver is not None:
         return True
 
@@ -52,7 +52,7 @@ def is_pkg_installed(pkgname: str, version: Optional[str] = None) -> bool:
     return False
 
 
-def force_install(pkgname: str, version: Optional[str] = None, update: bool = False, hide: bool = False) -> None:
+def force_install(c: AnyConnection, pkgname: str, version: Optional[str] = None, update: bool = False, hide: bool = False) -> None:
     """
     Установить пакет без проверки установлен ли он
     """
@@ -60,12 +60,12 @@ def force_install(pkgname: str, version: Optional[str] = None, update: bool = Fa
         pkgname = f"{pkgname}={version}"
 
     if update:
-        cmd.cli.run("DEBIAN_FRONTEND=noninteractive sudo apt-get update", pty=True, hide=hide)
+        cmd.cli.run(c, "DEBIAN_FRONTEND=noninteractive sudo apt-get update", pty=True, hide=hide)
 
-    cmd.cli.run(f"DEBIAN_FRONTEND=noninteractive sudo apt-get install -y {pkgname}", pty=True, hide=hide)
+    cmd.cli.run(c, f"DEBIAN_FRONTEND=noninteractive sudo apt-get install -y {pkgname}", pty=True, hide=hide)
 
 
-def install(pkgname: str, version: Optional[str] = None, update: bool = True, hide: bool = False) -> bool:
+def install(c: AnyConnection, pkgname: str, version: Optional[str] = None, update: bool = True, hide: bool = False,) -> bool:
     """
     Установить пакет если он еще не установлен в системе
 
@@ -75,19 +75,19 @@ def install(pkgname: str, version: Optional[str] = None, update: bool = True, hi
     :param hide: скрыть вывод этапов
     :return: `True` если пакет был установлен, `False` если пакет уже был установлен ранее
     """
-    if is_pkg_installed(pkgname, version):
+    if is_pkg_installed(c, pkgname, version):
         if version:
             if not hide:
-                log(f"{pkgname}={version} already installed")
+                print(f"{pkgname}={version} already installed")
         else:
             if not hide:
-                log(f"{pkgname} already installed")
+                print(f"{pkgname} already installed")
         return False
-    force_install(pkgname=pkgname, version=version, update=update, hide=hide)
+    force_install(c, pkgname=pkgname, version=version, update=update, hide=hide)
     return True
 
 
-def install_multiple(*pkg_names: str, update: bool = True, hide: bool = False) -> bool:
+def install_multiple(c: AnyConnection, *pkg_names: str, update: bool = True, hide: bool = False) -> bool:
     """
     Установить несколько пакетов, если они не установлены
 
@@ -96,20 +96,20 @@ def install_multiple(*pkg_names: str, update: bool = True, hide: bool = False) -
     :param hide: скрыть вывод этапов
     :return: `True` если хотя бы один пакет был установлен, `False` если все пакеты уже были установлен ранее
     """
-    if all([is_pkg_installed(x) for x in pkg_names]):
+    if all([is_pkg_installed(c, x) for x in pkg_names]):
         if not hide:
-            log(f"{','.join(pkg_names)} already installed")
+            print(f"{','.join(pkg_names)} already installed")
         return False
 
     if update:
-        cmd.cli.run("DEBIAN_FRONTEND=noninteractive sudo apt-get update", pty=True, hide=hide)
+        cmd.cli.run(c, "DEBIAN_FRONTEND=noninteractive sudo apt-get update", pty=True, hide=hide)
 
     for pkg in pkg_names:
-        install(pkg, update=False, hide=hide)
+        install(c, pkg, update=False, hide=hide)
     return True
 
 
-def remove(*pkg_names: str, hide: bool = False) -> None:
+def remove(c: AnyConnection, *pkg_names: str, hide: bool = False) -> None:
     """
     Удалить пакет
 
@@ -117,4 +117,4 @@ def remove(*pkg_names: str, hide: bool = False) -> None:
     :param hide: скрыть вывод этапов
     """
     assert pkg_names, "pkg_names is empty"
-    cmd.cli.run(f"DEBIAN_FRONTEND=noninteractive sudo apt-get remove --auto-remove -y {' '.join(pkg_names)}", hide=hide)
+    cmd.cli.run(c, f"DEBIAN_FRONTEND=noninteractive sudo apt-get remove --auto-remove -y {' '.join(pkg_names)}", hide=hide)

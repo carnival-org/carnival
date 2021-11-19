@@ -5,83 +5,68 @@ Carnival не предоставляет никаких сложных абст�
 подразумевая что вы будете использовать встроенные коллекции python и организуете
 работу так, как будет удобно для вашей задачи.
 В простом случае, можно передавать хосты прямо в коде файла `carnival_tasks.py`.
+В более сложных, создать списки в отдельном файле, например `inventory.py`.
 
->>> class SetupFrontend(Task):
->>>    def run(self, **kwargs):
->>>        self.step(Frontend(), SSHHost("1.2.3.4", packages=["htop", ]))
-
-В более сложных, создать списки в файле `inventory.py`
-
->>> # inventory.py
->>> frontends = [
->>>     LocalHost(),
->>>     SSHHost("1.2.3.5"),
->>> ]
-
->>> # carnival_tasks.py
->>> import inventory as i
->>> class SetupFrontend(Task):
->>>    def run(self, **kwargs):
->>>        self.step(Frontend(), i.frontends)
+>>> @dataclass
+>>> class SiteContext:
+>>>     port: int = 80
+>>>     site_directory: str = "/var/www"
+>>>
+>>> site1 = SSHHost("1.2.3.4", context=SiteContext(port=443, site_directory="/opt/www"))
+>>> site2 = SSHHost("1.2.3.5", context=SiteContext(port=443))
+>>> site3 = LocalHost(context=SiteContext(site_directory="/home/a1fred/www"))
 """
 
-from typing import Any, Optional, Union
-import warnings
+import abc
+import typing
+import copy
+from contextlib import contextmanager
 
-from fabric.connection import Connection as SSHConnection  # type: ignore
-from invoke.context import Context as LocalConnection  # type: ignore
-from paramiko.client import MissingHostKeyPolicy, AutoAddPolicy  # type: ignore
-
-
-AnyConnection = Union[SSHConnection, LocalConnection]
-
-"""
-Список адресов которые трактуются как локальное соединение
-.. deprecated:: 1.4
-        Host is deprecated, use LocalHost or SSHHost explicitly
-"""
-LOCAL_ADDRS = [
-    'local',
-    'localhost',
-]
+from carnival.connection import LocalConnection, SSHConnection, AnyConnection
+from paramiko.client import MissingHostKeyPolicy, AutoAddPolicy
 
 
-class LocalHost:
-    """
-    Локальный хост, работает по локальному терминалу
-    """
+HostContextT = typing.TypeVar("HostContextT")
+NewHostContextT = typing.TypeVar("NewHostContextT")
 
-    def __init__(self, **context: Any) -> None:
-        self.addr = "local"
-        self.context = context
 
-    def connect(self) -> LocalConnection:
-        return LocalConnection()
+class AnyHost(typing.Generic[HostContextT], metaclass=abc.ABCMeta):
+    context: HostContextT
+    addr: str
 
-    @property
-    def host(self) -> str:
-        """
-        Remove user and port parts, return just address
-        """
-
-        h = self.addr
-
-        if ':' in self.addr:
-            h = h.split(":", maxsplit=1)[0]
-
-        return h
+    @abc.abstractmethod
+    def connect(self) -> typing.ContextManager[AnyConnection]: ...
 
     def __str__(self) -> str:
-        return f"🖥 {self.host}"
+        return f"🖥 {self.addr}"
 
     def __hash__(self) -> int:
         return hash(self.addr)
 
     def __repr__(self) -> str:
-        return f"<Host object {self.host}>"
+        return f"<Host object {self.addr}>"
 
 
-class SSHHost(LocalHost):
+class LocalHost(AnyHost[HostContextT]):
+    """
+    Локальный хост, работает по локальному терминалу
+    """
+
+    def __init__(self, context: HostContextT) -> None:
+        self.context = context
+        self.addr: str = "localhost"
+
+    def with_context(self, context: NewHostContextT) -> "LocalHost[NewHostContextT]":  # TODO: Self type
+        new_host = typing.cast(LocalHost[NewHostContextT], copy.deepcopy(self))
+        new_host.context = context
+        return new_host
+
+    @contextmanager
+    def connect(self) -> typing.Generator[LocalConnection, None, None]:
+        yield LocalConnection()
+
+
+class SshHost(AnyHost[HostContextT]):
     """
     Удаленный хост, работает по SSH
     """
@@ -89,12 +74,13 @@ class SSHHost(LocalHost):
     def __init__(
         self,
         addr: str,
-        ssh_user: Optional[str] = None, ssh_password: Optional[str] = None, ssh_port: int = 22,
-        ssh_gateway: Optional['SSHHost'] = None,
-        ssh_connect_timeout: int = 10,
-        missing_host_key_policy: MissingHostKeyPolicy = AutoAddPolicy,
+        context: HostContextT,
 
-        **context: Any
+        ssh_user: typing.Optional[str] = None, ssh_password: typing.Optional[str] = None,
+        ssh_port: int = 22,
+        ssh_gateway: typing.Optional['SshHost[typing.Any]'] = None,
+        ssh_connect_timeout: int = 10,
+        missing_host_key_policy: typing.Type[MissingHostKeyPolicy] = AutoAddPolicy,
      ):
         """
         :param addr: Адрес сервера
@@ -105,36 +91,29 @@ class SSHHost(LocalHost):
         :param ssh_gateway: Gateway
         :param context: Контекст хоста
         """
+        if ":" in addr:
+            raise ValueError("Please set port in 'ssh_port' arg")
         if "@" in addr:
             raise ValueError("Please set user in 'ssh_user' arg")
 
+        self.context = context
         self.addr = addr
         self.ssh_port = ssh_port
-        self.context = context
         self.ssh_user = ssh_user
         self.ssh_password = ssh_password
         self.ssh_connect_timeout = ssh_connect_timeout
-        self.ssh_gateway: Optional['SSHHost'] = ssh_gateway
+        self.ssh_gateway = ssh_gateway
         self.missing_host_key_policy = missing_host_key_policy
 
-    def is_connection_local(self) -> bool:
-        """
-        Check if host's connection is local
-        """
-        warnings.warn(
-            "is_connection_local is deprecated, use LocalHost or SSHHost explicitly",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return self.host.lower() in LOCAL_ADDRS
-
-    def connect(self) -> SSHConnection:
+    @contextmanager
+    def connect(self) -> typing.Generator[SSHConnection, None, None]:
+        from fabric.connection import Connection  # type: ignore
         gateway = None
         if self.ssh_gateway:
             gateway = self.ssh_gateway.connect()
             assert isinstance(gateway, SSHConnection), f"{self.ssh_gateway} is not ssh connection"
 
-        conn = SSHConnection(
+        conn = Connection(
             host=self.addr,
             port=self.ssh_port,
             user=self.ssh_user,
@@ -145,51 +124,14 @@ class SSHHost(LocalHost):
             }
         )
         conn.client.set_missing_host_key_policy(self.missing_host_key_policy)
-        return conn
+        yield SSHConnection(conn)
+        conn.close()
 
 
-AnyHost = Union[LocalHost, SSHHost]
+localhost = LocalHost[None](None)
 
 
-class Host(SSHHost):
-    """
-    :param addr: Адрес сервера для SSH или "local" для локального соединения
-    :param ssh_user: Пользователь SSH
-    :param ssh_password: Пароль SSH
-    :param ssh_port: SSH порт
-    :param ssh_connect_timeout: SSH таймаут соединения
-    :param ssh_gateway: Gateway
-    :param context: Контекст хоста
-
-    .. deprecated:: 1.4
-        Host is deprecated, use LocalHost or SSHHost explicitly
-    """
-    def __init__(
-        self,
-        addr: str,
-        ssh_user: Optional[str] = None, ssh_password: Optional[str] = None, ssh_port: int = 22,
-        ssh_gateway: Optional['SSHHost'] = None, ssh_connect_timeout: int = 10,
-        missing_host_key_policy: MissingHostKeyPolicy = AutoAddPolicy,
-        **context: Any
-    ):
-        warnings.warn(
-            "Host is deprecated, use LocalHost or SSHHost explicitly",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        if "@" in addr:
-            ssh_user, addr = addr.split("@", maxsplit=1)
-
-        super().__init__(
-            addr,
-            ssh_user=ssh_user, ssh_password=ssh_password, ssh_port=ssh_port,
-            ssh_gateway=ssh_gateway, ssh_connect_timeout=ssh_connect_timeout,
-            missing_host_key_policy=missing_host_key_policy, **context
-        )
-
-    def connect(self) -> AnyConnection:
-        if self.addr in LOCAL_ADDRS:
-            return LocalConnection()
-
-        return super().connect()
+__all__ = (
+    'localhost',
+    'SshHost',
+)

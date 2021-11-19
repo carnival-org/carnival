@@ -1,15 +1,15 @@
 from carnival import cmd
-from invoke import Result  # type: ignore
+from carnival.connection import Result, AnyConnection
 
 
-def daemon_reload() -> Result:
+def daemon_reload(c: AnyConnection) -> Result:
     """
     Перегрузить systemd
     """
-    return cmd.cli.run("sudo systemctl --system daemon-reload")
+    return cmd.cli.run(c, "sudo systemctl --system daemon-reload")
 
 
-def start(service_name: str, reload_daemon: bool = False) -> Result:
+def start(c: AnyConnection, service_name: str, reload_daemon: bool = False) -> Result:
     """
     Запустить сервис
 
@@ -18,11 +18,11 @@ def start(service_name: str, reload_daemon: bool = False) -> Result:
     """
 
     if reload_daemon:
-        daemon_reload()
-    return cmd.cli.run(f"sudo systemctl start {service_name}")
+        daemon_reload(c)
+    return cmd.cli.run(c, f"sudo systemctl start {service_name}")
 
 
-def stop(service_name: str, reload_daemon: bool = False) -> Result:
+def stop(c: AnyConnection, service_name: str, reload_daemon: bool = False) -> Result:
     """
     Остановить сервис
 
@@ -30,20 +30,20 @@ def stop(service_name: str, reload_daemon: bool = False) -> Result:
     :param reload_daemon: перегрузить systemd
     """
     if reload_daemon:
-        daemon_reload()
-    return cmd.cli.run(f"sudo systemctl stop {service_name}")
+        daemon_reload(c)
+    return cmd.cli.run(c, f"sudo systemctl stop {service_name}")
 
 
-def restart(service_name: str) -> Result:
+def restart(c: AnyConnection, service_name: str) -> Result:
     """
     Перезапустить сервис
 
     :param service_name: имя сервиса
     """
-    return cmd.cli.run(f"sudo systemctl restart {service_name}")
+    return cmd.cli.run(c, f"sudo systemctl restart {service_name}")
 
 
-def enable(service_name: str, reload_daemon: bool = False, start_now: bool = True) -> Result:
+def enable(c: AnyConnection, service_name: str, reload_daemon: bool = False, start_now: bool = True) -> Result:
     """
     Добавить сервис в автозапуск
 
@@ -52,17 +52,17 @@ def enable(service_name: str, reload_daemon: bool = False, start_now: bool = Tru
     :param start_now: запустить сервис после добавления
     """
     if reload_daemon:
-        daemon_reload()
+        daemon_reload(c)
 
-    res = cmd.cli.run(f"sudo systemctl enable {service_name}")
+    res = cmd.cli.run(c, f"sudo systemctl enable {service_name}")
 
     if start_now:
-        start(service_name)
+        start(c, service_name)
 
     return res
 
 
-def disable(service_name: str, reload_daemon: bool = False, stop_now: bool = True) -> Result:
+def disable(c: AnyConnection, service_name: str, reload_daemon: bool = False, stop_now: bool = True) -> Result:
     """
     Убрать сервис из автозапуска
 
@@ -72,11 +72,11 @@ def disable(service_name: str, reload_daemon: bool = False, stop_now: bool = Tru
     """
 
     if reload_daemon:
-        daemon_reload()
+        daemon_reload(c)
 
-    res = cmd.cli.run(f"sudo systemctl disable {service_name}")
+    res = cmd.cli.run(c, f"sudo systemctl disable {service_name}")
 
     if stop_now:
-        stop(service_name)
+        stop(c, service_name)
 
     return res

@@ -1,10 +1,9 @@
 import abc
 import re
-from dataclasses import dataclass
-from typing import Any, List, Optional, Type, Union
+import typing
 
-from carnival import Step, global_context
-from carnival.host import AnyHost
+from carnival.step import Step, LocalStep, SshStep, ContextT
+from carnival.host import LocalHost, SshHost, AnyHost
 
 
 def _underscore(word: str) -> str:
@@ -15,17 +14,7 @@ def _underscore(word: str) -> str:
     return word.lower()
 
 
-@dataclass
-class TaskResult:
-    """
-    Возвращается вызовом метода Task.step
-    """
-    host: AnyHost
-    step: Step
-    result: Any
-
-
-class Task:
+class Task(metaclass=abc.ABCMeta):
     """
     Задача это единица выполнения одного или несколькоих шагов на определенных хостах.
 
@@ -41,69 +30,56 @@ class Task:
 
     # Имя задачи
     name: str = ""
-    module_name: Optional[str] = None
+    module_name: typing.Optional[str] = None
     help: str = ""
 
     @classmethod
     def get_name(cls) -> str:
         return cls.name if cls.name else _underscore(cls.__name__)
 
-    def __init__(self, dry_run: bool):
-        self.dry_run = dry_run
-
-    def call_task(self, task_class: Type['Task']) -> Any:
+    def call_task(self, task_class: typing.Type['Task']) -> None:
         """
         Запустить другую задачу
         Возвращает результат работы задачи
         """
-        return task_class(dry_run=self.dry_run).run()
-
-    def step(self, steps: Union[Step, List[Step]], hosts: Union[AnyHost, List[AnyHost]]) -> List[TaskResult]:
-        """
-        Запустить шаг(и) на хост(ах)
-        Возвращает объект TaskResult для получения результатов работы каждого шага на каждом хосте
-        """
-
-        if not isinstance(steps, list) and not isinstance(steps, tuple):
-            steps = [steps, ]
-
-        if not isinstance(hosts, list) and not isinstance(hosts, tuple):
-            hosts = [hosts, ]
-
-        results = []
-
-        for host in hosts:
-            with global_context.SetContext(host):
-                for step in steps:
-                    step_name = _underscore(step.__class__.__name__)
-                    print(f"💃💃💃 Running {self.get_name()}:{step_name} at {host}")
-                    if not self.dry_run:
-                        r = TaskResult(
-                            host=host,
-                            step=step,
-                            result=step.run_with_context(host=host),
-                        )
-                        results.append(r)
-        return results
+        task_class().run()
 
     @abc.abstractmethod
-    def run(self) -> Any:
+    def run(self) -> None:
         """
         Реализация выполнения задачи
         """
         raise NotImplementedError
 
 
-class SimpleTask(abc.ABC, Task):
-    """
-    Запустить шаги `self.steps` на хостах `self.hosts`
-    """
-
-    hosts: List[AnyHost]
-    steps: List[Step]
+class SimpleTask(typing.Generic[ContextT], Task, metaclass=abc.ABCMeta):
+    hosts: typing.List[AnyHost[ContextT]] = []
+    steps: typing.List[typing.Type[Step[ContextT]]] = []
 
     def run(self) -> None:
-        self.step(
-            steps=self.steps,
-            hosts=self.hosts,
-        )
+        for host in self.hosts:
+            for step in self.steps:
+                print(f"💃💃💃 Running {self.get_name()}:{_underscore(step.__name__)} at {host}")
+                step(host).run()
+
+
+class SimpleLocalTask(typing.Generic[ContextT], Task, metaclass=abc.ABCMeta):
+    hosts: typing.List[LocalHost[ContextT]] = []
+    steps: typing.List[typing.Type[LocalStep[ContextT]]] = []
+
+    def run(self) -> None:
+        for host in self.hosts:
+            for step in self.steps:
+                print(f"💃💃💃 Running {self.get_name()}:{_underscore(step.__name__)} at {host}")
+                step(host).run()
+
+
+class SimpleSshTask(typing.Generic[ContextT], Task, metaclass=abc.ABCMeta):
+    hosts: typing.List[SshHost[ContextT]] = []
+    steps: typing.List[typing.Type[SshStep[ContextT]]] = []
+
+    def run(self) -> None:
+        for host in self.hosts:
+            for step in self.steps:
+                print(f"💃💃💃 Running {self.get_name()}:{_underscore(step.__name__)} at {host}")
+                step(host).run()

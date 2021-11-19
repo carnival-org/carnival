@@ -48,17 +48,16 @@ def main() -> int:
     )
 
     @click.command()
-    @click.option('-d', '--dry_run', is_flag=True, default=False, help="Simulate run")
     @click.option('--debug', is_flag=True, default=False, help="Turn on debug mode")
     @click.argument('tasks', required=True, type=click.Choice(list(task_types.keys())), nargs=-1)
-    def cli(dry_run: bool, debug: bool, tasks: Iterable[str]) -> None:
+    def cli(debug: bool, tasks: Iterable[str]) -> None:
         if debug is True:
             print("Debug mode on.")
         else:
             sys.excepthook = except_hook
 
         for task in tasks:
-            task_types[task](dry_run=dry_run).run()
+            task_types[task]().run()
 
     cli(complete_var=complete_var)
     return 0

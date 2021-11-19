@@ -1,51 +1,65 @@
 import abc
-from typing import Any, no_type_check
+import typing
 
-from carnival.context import build_context, build_kwargs
-from carnival.host import AnyHost
+from carnival.host import LocalHost, SshHost, AnyHost
 
 
-class Step:
+class Context(typing.Protocol):
+    pass
+
+
+ContextT = typing.TypeVar("ContextT", bound=Context)
+
+
+class Step(typing.Generic[ContextT], metaclass=abc.ABCMeta):
     """
-    Объект, предназначенный для выполнения группы комманд с какой-то целью.
+    Шаг - объект, предназначенный для выполнения группы комманд с какой-то целью.
     Вызывается из класса `carnival.Task` для выполнения комманд (`carnival.cmd`) на определенных хостах.
 
     Может требовать наличие определенных контекстных переменных для работы, указав их в аргументах метода `run`.
     Может вернуть значение для дальнейшего использования.
 
-    В следующем примере переменная `disk_name` будет передана в run, а `install` пропущена.
+    В следующем примере переменная обьявлен шаг для установки
 
-    >>> host = Host(
-    >>>     #  Адрес
-    >>>     "1.2.3.4",
+    >>> class PackagesContextProtocol(typing.Protocol):
+    >>>     packages: typing.List[str]
     >>>
-    >>>     # Контекст хоста
-    >>>     disk_name="/dev/sda1", install=['nginx', 'htop', ]
-    >>> )
-    >>> ...
-    >>> class DiskUsage(Step):
-    >>>     def run(self, disk_name: str):
-    >>>         ...
+    >>>
+    >>> PackagesContextProtocolT = typing.TypeVar("PackagesContextProtocolT", bound=PackagesContextProtocol)
+    >>>
+    >>>
+    >>> class AptInstall(Step[PackagesContextProtocolT]):
+    >>>     def __init__(self, print_result=False):
+    >>>         self.print_result = print_result
+    >>>
+    >>>     def run(self) -> None:
+    >>>         with host.connect():
+    >>>             result = cmd.apt.install_multiple(host.context.packages)
+    >>>             if self.print_result:
+    >>>                 print(result)
 
     """
-    def __init__(self, **context: Any):
-        """
-        :param context: Переменные контекста, назначенные при вызове Шага
-        """
-        self.context = context
 
-    def run_with_context(self, host: AnyHost) -> Any:
-        context = build_context(self, host)
-        kwargs = build_kwargs(self.run, context)
-        return self.run(**kwargs)  # type: ignore
+    def __init__(self, host: AnyHost[ContextT]):
+        self.host: AnyHost[ContextT] = host
 
     @abc.abstractmethod
-    @no_type_check
-    def run(self, **kwargs) -> None:
-        """
-        Метод который нужно определить для выполнения комманд
+    def run(self) -> None: ...
 
-        :param kwargs: Автоматические подставляемые переменные контекста, поддерживается `**kwargs`
-        """
 
-        raise NotImplementedError
+class LocalStep(Step[ContextT]):
+    """
+    Шаг для выполнения только на локалхосте
+    """
+
+    def __init__(self, host: LocalHost[ContextT]):
+        self.host: LocalHost[ContextT] = host
+
+
+class SshStep(Step[ContextT]):
+    """
+    Шаг для выполнения только на ssh-хостах
+    """
+
+    def __init__(self, host: SshHost[ContextT]):
+        self.host: SshHost[ContextT] = host

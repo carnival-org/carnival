@@ -60,9 +60,9 @@ def force_install(c: Connection, pkgname: str, version: Optional[str] = None, up
         pkgname = f"{pkgname}={version}"
 
     if update:
-        cmd.cli.run(c, "DEBIAN_FRONTEND=noninteractive sudo apt-get update", pty=True, hide=hide)
+        cmd.cli.run(c, "DEBIAN_FRONTEND=noninteractive sudo apt-get update", hide=hide)
 
-    cmd.cli.run(c, f"DEBIAN_FRONTEND=noninteractive sudo apt-get install -y {pkgname}", pty=True, hide=hide)
+    cmd.cli.run(c, f"DEBIAN_FRONTEND=noninteractive sudo apt-get install -y {pkgname}", hide=hide)
 
 
 def install(c: Connection, pkgname: str, version: Optional[str] = None, update: bool = True, hide: bool = False,) -> bool:
@@ -102,7 +102,7 @@ def install_multiple(c: Connection, *pkg_names: str, update: bool = True, hide: 
         return False
 
     if update:
-        cmd.cli.run(c, "DEBIAN_FRONTEND=noninteractive sudo apt-get update", pty=True, hide=hide)
+        cmd.cli.run(c, "DEBIAN_FRONTEND=noninteractive sudo apt-get update", hide=hide)
 
     for pkg in pkg_names:
         install(c, pkg, update=False, hide=hide)

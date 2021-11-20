@@ -1,13 +1,13 @@
 import pytest
-from carnival import cmd, global_context
+from carnival import cmd
 
 
 @pytest.mark.remote
 def test_run(suspend_capture, local_host, ubuntu_ssh_host, centos_ssh_host):
     for host in [local_host, ubuntu_ssh_host, centos_ssh_host]:
         with suspend_capture:
-            with global_context.SetContext(host):
-                result = cmd.cli.run("ls -1 /", hide=True)
+            with host.connect() as c:
+                result = cmd.cli.run(c, "ls -1 /", hide=True)
                 assert result.ok is True
 
                 # Check response looks like root fs
@@ -20,14 +20,9 @@ def test_run(suspend_capture, local_host, ubuntu_ssh_host, centos_ssh_host):
 
 
 @pytest.mark.remote
-def test_pty(suspend_capture, local_host, ubuntu_ssh_host, centos_ssh_host):
+def test_is_cmd_exist(suspend_capture, local_host, ubuntu_ssh_host, centos_ssh_host):
     for host in [local_host, ubuntu_ssh_host, centos_ssh_host]:
         with suspend_capture:
-            with global_context.SetContext(host):
-                result = cmd.cli.pty("ls -1 / | grep bin", hide=True)
-                assert result.ok is True
-
-                # Check response looks like root fs, filtered 'bin'
-                root_files = result.stdout.split("\n")
-                assert 'bin\r' in root_files
-                assert 'sbin\r' in root_files
+            with host.connect() as c:
+                assert cmd.cli.is_cmd_exist(c, "sh") is True
+                assert cmd.cli.is_cmd_exist(c, "_notexistcmd132") is False

@@ -15,9 +15,10 @@ NewHostContextT = typing.TypeVar("NewHostContextT")
 
 
 class Host(typing.Generic[HostContextT], metaclass=abc.ABCMeta):
-    def __init__(self, context: HostContextT) -> None:
+    def __init__(self, context: HostContextT, sudo: bool = False) -> None:
         self.addr = ""
         self.context = context
+        self.sudo = sudo
 
     @abc.abstractmethod
     def connect(self) -> typing.ContextManager[Connection]: ...
@@ -37,9 +38,9 @@ class LocalHost(Host[HostContextT]):
     Локальный хост, работает по локальному терминалу
     """
 
-    def __init__(self, context: HostContextT) -> None:
+    def __init__(self, context: HostContextT, sudo: bool = False) -> None:
         self.addr: str = "localhost"
-        super().__init__(context)
+        super().__init__(context=context, sudo=sudo)
 
     def with_context(self, context: NewHostContextT) -> "LocalHost[NewHostContextT]":  # TODO: Self type
         new_host = typing.cast(LocalHost[NewHostContextT], copy.deepcopy(self))
@@ -47,8 +48,8 @@ class LocalHost(Host[HostContextT]):
         return new_host
 
     @contextmanager
-    def connect(self) -> typing.Generator[_local_connection._LocalConnection, None, None]:
-        yield _local_connection._LocalConnection()
+    def connect(self) -> typing.Generator[_local_connection.LocalConnection, None, None]:
+        yield _local_connection.LocalConnection(sudo=self.sudo)
 
 
 class SshHost(Host[HostContextT]):
@@ -66,6 +67,8 @@ class SshHost(Host[HostContextT]):
         ssh_gateway: typing.Optional['SshHost[typing.Any]'] = None,
         ssh_connect_timeout: int = 10,
         missing_host_key_policy: typing.Type[MissingHostKeyPolicy] = AutoAddPolicy,
+
+        sudo: bool = False,
      ):
         """
         :param addr: Адрес сервера
@@ -81,7 +84,8 @@ class SshHost(Host[HostContextT]):
         if "@" in addr:
             raise ValueError("Please set user in 'ssh_user' arg")
 
-        self.context = context
+        super().__init__(context=context, sudo=sudo)
+
         self.addr = addr
         self.ssh_port = ssh_port
         self.ssh_user = ssh_user
@@ -91,10 +95,10 @@ class SshHost(Host[HostContextT]):
         self.missing_host_key_policy = missing_host_key_policy
 
     @contextmanager
-    def connect(self) -> typing.Generator[_ssh_connection._SSHConnection, None, None]:
+    def connect(self) -> typing.Generator[_ssh_connection.SSHConnection, None, None]:
         gateway = None
         if self.ssh_gateway:
-            gateway = self.ssh_gateway.connect()
+            gateway = self.ssh_gateway.connect().__enter__().c
 
         conn = FabricConnection(
             host=self.addr,
@@ -107,16 +111,18 @@ class SshHost(Host[HostContextT]):
             }
         )
         conn.client.set_missing_host_key_policy(self.missing_host_key_policy)
-        yield _ssh_connection._SSHConnection(conn)
+        conn.open()
+        yield _ssh_connection.SSHConnection(conn, sudo=self.sudo)
         conn.close()
 
 
 localhost = LocalHost[None](None)
-
+localhost_connection = localhost.connect().__enter__()
 
 __all__ = (
     'Host',
     'LocalHost',
     'localhost',
+    'localhost_connection',
     'SshHost',
 )

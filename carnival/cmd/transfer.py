@@ -1,36 +1,45 @@
+import typing
 from io import BytesIO
-from typing import Any, Iterable
+from tqdm import tqdm  # type:ignore
 
 from carnival.templates import render
-from fabric.transfer import Result, Transfer  # type:ignore  # TODO: Fix result type
-from patchwork import transfers  # type:ignore
 from carnival.host.connection import Connection
 
 
-def rsync(
-    c: Connection,
-    source: str, target: str,
-    exclude: Iterable[str] = (),
-    delete: bool = False, strict_host_keys: bool = True,
-    rsync_opts: str = "--progress -pthrvz",
-    ssh_opts: str = ''
-) -> Result:
-    """
-    <https://fabric-patchwork.readthedocs.io/en/latest/api/transfers.html#patchwork.transfers.rsync>
-    """
-    return transfers.rsync(
-        c=c,
-        source=source,
-        target=target,
-        exclude=exclude,
-        delete=delete,
-        strict_host_keys=strict_host_keys,
-        rsync_opts=rsync_opts,
-        ssh_opts=ssh_opts,
-    )
+def putfo(
+    reader: typing.IO[bytes],
+    dst: Connection, dst_file_path: str,
+    dst_file_size: int,
+    bufsize: int = 32768,
+) -> None:
+    write_size = 0
+
+    with tqdm(desc=f"Transferring {dst_file_path}", unit='B', unit_scale=True, total=dst_file_size) as pbar:
+        with dst.file_write(dst_file_path) as writer:
+            while True:
+                data = reader.read(bufsize)
+                if len(data) == 0:
+                    break
+
+                writer.write(data)
+                pbar.update(len(data))
+                write_size += len(data)
+
+    if dst_file_size != write_size:
+        raise IOError(f"size mismatch! {dst_file_size} != {write_size}")
 
 
-def get(c: Connection, remote: str, local: str, preserve_mode: bool = True) -> Result:
+def getfo(
+    src: Connection, src_file_path: str,
+) -> typing.ContextManager[typing.IO[bytes]]:
+    return src.file_read(src_file_path)
+
+
+def transfer(
+    src: Connection, src_file_path: str,
+    dst: Connection, dst_file_path: str,
+    preserve_mode: bool = True,
+) -> None:
     """
     Скачать файл с сервера
     <http://docs.fabfile.org/en/2.5/api/transfer.html#fabric.transfer.Transfer.get>
@@ -39,24 +48,22 @@ def get(c: Connection, remote: str, local: str, preserve_mode: bool = True) -> R
     :param local: путь куда сохранить файл
     :param preserve_mode: сохранить права
     """
-    t = Transfer(c)
-    return t.get(remote=remote, local=local, preserve_mode=preserve_mode)
+    file_size = src.file_stat(src_file_path).st_size
+
+    with src.file_read(src_file_path) as reader:
+        putfo(
+            reader,
+            dst=dst, dst_file_path=dst_file_path,
+            dst_file_size=file_size,
+        )
 
 
-def put(c: Connection, local: str, remote: str, preserve_mode: bool = True) -> Result:
-    """
-    Закачать файл на сервер
-    <http://docs.fabfile.org/en/2.5/api/transfer.html#fabric.transfer.Transfer.put>
-
-    :param local: путь до локального файла
-    :param remote: путь куда сохранить на сервере
-    :param preserve_mode: сохранить права
-    """
-    t = Transfer(c)
-    return t.put(local=local, remote=remote, preserve_mode=preserve_mode)
-
-
-def put_template(c: Connection, template_path: str, remote: str, **context: Any) -> Result:
+def put_template(
+    template_path: str,
+    dst: Connection,
+    dst_path: str,
+    **context: typing.Any,
+) -> None:
     """
     Отрендерить файл с помощью jinja-шаблонов и закачать на сервер
     См раздел templates.
@@ -64,9 +71,13 @@ def put_template(c: Connection, template_path: str, remote: str, **context: Any)
     <http://docs.fabfile.org/en/2.5/api/transfer.html#fabric.transfer.Transfer.put>
 
     :param template_path: путь до локального файла jinja
-    :param remote: путь куда сохранить на сервере
+    :param dst: connection-обьект с сервером назначения
+    :param dst_path: путь куда сохранить на сервере
     :param context: контекс для рендеринга jinja2
     """
     filestr = render(template_path=template_path, **context)
-    t = Transfer(c)
-    return t.put(local=BytesIO(filestr.encode()), remote=remote, preserve_mode=False)
+    putfo(
+        BytesIO(filestr.encode()),
+        dst=dst, dst_file_path=dst_path,
+        dst_file_size=len(filestr),
+    )

@@ -1,4 +1,3 @@
-import os
 import typing
 
 from carnival import cmd
@@ -12,7 +11,7 @@ def set_password(c: Connection, username: str, password: str) -> Result:
     :param username: Пользователь
     :param password: Новый пароль
     """
-    return cmd.cli.pty(c, f"echo '{username}:{password}' | chpasswd", hide=True)
+    return cmd.cli.run(c, f"echo '{username}:{password}' | chpasswd", hide=True)
 
 
 def ssh_authorized_keys_add(c: Connection, ssh_key: str, keys_file: str = ".ssh/authorized_keys") -> bool:
@@ -29,7 +28,7 @@ def ssh_authorized_keys_add(c: Connection, ssh_key: str, keys_file: str = ".ssh/
     cmd.cli.run(c, "chmod 700 ~/.ssh")
     cmd.cli.run(c, f"touch {keys_file}")
 
-    if not cmd.fs.is_file_contains(c, keys_file, ssh_key, escape=True):
+    if not cmd.fs.is_file_contains(c, keys_file, ssh_key):
         cmd.cli.run(c, f"echo '{ssh_key}' >> {keys_file}")
         return True
     return False
@@ -54,16 +53,6 @@ def ssh_authorized_keys_ensure(c: Connection, ssh_keys: typing.List[str]) -> typ
     :return: Список `True` если ключ был добавлен, `False` если ключ уже был в файле
     """
     return [ssh_authorized_keys_add(c, x) for x in ssh_keys]
-
-
-def ssh_copy_id(c: Connection, pubkey_file: str = "~/.ssh/id_rsa.pub") -> bool:
-    """
-    Добавить публичный ssh-ключ текущего пользователя в авторизованные
-
-    :param pubkey_file: путь до файла с публичным ключем
-    :return: `True` если ключ был добавлен, `False` если ключ уже был в файле
-    """
-    return ssh_authorized_keys_add(c, open(os.path.expanduser(pubkey_file)).read().strip())
 
 
 def get_current_user_name(c: Connection) -> str:

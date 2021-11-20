@@ -1,6 +1,6 @@
 .PHONY: dist clean qa test dev nodev todos install docs test_deps
 
-clean:
+clean: nodev
 	rm -rf carnival.egg-info dist build __pycache__ .mypy_cache .pytest_cache .coverage
 
 test_deps:
@@ -26,7 +26,7 @@ nodev:
 	docker-compose -f testdata/docker-compose.yml rm -sf
 
 todos:
-	grep -r TODO carnival
+	grep -nr TODO carnival
 
 docs:
 	poetry run make -C docs html

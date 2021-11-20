@@ -1,19 +1,17 @@
-from carnival.host import SSHHost, LocalHost
+from carnival.host import SshHost, LocalHost
 
 
 def test_host_create():
-    assert SSHHost("1.2.3.4:22", ssh_user="root").host == "1.2.3.4"
-    assert SSHHost("1.2.3.4:22").host == "1.2.3.4"
-    assert SSHHost("1.2.3.4").host == "1.2.3.4"
-    assert SSHHost("abc.example:22").host == "abc.example"
+    assert SshHost("1.2.3.4:22", ssh_user="root", context=None).addr == "1.2.3.4"
+    assert SshHost("1.2.3.4:22", context=None).addr == "1.2.3.4"
+    assert SshHost("1.2.3.4", context=None).addr == "1.2.3.4"
+    assert SshHost("abc.example:22", context=None).addr == "abc.example"
 
-    assert LocalHost()
-
-    #  TODO test connection
+    assert LocalHost(context=None)
 
 
 def test_host_hash():
-    h1 = SSHHost("1.2.3.4")
-    h2 = SSHHost("1.2.3.4")
+    h1 = SshHost("1.2.3.4", context=None)
+    h2 = SshHost("1.2.3.4", context=None)
 
     assert h1.__hash__() == h2.__hash__()

@@ -7,7 +7,7 @@ CARNIVAL_TASKS_MODULE=carnival_tasks_example poetry run carnival help
 import typing
 from dataclasses import dataclass
 
-from carnival.host import localhost, SshHost
+from carnival.host import localhost, localhost_connection, SshHost
 from carnival.step import Step
 from carnival.task import SimpleTask
 from carnival import cmd
@@ -28,8 +28,8 @@ class CheckDiskSpace(Step[DiskContextProtocolT]):  # Step for check disk space o
 
 
 class UploadDataProtocol(typing.Protocol):
-    local: str
-    remote: str
+    src: str
+    dst: str
 
 
 UploadDataProtocolT = typing.TypeVar("UploadDataProtocolT", bound=UploadDataProtocol)
@@ -38,15 +38,18 @@ UploadDataProtocolT = typing.TypeVar("UploadDataProtocolT", bound=UploadDataProt
 class UploadData(Step[UploadDataProtocolT]):  # Step for put file on ssh host (ssh host required)
     def run(self) -> None:
         with self.host.connect() as c:
-            cmd.transfer.put(c, self.host.context.local, self.host.context.remote)
+            cmd.transfer.transfer(
+                localhost_connection, self.host.context.src,
+                c, self.host.context.dst,
+            )
 
 
 #  ## inventory.py
 @dataclass
 class HostContext:
     disk: str = "/"
-    local: str = "/etc/fstab"
-    remote: str = "/root/fstab"
+    src: str = "/etc/fstab"
+    dst: str = "/root/fstab"
 
 
 @dataclass

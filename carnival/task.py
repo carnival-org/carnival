@@ -52,7 +52,7 @@ class Task(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
 
-class SimpleTask(typing.Generic[ContextT], Task, metaclass=abc.ABCMeta):
+class SimpleTask(abc.ABC, typing.Generic[ContextT], Task, metaclass=abc.ABCMeta):
     hosts: typing.List[Host[ContextT]] = []
     steps: typing.List[typing.Type[Step[ContextT]]] = []
 

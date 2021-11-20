@@ -86,6 +86,12 @@ $  python3 -m carnival deploy
 
 
 ## Develop
+```bash
+$ make todos  # show TODOs
+$ make docs   # generate docs (/docs/build/html/index.html)
+$ make clean  # Cleanup and stop compose services
+```
+
 ### Run tests
 ```bash
 $ make dev  # Run docker containers for testing

@@ -8,7 +8,7 @@ import typing
 from dataclasses import dataclass
 
 from carnival.host import localhost, SshHost
-from carnival.step import Step, SshStep
+from carnival.step import Step
 from carnival.task import SimpleTask
 from carnival import cmd
 
@@ -35,7 +35,7 @@ class UploadDataProtocol(typing.Protocol):
 UploadDataProtocolT = typing.TypeVar("UploadDataProtocolT", bound=UploadDataProtocol)
 
 
-class UploadData(SshStep[UploadDataProtocolT]):  # Step for put file on ssh host (ssh host required)
+class UploadData(Step[UploadDataProtocolT]):  # Step for put file on ssh host (ssh host required)
     def run(self) -> None:
         with self.host.connect() as c:
             cmd.transfer.put(c, self.host.context.local, self.host.context.remote)
@@ -66,9 +66,9 @@ hosts_bad = [
 
 #  ## tasks.py
 class InstallServer(SimpleTask[HostContext]):
-    hosts: SshHost[HostContext] = [
+    hosts = [
         SshHost("1.2.3.4", context=HostContext()),
-        localhost.with_context(HostContext()),  # type: ignore  # Oops! UploadData cant run on localhost
+        localhost.with_context(HostContext()),
     ]
     steps = [
         CheckDiskSpace[HostContext],
@@ -77,7 +77,7 @@ class InstallServer(SimpleTask[HostContext]):
 
 
 class InstallServerBad(SimpleTask[HostContext]):
-    hosts = hosts_bad  # type: ignore  # ERROR, wrong context type!
+    hosts = hosts_bad  # type: ignore  # Oops, Incompatible types in assignment
     steps = [
         CheckDiskSpace[HostContext],
         UploadData[HostContext],

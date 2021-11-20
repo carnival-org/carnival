@@ -2,8 +2,8 @@ import abc
 import re
 import typing
 
-from carnival.step import Step, LocalStep, SshStep, ContextT
-from carnival.host import LocalHost, SshHost, AnyHost
+from carnival.step import Step, ContextT
+from carnival.host import Host
 
 
 def _underscore(word: str) -> str:
@@ -53,30 +53,8 @@ class Task(metaclass=abc.ABCMeta):
 
 
 class SimpleTask(typing.Generic[ContextT], Task, metaclass=abc.ABCMeta):
-    hosts: typing.List[AnyHost[ContextT]] = []
+    hosts: typing.List[Host[ContextT]] = []
     steps: typing.List[typing.Type[Step[ContextT]]] = []
-
-    def run(self) -> None:
-        for host in self.hosts:
-            for step in self.steps:
-                print(f"💃💃💃 Running {self.get_name()}:{_underscore(step.__name__)} at {host}")
-                step(host).run()
-
-
-class SimpleLocalTask(typing.Generic[ContextT], Task, metaclass=abc.ABCMeta):
-    hosts: typing.List[LocalHost[ContextT]] = []
-    steps: typing.List[typing.Type[LocalStep[ContextT]]] = []
-
-    def run(self) -> None:
-        for host in self.hosts:
-            for step in self.steps:
-                print(f"💃💃💃 Running {self.get_name()}:{_underscore(step.__name__)} at {host}")
-                step(host).run()
-
-
-class SimpleSshTask(typing.Generic[ContextT], Task, metaclass=abc.ABCMeta):
-    hosts: typing.List[SshHost[ContextT]] = []
-    steps: typing.List[typing.Type[SshStep[ContextT]]] = []
 
     def run(self) -> None:
         for host in self.hosts:

@@ -1,11 +1,11 @@
 import typing
 
 from carnival import cmd
-from carnival.connection import AnyConnection, Result
+from carnival.host.connection import Connection, Result
 from patchwork import files  # type: ignore
 
 
-def mkdirs(c: AnyConnection, dirs: typing.List[str]) -> typing.List[Result]:
+def mkdirs(c: Connection, dirs: typing.List[str]) -> typing.List[Result]:
     """
     Создать директории
 
@@ -14,7 +14,7 @@ def mkdirs(c: AnyConnection, dirs: typing.List[str]) -> typing.List[Result]:
     return [cmd.cli.run(c, f"mkdir -p {x}", hide=True) for x in dirs]
 
 
-def is_dir_exists(c: AnyConnection, dir_path: str) -> bool:
+def is_dir_exists(c: Connection, dir_path: str) -> bool:
     """
     Узнать существует ли директория
 
@@ -23,7 +23,7 @@ def is_dir_exists(c: AnyConnection, dir_path: str) -> bool:
     return bool(cmd.cli.run(c, f"test -d {dir_path}", warn=True, hide=True).ok)
 
 
-def is_file_contains(c: AnyConnection, filename: str, text: str, exact: bool = False, escape: bool = True) -> bool:
+def is_file_contains(c: Connection, filename: str, text: str, exact: bool = False, escape: bool = True) -> bool:
     """
     Содержит ли файл текст
     См <https://fabric-patchwork.readthedocs.io/en/latest/api/files.html#patchwork.files.contains>
@@ -41,7 +41,7 @@ def is_file_contains(c: AnyConnection, filename: str, text: str, exact: bool = F
     ))
 
 
-def is_file_exists(c: AnyConnection, path: str) -> bool:
+def is_file_exists(c: Connection, path: str) -> bool:
     """
     Проверить существует ли файл
     <https://fabric-patchwork.readthedocs.io/en/latest/api/files.html#patchwork.files.exists>
@@ -52,7 +52,7 @@ def is_file_exists(c: AnyConnection, path: str) -> bool:
 
 
 def ensure_dir_exists(
-    c: AnyConnection,
+    c: Connection,
     path: str,
     user: typing.Optional[str] = None,
     group: typing.Optional[str] = None,

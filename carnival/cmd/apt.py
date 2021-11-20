@@ -1,10 +1,10 @@
 from typing import List, Optional
 
 from carnival import cmd
-from carnival.connection import AnyConnection
+from carnival.host.connection import Connection
 
 
-def get_pkg_versions(c: AnyConnection, pkgname: str) -> List[str]:
+def get_pkg_versions(c: Connection, pkgname: str) -> List[str]:
     """
     Получить список доступных версий пакета
     """
@@ -19,7 +19,7 @@ def get_pkg_versions(c: AnyConnection, pkgname: str) -> List[str]:
     return versions
 
 
-def get_installed_version(c: AnyConnection, pkgname: str) -> Optional[str]:
+def get_installed_version(c: Connection, pkgname: str) -> Optional[str]:
     """
     Получить установленную версию пакета
 
@@ -36,7 +36,7 @@ def get_installed_version(c: AnyConnection, pkgname: str) -> Optional[str]:
     return ver.strip()
 
 
-def is_pkg_installed(c: AnyConnection, pkgname: str, version: Optional[str] = None) -> bool:
+def is_pkg_installed(c: Connection, pkgname: str, version: Optional[str] = None) -> bool:
     """
     Проверить установлен ли пакет
     Если версия не указана - проверяется любая
@@ -52,7 +52,7 @@ def is_pkg_installed(c: AnyConnection, pkgname: str, version: Optional[str] = No
     return False
 
 
-def force_install(c: AnyConnection, pkgname: str, version: Optional[str] = None, update: bool = False, hide: bool = False) -> None:
+def force_install(c: Connection, pkgname: str, version: Optional[str] = None, update: bool = False, hide: bool = False) -> None:
     """
     Установить пакет без проверки установлен ли он
     """
@@ -65,7 +65,7 @@ def force_install(c: AnyConnection, pkgname: str, version: Optional[str] = None,
     cmd.cli.run(c, f"DEBIAN_FRONTEND=noninteractive sudo apt-get install -y {pkgname}", pty=True, hide=hide)
 
 
-def install(c: AnyConnection, pkgname: str, version: Optional[str] = None, update: bool = True, hide: bool = False,) -> bool:
+def install(c: Connection, pkgname: str, version: Optional[str] = None, update: bool = True, hide: bool = False,) -> bool:
     """
     Установить пакет если он еще не установлен в системе
 
@@ -87,7 +87,7 @@ def install(c: AnyConnection, pkgname: str, version: Optional[str] = None, updat
     return True
 
 
-def install_multiple(c: AnyConnection, *pkg_names: str, update: bool = True, hide: bool = False) -> bool:
+def install_multiple(c: Connection, *pkg_names: str, update: bool = True, hide: bool = False) -> bool:
     """
     Установить несколько пакетов, если они не установлены
 
@@ -109,7 +109,7 @@ def install_multiple(c: AnyConnection, *pkg_names: str, update: bool = True, hid
     return True
 
 
-def remove(c: AnyConnection, *pkg_names: str, hide: bool = False) -> None:
+def remove(c: Connection, *pkg_names: str, hide: bool = False) -> None:
     """
     Удалить пакет
 

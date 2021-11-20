@@ -2,10 +2,10 @@ import os
 import typing
 
 from carnival import cmd
-from carnival.connection import Result, AnyConnection
+from carnival.host.connection import Result, Connection
 
 
-def set_password(c: AnyConnection, username: str, password: str) -> Result:
+def set_password(c: Connection, username: str, password: str) -> Result:
     """
     Установить пароль пользователю
 
@@ -15,7 +15,7 @@ def set_password(c: AnyConnection, username: str, password: str) -> Result:
     return cmd.cli.pty(c, f"echo '{username}:{password}' | chpasswd", hide=True)
 
 
-def ssh_authorized_keys_add(c: AnyConnection, ssh_key: str, keys_file: str = ".ssh/authorized_keys") -> bool:
+def ssh_authorized_keys_add(c: Connection, ssh_key: str, keys_file: str = ".ssh/authorized_keys") -> bool:
     """
     Добавить ssh ключ в `authorized_keys`
 
@@ -35,7 +35,7 @@ def ssh_authorized_keys_add(c: AnyConnection, ssh_key: str, keys_file: str = ".s
     return False
 
 
-def ssh_authorized_keys_list(c: AnyConnection) -> typing.List[str]:
+def ssh_authorized_keys_list(c: Connection) -> typing.List[str]:
     """
     Получить список авторизованных ssh-ключей сервера
     """
@@ -46,7 +46,7 @@ def ssh_authorized_keys_list(c: AnyConnection) -> typing.List[str]:
     return keys_file.split("\n")
 
 
-def ssh_authorized_keys_ensure(c: AnyConnection, ssh_keys: typing.List[str]) -> typing.List[bool]:
+def ssh_authorized_keys_ensure(c: Connection, ssh_keys: typing.List[str]) -> typing.List[bool]:
     """
     Добавить несколько ssh-ключей в авторизованные
 
@@ -56,7 +56,7 @@ def ssh_authorized_keys_ensure(c: AnyConnection, ssh_keys: typing.List[str]) -> 
     return [ssh_authorized_keys_add(c, x) for x in ssh_keys]
 
 
-def ssh_copy_id(c: AnyConnection, pubkey_file: str = "~/.ssh/id_rsa.pub") -> bool:
+def ssh_copy_id(c: Connection, pubkey_file: str = "~/.ssh/id_rsa.pub") -> bool:
     """
     Добавить публичный ssh-ключ текущего пользователя в авторизованные
 
@@ -66,7 +66,7 @@ def ssh_copy_id(c: AnyConnection, pubkey_file: str = "~/.ssh/id_rsa.pub") -> boo
     return ssh_authorized_keys_add(c, open(os.path.expanduser(pubkey_file)).read().strip())
 
 
-def get_current_user_name(c: AnyConnection) -> str:
+def get_current_user_name(c: Connection) -> str:
     """
     Получить имя текущего пользователя
     """
@@ -74,14 +74,14 @@ def get_current_user_name(c: AnyConnection) -> str:
     return id_res.strip()
 
 
-def get_current_user_id(c: AnyConnection) -> int:
+def get_current_user_id(c: Connection) -> int:
     """
     Получить id текущего пользователя
     """
     return int(cmd.cli.run(c, "id -u", hide=True).stdout.strip())
 
 
-def is_current_user_root(c: AnyConnection) -> bool:
+def is_current_user_root(c: Connection) -> bool:
     """
     Проверить что текущий пользователь - `root`
     """

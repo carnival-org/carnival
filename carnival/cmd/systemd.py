@@ -1,15 +1,15 @@
 from carnival import cmd
-from carnival.connection import Result, AnyConnection
+from carnival.host.connection import Result, Connection
 
 
-def daemon_reload(c: AnyConnection) -> Result:
+def daemon_reload(c: Connection) -> Result:
     """
     Перегрузить systemd
     """
     return cmd.cli.run(c, "sudo systemctl --system daemon-reload")
 
 
-def start(c: AnyConnection, service_name: str, reload_daemon: bool = False) -> Result:
+def start(c: Connection, service_name: str, reload_daemon: bool = False) -> Result:
     """
     Запустить сервис
 
@@ -22,7 +22,7 @@ def start(c: AnyConnection, service_name: str, reload_daemon: bool = False) -> R
     return cmd.cli.run(c, f"sudo systemctl start {service_name}")
 
 
-def stop(c: AnyConnection, service_name: str, reload_daemon: bool = False) -> Result:
+def stop(c: Connection, service_name: str, reload_daemon: bool = False) -> Result:
     """
     Остановить сервис
 
@@ -34,7 +34,7 @@ def stop(c: AnyConnection, service_name: str, reload_daemon: bool = False) -> Re
     return cmd.cli.run(c, f"sudo systemctl stop {service_name}")
 
 
-def restart(c: AnyConnection, service_name: str) -> Result:
+def restart(c: Connection, service_name: str) -> Result:
     """
     Перезапустить сервис
 
@@ -43,7 +43,7 @@ def restart(c: AnyConnection, service_name: str) -> Result:
     return cmd.cli.run(c, f"sudo systemctl restart {service_name}")
 
 
-def enable(c: AnyConnection, service_name: str, reload_daemon: bool = False, start_now: bool = True) -> Result:
+def enable(c: Connection, service_name: str, reload_daemon: bool = False, start_now: bool = True) -> Result:
     """
     Добавить сервис в автозапуск
 
@@ -62,7 +62,7 @@ def enable(c: AnyConnection, service_name: str, reload_daemon: bool = False, sta
     return res
 
 
-def disable(c: AnyConnection, service_name: str, reload_daemon: bool = False, stop_now: bool = True) -> Result:
+def disable(c: Connection, service_name: str, reload_daemon: bool = False, stop_now: bool = True) -> Result:
     """
     Убрать сервис из автозапуска
 

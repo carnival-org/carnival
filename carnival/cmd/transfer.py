@@ -2,13 +2,13 @@ from io import BytesIO
 from typing import Any, Iterable
 
 from carnival.templates import render
-from fabric.transfer import Result, Transfer  # type:ignore
+from fabric.transfer import Result, Transfer  # type:ignore  # TODO: Fix result type
 from patchwork import transfers  # type:ignore
-from carnival.connection import SSHConnection
+from carnival.host.connection import Connection
 
 
 def rsync(
-    c: SSHConnection,
+    c: Connection,
     source: str, target: str,
     exclude: Iterable[str] = (),
     delete: bool = False, strict_host_keys: bool = True,
@@ -30,7 +30,7 @@ def rsync(
     )
 
 
-def get(c: SSHConnection, remote: str, local: str, preserve_mode: bool = True) -> Result:
+def get(c: Connection, remote: str, local: str, preserve_mode: bool = True) -> Result:
     """
     Скачать файл с сервера
     <http://docs.fabfile.org/en/2.5/api/transfer.html#fabric.transfer.Transfer.get>
@@ -43,7 +43,7 @@ def get(c: SSHConnection, remote: str, local: str, preserve_mode: bool = True) -
     return t.get(remote=remote, local=local, preserve_mode=preserve_mode)
 
 
-def put(c: SSHConnection, local: str, remote: str, preserve_mode: bool = True) -> Result:
+def put(c: Connection, local: str, remote: str, preserve_mode: bool = True) -> Result:
     """
     Закачать файл на сервер
     <http://docs.fabfile.org/en/2.5/api/transfer.html#fabric.transfer.Transfer.put>
@@ -56,7 +56,7 @@ def put(c: SSHConnection, local: str, remote: str, preserve_mode: bool = True) -
     return t.put(local=local, remote=remote, preserve_mode=preserve_mode)
 
 
-def put_template(c: SSHConnection, template_path: str, remote: str, **context: Any) -> Result:
+def put_template(c: Connection, template_path: str, remote: str, **context: Any) -> Result:
     """
     Отрендерить файл с помощью jinja-шаблонов и закачать на сервер
     См раздел templates.

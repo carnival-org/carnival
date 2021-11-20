@@ -1,7 +1,7 @@
 import abc
 import typing
 
-from carnival.host import LocalHost, SshHost, AnyHost
+from carnival.host import Host
 
 
 class Context(typing.Protocol):
@@ -40,26 +40,8 @@ class Step(typing.Generic[ContextT], metaclass=abc.ABCMeta):
 
     """
 
-    def __init__(self, host: AnyHost[ContextT]):
-        self.host: AnyHost[ContextT] = host
+    def __init__(self, host: Host[ContextT]):
+        self.host: Host[ContextT] = host
 
     @abc.abstractmethod
     def run(self) -> None: ...
-
-
-class LocalStep(Step[ContextT]):
-    """
-    Шаг для выполнения только на локалхосте
-    """
-
-    def __init__(self, host: LocalHost[ContextT]):
-        self.host: LocalHost[ContextT] = host
-
-
-class SshStep(Step[ContextT]):
-    """
-    Шаг для выполнения только на ssh-хостах
-    """
-
-    def __init__(self, host: SshHost[ContextT]):
-        self.host: SshHost[ContextT] = host

@@ -39,14 +39,30 @@ class SSHConnection(Connection):
 
         return Result.from_invoke_result(handler(**handler_kwargs))
 
-    def open_shell(self, shell_cmd: typing.Optional[str] = None, cwd: typing.Optional[str] = None) -> None:
+    def open_shell(
+        self,
+        shell_cmd: typing.Optional[str] = None,
+        cwd: typing.Optional[str] = None, sudo: typing.Optional[bool] = None,
+    ) -> None:
+        if sudo is None:
+            sudo = self.sudo
+        assert sudo is not None
+
         # TODO: get remote shell_cmd
         if shell_cmd is None:
             shell_cmd = "/bin/bash"
 
-        self.run(shell_cmd, hide=False, sudo=self.sudo, cwd=cwd)
+        self.run(shell_cmd, hide=False, sudo=sudo, cwd=cwd)
 
-    def file_stat(self, path: str) -> StatResult:
+    def file_stat(self, path: str, sudo: typing.Optional[bool] = None,) -> StatResult:
+        if sudo is None:
+            sudo = self.sudo
+        assert sudo is not None
+
+        if sudo is True:
+            # TODO: handle sudo
+            raise NotImplementedError
+
         with self.paramiko_client.open_sftp() as sftp:
 
             stat = sftp.stat(path)
@@ -65,14 +81,30 @@ class SSHConnection(Connection):
             )
 
     @contextmanager
-    def file_read(self, path: str) -> typing.Generator[typing.IO[bytes], None, None]:
+    def file_read(self, path: str, sudo: typing.Optional[bool] = None) -> typing.Generator[typing.IO[bytes], None, None]:
+        if sudo is None:
+            sudo = self.sudo
+        assert sudo is not None
+
+        if sudo is True:
+            # TODO: handle sudo
+            raise NotImplementedError
+
         with self.paramiko_client.open_sftp() as sftp:
             with sftp.open(path, 'rb') as reader:
                 typed_reader = typing.cast(typing.IO[bytes], reader)
                 yield typed_reader
 
     @contextmanager
-    def file_write(self, path: str) -> typing.Generator[typing.IO[bytes], None, None]:
+    def file_write(self, path: str, sudo: typing.Optional[bool] = None) -> typing.Generator[typing.IO[bytes], None, None]:
+        if sudo is None:
+            sudo = self.sudo
+        assert sudo is not None
+
+        if sudo is True:
+            # TODO: handle sudo
+            raise NotImplementedError
+
         with self.paramiko_client.open_sftp() as sftp:
             with sftp.open(path, 'wb') as writer:
                 typed_writer = typing.cast(typing.IO[bytes], writer)

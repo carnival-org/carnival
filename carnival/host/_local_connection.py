@@ -38,14 +38,30 @@ class LocalConnection(Connection):
 
         return Result.from_invoke_result(handler(**handler_kwargs))
 
-    def open_shell(self, shell_cmd: typing.Optional[str] = None, cwd: typing.Optional[str] = None) -> None:
+    def open_shell(
+        self,
+        shell_cmd: typing.Optional[str] = None,
+        cwd: typing.Optional[str] = None, sudo: typing.Optional[bool] = None,
+    ) -> None:
+        if sudo is None:
+            sudo = self.sudo
+        assert sudo is not None
+
         if shell_cmd is None:
             shell_cmd = os.getenv("SHELL", '/bin/sh')
 
         assert shell_cmd is not None
-        self.run(shell_cmd, hide=False, sudo=self.sudo, cwd=cwd)
+        self.run(shell_cmd, hide=False, sudo=sudo, cwd=cwd)
 
-    def file_stat(self, path: str) -> StatResult:
+    def file_stat(self, path: str, sudo: typing.Optional[bool] = None) -> StatResult:
+        if sudo is None:
+            sudo = self.sudo
+        assert sudo is not None
+
+        if sudo is True:
+            # TODO: handle sudo
+            raise NotImplementedError
+
         stat = os.stat(path)
         return StatResult(
             st_mode=stat.st_mode,
@@ -55,8 +71,24 @@ class LocalConnection(Connection):
             st_atime=stat.st_atime,
         )
 
-    def file_read(self, path: str) -> typing.ContextManager[typing.IO[bytes]]:
+    def file_read(self, path: str, sudo: typing.Optional[bool] = None) -> typing.ContextManager[typing.IO[bytes]]:
+        if sudo is None:
+            sudo = self.sudo
+        assert sudo is not None
+
+        if sudo is True:
+            # TODO: handle sudo
+            raise NotImplementedError
+
         return open(path, 'rb')
 
-    def file_write(self, path: str) -> typing.ContextManager[typing.IO[bytes]]:
+    def file_write(self, path: str, sudo: typing.Optional[bool] = None) -> typing.ContextManager[typing.IO[bytes]]:
+        if sudo is None:
+            sudo = self.sudo
+        assert sudo is not None
+
+        if sudo is True:
+            # TODO: handle sudo
+            raise NotImplementedError
+
         return open(path, 'wb')

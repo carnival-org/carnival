@@ -1,7 +1,6 @@
 import abc
 import typing
 from contextlib import contextmanager
-import copy
 
 from paramiko.client import MissingHostKeyPolicy, AutoAddPolicy
 from fabric.connection import Connection as FabricConnection  # type: ignore
@@ -10,20 +9,11 @@ from carnival.host.connection import Connection
 from carnival.host import _ssh_connection
 from carnival.host import _local_connection
 
-HostContextT = typing.TypeVar("HostContextT")
-NewHostContextT = typing.TypeVar("NewHostContextT")
 
-
-class Host(typing.Generic[HostContextT], metaclass=abc.ABCMeta):
-    def __init__(self, context: HostContextT, sudo: bool = False) -> None:
+class Host(metaclass=abc.ABCMeta):
+    def __init__(self, sudo: bool = False) -> None:
         self.addr = ""
-        self.context = context
         self.sudo = sudo
-
-    def with_context(self, context: NewHostContextT) -> "Host[NewHostContextT]":  # TODO: Self type
-        new_host = typing.cast(Host[NewHostContextT], copy.deepcopy(self))
-        new_host.context = context
-        return new_host
 
     def __str__(self) -> str:
         return f"🖥 {self.addr}"
@@ -38,25 +28,25 @@ class Host(typing.Generic[HostContextT], metaclass=abc.ABCMeta):
     def connect(self) -> typing.ContextManager[Connection]: ...
 
 
-class _LocalHost(Host[HostContextT]):
+class _LocalHost(Host):
     """
     Локальный хост, работает по локальному терминалу
     """
 
-    def __init__(self, context: HostContextT, sudo: bool = False) -> None:
+    def __init__(self, sudo: bool = False) -> None:
         self.addr: str = "localhost"
-        super().__init__(context=context, sudo=sudo)
+        super().__init__(sudo=sudo)
 
     @contextmanager
     def connect(self) -> typing.Generator[_local_connection.LocalConnection, None, None]:
         yield _local_connection.LocalConnection(sudo=self.sudo)
 
 
-def LocalHost(context: HostContextT, sudo: bool = False) -> Host[HostContextT]:
-    return _LocalHost(context=context, sudo=sudo)
+def LocalHost(sudo: bool = False) -> Host:
+    return _LocalHost(sudo=sudo)
 
 
-class _SshHost(Host[HostContextT]):
+class _SshHost(Host):
     """
     Удаленный хост, работает по SSH
     """
@@ -64,11 +54,10 @@ class _SshHost(Host[HostContextT]):
     def __init__(
         self,
         addr: str,
-        context: HostContextT,
 
         ssh_user: typing.Optional[str] = None, ssh_password: typing.Optional[str] = None,
         ssh_port: int = 22,
-        ssh_gateway: typing.Optional['_SshHost[typing.Any]'] = None,
+        ssh_gateway: typing.Optional['_SshHost'] = None,
         ssh_connect_timeout: int = 10,
         missing_host_key_policy: typing.Type[MissingHostKeyPolicy] = AutoAddPolicy,
 
@@ -88,7 +77,7 @@ class _SshHost(Host[HostContextT]):
         if "@" in addr:
             raise ValueError("Please set user in 'ssh_user' arg")
 
-        super().__init__(context=context, sudo=sudo)
+        super().__init__(sudo=sudo)
 
         self.addr = addr
         self.ssh_port = ssh_port
@@ -122,19 +111,17 @@ class _SshHost(Host[HostContextT]):
 
 def SshHost(
     addr: str,
-    context: HostContextT,
 
     ssh_user: typing.Optional[str] = None, ssh_password: typing.Optional[str] = None,
     ssh_port: int = 22,
-    ssh_gateway: typing.Optional['_SshHost[typing.Any]'] = None,
+    ssh_gateway: typing.Optional['_SshHost'] = None,
     ssh_connect_timeout: int = 10,
     missing_host_key_policy: typing.Type[MissingHostKeyPolicy] = AutoAddPolicy,
 
     sudo: bool = False,
-) -> Host[HostContextT]:
+) -> Host:
     return _SshHost(
         addr=addr,
-        context=context,
 
         ssh_user=ssh_user, ssh_password=ssh_password,
         ssh_port=ssh_port,
@@ -146,7 +133,7 @@ def SshHost(
     )
 
 
-localhost = LocalHost(None)
+localhost = LocalHost()
 localhost_connection = localhost.connect().__enter__()
 
 __all__ = (

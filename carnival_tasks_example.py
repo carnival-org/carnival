@@ -7,46 +7,51 @@ CARNIVAL_TASKS_MODULE=carnival_tasks_example poetry run carnival help
 import typing
 from dataclasses import dataclass
 
-from carnival.host import localhost, localhost_connection, SshHost
-from carnival.step import Step
+from carnival.host import Host, SshHost, localhost_connection
 from carnival.task import Task
 from carnival import cmd
 
 
+# role.py
+class Role(typing.Protocol):
+    host: Host
+
+
 #  ## step.py file
-class DiskContextProtocol(typing.Protocol):
+class DiskContextProtocol(Role, typing.Protocol):
     disk: str
 
 
-DiskContextProtocolT = typing.TypeVar("DiskContextProtocolT", bound=DiskContextProtocol)
+def check_disk_space(ctx: DiskContextProtocol) -> None:  # Step for check disk space on any host
+    with ctx.host.connect() as c:
+        cmd.cli.run(c, f"df {ctx.disk}")
 
 
-class CheckDiskSpace(Step[DiskContextProtocolT]):  # Step for check disk space on any host
-    def run(self) -> None:
-        with self.host.connect() as c:
-            cmd.cli.run(c, f"df {self.host.context.disk}")
-
-
-class UploadDataProtocol(typing.Protocol):
+class UploadDataProtocol(Role, typing.Protocol):
     src: str
     dst: str
 
 
-UploadDataProtocolT = typing.TypeVar("UploadDataProtocolT", bound=UploadDataProtocol)
+def upload_data(ctx: UploadDataProtocol) -> None:  # Step for put file on ssh host (ssh host required)
+    with ctx.host.connect() as c:
+        cmd.transfer.transfer(
+            localhost_connection, ctx.src,
+            c, ctx.dst,
+        )
 
 
-class UploadData(Step[UploadDataProtocolT]):  # Step for put file on ssh host (ssh host required)
-    def run(self) -> None:
-        with self.host.connect() as c:
-            cmd.transfer.transfer(
-                localhost_connection, self.host.context.src,
-                c, self.host.context.dst,
-            )
+class OtherProtocol(Role, typing.Protocol):
+    size: int = 10
+
+
+def other_step(ctx: None) -> None:
+    pass
 
 
 #  ## inventory.py
 @dataclass
 class HostContext:
+    host: Host
     disk: str = "/"
     src: str = "/etc/fstab"
     dst: str = "/root/fstab"
@@ -54,46 +59,49 @@ class HostContext:
 
 @dataclass
 class HostContext2:
+    host: Host
     disk: str = "/"
     src: str = "/etc/fstab"
     dst: str = "/root/fstab"
+    ll: int = 1
 
 
 @dataclass
 class OtherContext:
-    other: str = ""
+    host: Host
+    size: int = 1
 
 
-ssh_hc = SshHost("1.2.3.4", context=HostContext())
-ssh_hc2 = SshHost("1.2.3.4", context=HostContext2())
-ssh_oc = SshHost("1.2.3.4", context=OtherContext())
+ssh_host = SshHost("1.2.3.4")
 
-local_hc = localhost.with_context(HostContext())
-local_hc2 = localhost.with_context(HostContext2())
-local_oc = localhost.with_context(OtherContext())
+
+ssh_hc = HostContext(host=ssh_host)
+ssh_hc2 = HostContext2(host=ssh_host)
+ssh_oc = OtherContext(host=ssh_host)
 
 
 #  ## tasks.py
-class InstallServer(Task):
+T = typing.TypeVar("T", bound=Role)
+
+
+class SimpleTask(typing.Generic[T], Task):
+    def __init__(
+        self,
+        role: T,
+        steps: typing.List[typing.Callable[[T], None]],
+    ) -> None:
+        self.role = role
+        self.steps = steps
+
     def run(self) -> None:
-        for h in [ssh_hc, local_hc]:
-            UploadData(h)
+        return super().run()
 
-        for h2 in [ssh_hc, local_hc2]:
-            UploadData(h2)  # Not working for now ;(
 
-        UploadData(ssh_hc)
-        UploadData(ssh_hc2)
-        UploadData(ssh_oc)  # type: ignore # Opps! Context is not compatible for step
-
-        CheckDiskSpace(ssh_hc)
-        CheckDiskSpace(ssh_hc2)
-        CheckDiskSpace(ssh_oc)  # type: ignore # Opps! Context is not compatible for step
-
-        UploadData(local_hc)
-        UploadData(local_hc2)
-        UploadData(local_oc)  # type: ignore # Opps! Context is not compatible for step
-
-        CheckDiskSpace(local_hc)
-        CheckDiskSpace(local_hc2)
-        CheckDiskSpace(local_oc)  # type: ignore # Opps! Context is not compatible for step
+SimpleTask(
+    role=ssh_hc,
+    steps=[
+        upload_data,
+        check_disk_space,
+        other_step,  # type: ignore # Oops wrong context type
+    ]
+)

@@ -1,7 +1,14 @@
 import abc
 import typing
+import re
 
-from carnival.step import _underscore
+
+def _underscore(word: str) -> str:
+    # https://github.com/jpvanhal/inflection/blob/master/inflection.py
+    word = re.sub(r"([A-Z]+)([A-Z][a-z])", r'\1_\2', word)
+    word = re.sub(r"([a-z\d])([A-Z])", r'\1_\2', word)
+    word = word.replace("-", "_")
+    return word.lower()
 
 
 class Task(metaclass=abc.ABCMeta):

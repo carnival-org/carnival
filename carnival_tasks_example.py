@@ -9,7 +9,7 @@ from dataclasses import dataclass
 
 from carnival.host import localhost, localhost_connection, SshHost
 from carnival.step import Step
-from carnival.task import SimpleTask
+from carnival.task import Task
 from carnival import cmd
 
 
@@ -53,35 +53,47 @@ class HostContext:
 
 
 @dataclass
+class HostContext2:
+    disk: str = "/"
+    src: str = "/etc/fstab"
+    dst: str = "/root/fstab"
+
+
+@dataclass
 class OtherContext:
-    other: str
+    other: str = ""
 
 
-hosts_good = [
-    SshHost("1.2.3.4", context=HostContext()),
-    localhost.with_context(HostContext()),
-]
-hosts_bad = [
-    SshHost("1.2.3.4", context=HostContext()),
-    localhost.with_context(OtherContext(other="other")),
-]
+ssh_hc = SshHost("1.2.3.4", context=HostContext())
+ssh_hc2 = SshHost("1.2.3.4", context=HostContext2())
+ssh_oc = SshHost("1.2.3.4", context=OtherContext())
+
+local_hc = localhost.with_context(HostContext())
+local_hc2 = localhost.with_context(HostContext2())
+local_oc = localhost.with_context(OtherContext())
 
 
 #  ## tasks.py
-class InstallServer(SimpleTask[HostContext]):
-    hosts = [
-        SshHost("1.2.3.4", context=HostContext()),
-        localhost.with_context(HostContext()),
-    ]
-    steps = [
-        CheckDiskSpace[HostContext],
-        UploadData[HostContext],
-    ]
+class InstallServer(Task):
+    def run(self) -> None:
+        for h in [ssh_hc, local_hc]:
+            UploadData(h)
 
+        for h2 in [ssh_hc, local_hc2]:
+            UploadData(h2)  # Not working for now ;(
 
-class InstallServerBad(SimpleTask[HostContext]):
-    hosts = hosts_bad  # type: ignore  # Oops, Incompatible types in assignment
-    steps = [
-        CheckDiskSpace[HostContext],
-        UploadData[HostContext],
-    ]
+        UploadData(ssh_hc)
+        UploadData(ssh_hc2)
+        UploadData(ssh_oc)  # type: ignore # Opps! Context is not compatible for step
+
+        CheckDiskSpace(ssh_hc)
+        CheckDiskSpace(ssh_hc2)
+        CheckDiskSpace(ssh_oc)  # type: ignore # Opps! Context is not compatible for step
+
+        UploadData(local_hc)
+        UploadData(local_hc2)
+        UploadData(local_oc)  # type: ignore # Opps! Context is not compatible for step
+
+        CheckDiskSpace(local_hc)
+        CheckDiskSpace(local_hc2)
+        CheckDiskSpace(local_oc)  # type: ignore # Opps! Context is not compatible for step

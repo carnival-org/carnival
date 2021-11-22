@@ -20,8 +20,10 @@ class Host(typing.Generic[HostContextT], metaclass=abc.ABCMeta):
         self.context = context
         self.sudo = sudo
 
-    @abc.abstractmethod
-    def connect(self) -> typing.ContextManager[Connection]: ...
+    def with_context(self, context: NewHostContextT) -> "Host[NewHostContextT]":  # TODO: Self type
+        new_host = typing.cast(Host[NewHostContextT], copy.deepcopy(self))
+        new_host.context = context
+        return new_host
 
     def __str__(self) -> str:
         return f"🖥 {self.addr}"
@@ -32,8 +34,11 @@ class Host(typing.Generic[HostContextT], metaclass=abc.ABCMeta):
     def __repr__(self) -> str:
         return f"<Host object {self.addr}>"
 
+    @abc.abstractmethod
+    def connect(self) -> typing.ContextManager[Connection]: ...
 
-class LocalHost(Host[HostContextT]):
+
+class _LocalHost(Host[HostContextT]):
     """
     Локальный хост, работает по локальному терминалу
     """
@@ -42,17 +47,16 @@ class LocalHost(Host[HostContextT]):
         self.addr: str = "localhost"
         super().__init__(context=context, sudo=sudo)
 
-    def with_context(self, context: NewHostContextT) -> "LocalHost[NewHostContextT]":  # TODO: Self type
-        new_host = typing.cast(LocalHost[NewHostContextT], copy.deepcopy(self))
-        new_host.context = context
-        return new_host
-
     @contextmanager
     def connect(self) -> typing.Generator[_local_connection.LocalConnection, None, None]:
         yield _local_connection.LocalConnection(sudo=self.sudo)
 
 
-class SshHost(Host[HostContextT]):
+def LocalHost(context: HostContextT, sudo: bool = False) -> Host[HostContextT]:
+    return _LocalHost(context=context, sudo=sudo)
+
+
+class _SshHost(Host[HostContextT]):
     """
     Удаленный хост, работает по SSH
     """
@@ -64,7 +68,7 @@ class SshHost(Host[HostContextT]):
 
         ssh_user: typing.Optional[str] = None, ssh_password: typing.Optional[str] = None,
         ssh_port: int = 22,
-        ssh_gateway: typing.Optional['SshHost[typing.Any]'] = None,
+        ssh_gateway: typing.Optional['_SshHost[typing.Any]'] = None,
         ssh_connect_timeout: int = 10,
         missing_host_key_policy: typing.Type[MissingHostKeyPolicy] = AutoAddPolicy,
 
@@ -116,7 +120,33 @@ class SshHost(Host[HostContextT]):
         conn.close()
 
 
-localhost = LocalHost[None](None)
+def SshHost(
+    addr: str,
+    context: HostContextT,
+
+    ssh_user: typing.Optional[str] = None, ssh_password: typing.Optional[str] = None,
+    ssh_port: int = 22,
+    ssh_gateway: typing.Optional['_SshHost[typing.Any]'] = None,
+    ssh_connect_timeout: int = 10,
+    missing_host_key_policy: typing.Type[MissingHostKeyPolicy] = AutoAddPolicy,
+
+    sudo: bool = False,
+) -> Host[HostContextT]:
+    return _SshHost(
+        addr=addr,
+        context=context,
+
+        ssh_user=ssh_user, ssh_password=ssh_password,
+        ssh_port=ssh_port,
+        ssh_gateway=ssh_gateway,
+        ssh_connect_timeout=ssh_connect_timeout,
+        missing_host_key_policy=missing_host_key_policy,
+
+        sudo=sudo,
+    )
+
+
+localhost = LocalHost(None)
 localhost_connection = localhost.connect().__enter__()
 
 __all__ = (

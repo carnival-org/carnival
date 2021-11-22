@@ -1,7 +1,16 @@
 import abc
 import typing
+import re
 
 from carnival.host import Host
+
+
+def _underscore(word: str) -> str:
+    # https://github.com/jpvanhal/inflection/blob/master/inflection.py
+    word = re.sub(r"([A-Z]+)([A-Z][a-z])", r'\1_\2', word)
+    word = re.sub(r"([a-z\d])([A-Z])", r'\1_\2', word)
+    word = word.replace("-", "_")
+    return word.lower()
 
 
 class Context(typing.Protocol):
@@ -29,19 +38,17 @@ class Step(typing.Generic[ContextT], metaclass=abc.ABCMeta):
     >>>
     >>>
     >>> class AptInstall(Step[PackagesContextProtocolT]):
-    >>>     def __init__(self, print_result=False):
-    >>>         self.print_result = print_result
-    >>>
     >>>     def run(self) -> None:
-    >>>         with host.connect():
-    >>>             result = cmd.apt.install_multiple(host.context.packages)
+    >>>         with self.host.connect():
+    >>>             result = cmd.apt.install_multiple(self.host.context.packages)
     >>>             if self.print_result:
     >>>                 print(result)
 
     """
 
-    def __init__(self, host: Host[ContextT]):
-        self.host: Host[ContextT] = host
+    def __init__(self, host: Host[ContextT]) -> None:
+        self.host = host
 
     @abc.abstractmethod
-    def run(self) -> None: ...
+    def run(self) -> None:
+        print(f"💃💃💃 Running {_underscore(self.__class__.__name__)} at {self.host}")

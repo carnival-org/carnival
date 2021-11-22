@@ -1,17 +1,7 @@
 import abc
-import re
 import typing
 
-from carnival.step import Step, ContextT
-from carnival.host import Host
-
-
-def _underscore(word: str) -> str:
-    # https://github.com/jpvanhal/inflection/blob/master/inflection.py
-    word = re.sub(r"([A-Z]+)([A-Z][a-z])", r'\1_\2', word)
-    word = re.sub(r"([a-z\d])([A-Z])", r'\1_\2', word)
-    word = word.replace("-", "_")
-    return word.lower()
+from carnival.step import _underscore
 
 
 class Task(metaclass=abc.ABCMeta):
@@ -50,14 +40,3 @@ class Task(metaclass=abc.ABCMeta):
         Реализация выполнения задачи
         """
         raise NotImplementedError
-
-
-class SimpleTask(abc.ABC, typing.Generic[ContextT], Task, metaclass=abc.ABCMeta):
-    hosts: typing.List[Host[ContextT]] = []
-    steps: typing.List[typing.Type[Step[ContextT]]] = []
-
-    def run(self) -> None:
-        for host in self.hosts:
-            for step in self.steps:
-                print(f"💃💃💃 Running {self.get_name()}:{_underscore(step.__name__)} at {host}")
-                step(host).run()

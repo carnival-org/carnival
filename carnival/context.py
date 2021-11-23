@@ -1,56 +1,54 @@
 import inspect
 import os
-from typing import Any, Callable, Dict, List
+import typing
+
+from carnival.exceptions import ContextBuilderError, ContextBuilderPassAllArgs
 
 
-class ContextBuilderError(BaseException):
-    pass
+def _get_arg_names(fn: typing.Callable[..., typing.Any]) -> typing.Dict[str, bool]:
+    arg_names: typing.Dict[str, bool] = {}
 
+    for arg_name, arg_parameter in inspect.signature(fn).parameters.items():
+        if arg_parameter.kind not in [
+            arg_parameter.KEYWORD_ONLY,
+            arg_parameter.POSITIONAL_OR_KEYWORD,
+            arg_parameter.VAR_KEYWORD,
+        ]:
+            raise ContextBuilderError("only keyword parameters required for autocontext")
 
-class PassAllArgs(BaseException):
-    pass
+        if arg_parameter.kind == arg_parameter.VAR_KEYWORD:
+            raise ContextBuilderPassAllArgs()
 
-
-def _get_arg_names(fn: Callable[..., Any]) -> List[str]:
-    arg_names: List[str] = []
-    spec = inspect.getfullargspec(fn)
-
-    if spec.varargs is not None:
-        raise ValueError("*args is not supported for autocontext")
-
-    if spec.varkw is not None:
-        # Not actual if kwargs argument exists
-        raise PassAllArgs()
-
-    arg_names += spec.args
-    arg_names += spec.kwonlyargs
+        arg_names[arg_name] = arg_parameter.default == arg_parameter.empty
 
     if 'self' in arg_names:
-        arg_names.remove('self')
+        arg_names.pop('self')
 
     return arg_names
 
 
-def build_kwargs(fn: Callable[..., Any], context: Dict[str, Any]) -> Dict[str, Any]:
+def build_kwargs(
+    fn: typing.Callable[..., typing.Any],
+    context: typing.Dict[str, typing.Any],
+) -> typing.Dict[str, typing.Any]:
     try:
-        arg_names: List[str] = _get_arg_names(fn)
-    except PassAllArgs:
+        arg_names: typing.Dict[str, bool] = _get_arg_names(fn)
+    except ContextBuilderPassAllArgs:
         # Pass all context if kwargs var exists
         return context.copy()
 
     kwargs = {}
-    for arg_name in arg_names:
-        # TODO: check if variable has default value
-        # if arg_name not in context:
-        #     raise ContextBuilderError("Required context var '{arg_name}' is not present in context.")
+    for arg_name, is_arg_required in arg_names.items():
+        if arg_name not in context and is_arg_required:
+            raise ContextBuilderError(f"Variable '{arg_name}', is not present in context.")
 
         if arg_name in context:
             kwargs[arg_name] = context[arg_name]
     return kwargs
 
 
-def build_context(*context_chain: Dict[str, Any]) -> Dict[str, Any]:
-    run_context: Dict[str, Any] = {}
+def build_context(*context_chain: typing.Dict[str, typing.Any]) -> typing.Dict[str, typing.Any]:
+    run_context: typing.Dict[str, typing.Any] = {}
 
     env_prefix = "CARNIVAL_CTX_"
     # Build context from environment variables

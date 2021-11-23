@@ -5,7 +5,7 @@ from typing import Any, Dict, Iterable, Type
 import click
 import dotenv
 
-from carnival.task import Task
+from carnival.task import TaskBase
 from carnival.tasks_loader import get_tasks
 
 # Load dotenv first
@@ -23,11 +23,11 @@ def is_completion_script(complete_var: str) -> bool:
     return os.getenv(complete_var, None) is not None
 
 
-task_types: Dict[str, Type[Task]] = {}
+task_types: Dict[str, Type[TaskBase]] = {}
 
 
 def except_hook(type: Type[Any], value: Any, traceback: Any) -> None:
-    print(f"{type} was raised. You can use --debug flag to see full traceback.")
+    print(f"{type.__name__}: {value} \nYou can use --debug flag to see full traceback.")
 
 
 def main() -> int:

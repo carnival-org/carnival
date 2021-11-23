@@ -4,6 +4,8 @@ from fabric import Connection  # type:ignore
 from invoke import Context  # type:ignore
 
 from carnival.host import AnyHost
+from carnival.exceptions import GlobalConnectionError
+
 
 # noinspection PyTypeChecker
 conn: Union[Connection, Context, None] = None
@@ -11,7 +13,7 @@ conn: Union[Connection, Context, None] = None
 host: Optional[AnyHost] = None
 
 
-class SetContext:
+class SetConnection:
     def __init__(self, h: AnyHost):
         self.host = h
 
@@ -19,8 +21,10 @@ class SetContext:
         global conn
         global host
 
-        assert host is None, f"Cannot set context, while other context active: {host}"
-        assert conn is None, f"Cannot set context, while other context active: {conn}"
+        if host is not None:
+            raise GlobalConnectionError(f"Cannot set context, while other context active: {host}")
+        if conn is not None:
+            raise GlobalConnectionError(f"Cannot set context, while other context active: {conn}")
 
         conn = self.host.connect()
         host = self.host

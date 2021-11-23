@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from carnival import cmd, global_context
+from carnival import cmd, connection
 from invoke import Result  # type: ignore
 from patchwork import files  # type:ignore
 
@@ -35,10 +35,10 @@ def is_file_contains(filename: str, text: str, exact: bool = False, escape: bool
 
 
     """
-    assert global_context.conn is not None, "No connection"
+    assert connection.conn is not None, "No connection"
     return bool(files.contains(
-        global_context.conn,
-        runner=global_context.conn.run,
+        connection.conn,
+        runner=connection.conn.run,
         filename=filename, text=text, exact=exact, escape=escape
     ))
 
@@ -50,8 +50,8 @@ def is_file_exists(path: str) -> bool:
 
     :param path: путь до файла
     """
-    assert global_context.conn is not None, "No connection"
-    return bool(files.exists(global_context.conn, runner=global_context.conn.run, path=path))
+    assert connection.conn is not None, "No connection"
+    return bool(files.exists(connection.conn, runner=connection.conn.run, path=path))
 
 
 def ensure_dir_exists(
@@ -70,5 +70,5 @@ def ensure_dir_exists(
     :param group: группа
     :param mode: права
     """
-    assert global_context.conn is not None, "No connection"
-    files.directory(global_context.conn, runner=global_context.conn.run, path=path, user=user, group=group, mode=mode)
+    assert connection.conn is not None, "No connection"
+    files.directory(connection.conn, runner=connection.conn.run, path=path, user=user, group=group, mode=mode)

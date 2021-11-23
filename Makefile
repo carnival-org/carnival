@@ -15,20 +15,20 @@ qa:
 	poetry run mypy .
 
 .PHONY: test
-test: qa docs test_deps
+test: docs qa dev
 	poetry run python3 -m pytest -x --cov-report term --cov=carnival -vv tests/
 
 .PHONY: test_fast
-test_fast:
+test_fast: dev
 	poetry run python3 -m pytest -x --cov-report term --cov=carnival -vv -m "not slow" tests/
 
 .PHONY: test_local
-test_local:
+test_local: dev
 	poetry run python3 -m pytest -x --cov-report term --cov=carnival -vv -m "not remote" tests/
 
 .PHONY: dev
 dev:
-	docker-compose -f testdata/docker-compose.yml up --build -d --remove-orphans --force-recreate
+	docker-compose -f testdata/docker-compose.yml up --build -d --remove-orphans
 
 .PHONY: nodev
 nodev:

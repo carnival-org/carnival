@@ -5,27 +5,7 @@ Carnival не предоставляет никаких сложных абст�
 подразумевая что вы будете использовать встроенные коллекции python и организуете
 работу так, как будет удобно для вашей задачи.
 В простом случае, можно передавать хосты прямо в коде файла `carnival_tasks.py`.
-
->>> class SetupFrontend(Task):
->>>    def run(self, **kwargs):
->>>        self.step(
->>>            [Frontend(), ],
->>>            [SSHHost("1.2.3.4", packages=["htop", ]), ],
->>>        )
-
-В более сложных, создать списки в файле `inventory.py`
-
->>> # inventory.py
->>> frontends = [
->>>     LocalHost(),
->>>     SSHHost("1.2.3.5"),
->>> ]
-
->>> # carnival_tasks.py
->>> import inventory as i
->>> class SetupFrontend(Task):
->>>    def run(self, **kwargs):
->>>        self.step([Frontend(), ], i.frontends)
+В более сложных, создать списки в отдельном файле, например `inventory.py`
 """
 
 import typing
@@ -41,6 +21,8 @@ AnyConnection = typing.Union[SSHConnection, LocalConnection]
 class LocalHost:
     """
     Локальный хост, работает по локальному терминалу
+
+    :param context: Контекст хоста
     """
 
     def __init__(self, **context: typing.Any) -> None:
@@ -51,27 +33,14 @@ class LocalHost:
     def connect(self) -> LocalConnection:
         return LocalConnection()
 
-    @property
-    def host(self) -> str:
-        """
-        Remove user and port parts, return just address
-        """
-
-        h = self.addr
-
-        if ':' in self.addr:
-            h = h.split(":", maxsplit=1)[0]
-
-        return h
-
     def __str__(self) -> str:
-        return f"🖥 {self.host}"
+        return f"🖥 {self.addr}"
 
     def __hash__(self) -> int:
         return hash(self.addr)
 
     def __repr__(self) -> str:
-        return f"<Host object {self.host}>"
+        return f"<Host object {self.addr}>"
 
 
 class SSHHost(LocalHost):
@@ -98,6 +67,9 @@ class SSHHost(LocalHost):
         :param ssh_gateway: Gateway
         :param context: Контекст хоста
         """
+        if ":" in addr:
+            raise ValueError("Please set port in 'ssh_port' arg")
+
         if "@" in addr:
             raise ValueError("Please set user in 'ssh_user' arg")
 

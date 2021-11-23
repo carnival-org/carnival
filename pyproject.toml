@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "carnival"
-version = "1.4.0"
+version = "2.0.0"
 description = "Fabric-based software provisioning tool"
 authors = ["Dmirty Simonov <demalf@gmail.com>"]
 license = "MIT"

@@ -1,7 +1,7 @@
 import pytest
 
 from carnival import LocalHost
-from carnival.task import _underscore, Task, SimpleTask
+from carnival.task import _underscore, TaskBase, StepsTask
 
 
 def test_underscore():
@@ -9,16 +9,16 @@ def test_underscore():
 
 
 def test_task_name():
-    t: Task
+    t: TaskBase
 
-    class DryTask(Task):
+    class DryTask(TaskBase):
         def run(self) -> None:
             pass
 
     t = DryTask()
     assert t.get_name() == "dry_task"
 
-    class DryNameTask(Task):
+    class DryNameTask(TaskBase):
         name = "nametask"
 
         def run(self) -> None:
@@ -32,24 +32,18 @@ def test_task(noop_step, mocker):
     spy = mocker.spy(noop_step, 'run')
 
     with pytest.raises(NotImplementedError):
-        Task().run()  # type: ignore
+        TaskBase().run()  # type: ignore
 
-    class DryTask(Task):
-        def run(self):
-            self.step([noop_step, ], [LocalHost(), ])
-    t = DryTask()
-
-    t.run()
-    spy.assert_called()
+    spy.assert_not_called()
 
 
 def test_simple_task(noop_step, mocker):
     spy = mocker.spy(noop_step, 'run')
 
     with pytest.raises(NotImplementedError):
-        Task().run()  # type: ignore
+        TaskBase().run()  # type: ignore
 
-    class DryTask(SimpleTask):
+    class DryTask(StepsTask):
         hosts = [LocalHost(), ]
         steps = [noop_step, ]
     t = DryTask()

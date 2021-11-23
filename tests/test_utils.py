@@ -1,9 +1,9 @@
-from carnival import utils, LocalHost, global_context
+from carnival import utils, LocalHost, connection
 
 
 def test_log(capsys):
-    with global_context.SetContext(LocalHost()):
+    with connection.SetConnection(LocalHost()):
         utils.log("Hellotest")
 
         captured = capsys.readouterr()
-        assert captured.out == "💃💃💃 local> Hellotest\n"
+        assert captured.out == "💃💃💃 🖥 local> Hellotest\n"

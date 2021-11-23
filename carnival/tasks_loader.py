@@ -3,7 +3,7 @@ import os
 import sys
 from typing import Any, Dict, Set, Type
 
-from carnival.task import Task
+from carnival.task import TaskBase
 
 
 def task_subclasses(cls: Type[Any]) -> Set[Type[Any]]:
@@ -20,7 +20,7 @@ def task_subclasses(cls: Type[Any]) -> Set[Type[Any]]:
     return subclasses
 
 
-def get_task_full_name(carnival_tasks_module: str, task_class: Type[Task]) -> str:
+def get_task_full_name(carnival_tasks_module: str, task_class: Type[TaskBase]) -> str:
     task_name = task_class.get_name()
 
     task_mod = task_class.module_name
@@ -46,17 +46,17 @@ def import_tasks_file(carnival_tasks_module: str, silent: bool) -> None:
             print(f"Cannot import {carnival_tasks_module}: {ex}", file=sys.stderr)
 
 
-def get_tasks_from_runtime(carnival_tasks_module: str) -> Dict[str, Type[Task]]:
-    tasks: Dict[str, Type[Task]] = {}
+def get_tasks_from_runtime(carnival_tasks_module: str) -> Dict[str, Type[TaskBase]]:
+    tasks: Dict[str, Type[TaskBase]] = {}
 
-    for task_class in task_subclasses(Task):
+    for task_class in task_subclasses(TaskBase):
         task_full_name = get_task_full_name(carnival_tasks_module, task_class)
         tasks[task_full_name] = task_class
 
     return tasks
 
 
-def get_tasks(carnival_tasks_module: str, for_completion: bool = False) -> Dict[str, Type[Task]]:
+def get_tasks(carnival_tasks_module: str, for_completion: bool = False) -> Dict[str, Type[TaskBase]]:
     sys.path.insert(0, os.getcwd())
     from carnival import internal_tasks  # noqa
     import_tasks_file(carnival_tasks_module, silent=for_completion)

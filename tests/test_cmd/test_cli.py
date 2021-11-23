@@ -1,12 +1,12 @@
 import pytest
-from carnival import cmd, global_context
+from carnival import cmd, connection
 
 
 @pytest.mark.remote
 def test_run(suspend_capture, local_host, ubuntu_ssh_host, centos_ssh_host):
     for host in [local_host, ubuntu_ssh_host, centos_ssh_host]:
         with suspend_capture:
-            with global_context.SetContext(host):
+            with connection.SetConnection(host):
                 result = cmd.cli.run("ls -1 /", hide=True)
                 assert result.ok is True
 
@@ -23,7 +23,7 @@ def test_run(suspend_capture, local_host, ubuntu_ssh_host, centos_ssh_host):
 def test_pty(suspend_capture, local_host, ubuntu_ssh_host, centos_ssh_host):
     for host in [local_host, ubuntu_ssh_host, centos_ssh_host]:
         with suspend_capture:
-            with global_context.SetContext(host):
+            with connection.SetConnection(host):
                 result = cmd.cli.pty("ls -1 / | grep bin", hide=True)
                 assert result.ok is True
 

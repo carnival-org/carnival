@@ -5,8 +5,9 @@ from carnival import Step, LocalHost
 
 def test_step_abc(mocker):
     spy = mocker.spy(Step, 'run')
+    caller = Step(another="context1").run_with_context(LocalHost(add="context").context)  # type: ignore
     with pytest.raises(NotImplementedError):
-        Step(another="context1").run_with_context(LocalHost(add="context").context)  # type: ignore
+        caller()
 
     spy.assert_called_once()
 
@@ -19,23 +20,23 @@ def test_step_context_overload(mocker):
     # Waiting step context
     noop_step = NoopStep(another="context1")
     spy = mocker.spy(noop_step, 'run')
-    noop_step.run_with_context(LocalHost(add="context").context)
+    noop_step.run_with_context(LocalHost(add="context").context)()
     spy.assert_called_once_with(another='context1')
 
     # Waiting no context
     noop_step = NoopStep()
     spy = mocker.spy(noop_step, 'run')
-    noop_step.run_with_context(LocalHost(add="context").context)
+    noop_step.run_with_context(LocalHost(add="context").context)()
     spy.assert_called_once_with()
 
     # Waiting host context
     noop_step = NoopStep()
     spy = mocker.spy(noop_step, 'run')
-    noop_step.run_with_context(LocalHost(another="host_context").context)
+    noop_step.run_with_context(LocalHost(another="host_context").context)()
     spy.assert_called_once_with(another="host_context")
 
     # Waiting step and host context, step context overloading step context
     noop_step = NoopStep(another="context1")
     spy = mocker.spy(noop_step, 'run')
-    noop_step.run_with_context(LocalHost(another="host_context").context)
+    noop_step.run_with_context(LocalHost(another="host_context").context)()
     spy.assert_called_once_with(another="context1")

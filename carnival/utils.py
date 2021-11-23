@@ -1,6 +1,6 @@
 from typing import Any, Optional, Protocol
 
-from carnival import global_context
+from carnival import connection
 
 
 class _Writer(Protocol):
@@ -8,9 +8,9 @@ class _Writer(Protocol):
 
 
 def log(message: str, file: Optional[_Writer] = None) -> None:
-    if global_context.host is None:
+    if connection.host is None:
         host = "NO CONNECTION"
     else:
-        host = global_context.host.host
+        host = str(connection.host)
 
     print(f"💃💃💃 {host}> {message}", file=file)

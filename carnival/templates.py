@@ -4,7 +4,7 @@ from typing import Any
 from jinja2 import (ChoiceLoader, Environment, FileSystemLoader, PackageLoader,
                     PrefixLoader)
 
-from carnival import global_context
+from carnival import connection
 from carnival.plugins import discover_plugins
 
 """
@@ -25,8 +25,8 @@ def render(template_path: str, **context: Any) -> str:
     """
     template = j2_env.get_template(template_path)
     return template.render(
-        conn=global_context.conn,
-        connected_host=global_context.host,
-        host_context=global_context,
+        conn=connection.conn,
+        connected_host=connection.host,
+        host_context=connection,
         **context,
     )

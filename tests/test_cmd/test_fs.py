@@ -1,12 +1,12 @@
 import pytest
-from carnival import cmd, global_context
+from carnival import cmd, connection
 
 
 @pytest.mark.remote
 def test_is_dir_exists(suspend_capture, local_host, ubuntu_ssh_host, centos_ssh_host):
     for host in [local_host, ubuntu_ssh_host, centos_ssh_host]:
         with suspend_capture:
-            with global_context.SetContext(host):
+            with connection.SetConnection(host):
                 assert cmd.fs.is_dir_exists("/etc")
                 assert cmd.fs.is_dir_exists("/bin")
 
@@ -15,7 +15,7 @@ def test_is_dir_exists(suspend_capture, local_host, ubuntu_ssh_host, centos_ssh_
 def test_mkdirs(suspend_capture, local_host, ubuntu_ssh_host, centos_ssh_host):
     for host in [local_host, ubuntu_ssh_host, centos_ssh_host]:
         with suspend_capture:
-            with global_context.SetContext(host):
+            with connection.SetConnection(host):
                 assert cmd.fs.is_dir_exists("/tmp/.carnivaltestdir1") is False
                 assert cmd.fs.is_dir_exists("/tmp/.carnivaltestdir2") is False
 

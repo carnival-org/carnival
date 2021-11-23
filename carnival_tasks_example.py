@@ -7,30 +7,30 @@ import typing
 
 import os
 from carnival import cmd
-from carnival.task import Task, SimpleTask
+from carnival.task import TaskBase, StepsTask
 from carnival.host import SSHHost
 from carnival.step import Step
-from carnival import global_context
+from carnival import connection
 
 
 my_server_ip = os.getenv("TESTSERVER_ADDR", "1.2.3.4")
 my_server = SSHHost(my_server_ip, ssh_user="root", packages=['htop', "mc"])
 
 
-class CheckDiskSpace(Task):
+class CheckDiskSpace(TaskBase):
     help = "Print server root disk usage"
 
-    def run(self) -> None:
-        with global_context.SetContext(my_server):
-            cmd.cli.run("df -h /", hide=False)
+    def run(self, disk: str = "/") -> None:
+        with connection.SetConnection(my_server):
+            cmd.cli.run(f"df -h {disk}", hide=False)
 
 
 class InstallStep(Step):
-    def run(self, packages: typing.List[str]) -> None:
-        cmd.apt.install_multiple(*packages)
+    def run(self, packages: typing.List[str], update: bool = True) -> None:
+        cmd.apt.install_multiple(*packages, update=update)
 
 
-class InstallPackages(SimpleTask):
+class InstallPackages(StepsTask):
     help = "Install packages"
 
     hosts = [my_server]

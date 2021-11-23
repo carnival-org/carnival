@@ -33,7 +33,7 @@ class Step:
         """
         self.context = context
 
-    def run_with_context(self, host_ctx: typing.Dict[str, typing.Any]) -> typing.Any:
+    def run_with_context(self, host_ctx: typing.Dict[str, typing.Any]) -> typing.Callable[[], typing.Any]:
         """
         Выполнить шаг
 
@@ -41,7 +41,7 @@ class Step:
         """
         context = build_context(host_ctx, self.context)
         kwargs = build_kwargs(self.run, context)
-        return self.run(**kwargs)  # type: ignore
+        return lambda: self.run(**kwargs)  # type: ignore
 
     @abc.abstractmethod
     @typing.no_type_check

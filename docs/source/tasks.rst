@@ -2,14 +2,14 @@
 Задача (Task)
 ###################
 
-.. autoclass:: carnival.Task()
+.. autoclass:: carnival.TaskBase()
     :members:
 
 Простые задачи
 ================
 
-.. autoclass:: carnival.SimpleTask()
-    :members: hosts, steps
+.. autoclass:: carnival.StepsTask()
+    :members:
 
 
 Встроенные задачи
@@ -20,9 +20,3 @@ carnival имеет встроенные задачи для удобства и
 .. automodule:: carnival.internal_tasks
     :members:
     :exclude-members: run
-
-Результат выполнения Task.step
-=================================
-
-.. autoclass:: carnival.task.TaskResult()
-    :members:

@@ -1,12 +1,12 @@
 import pytest
-from carnival import cmd, global_context
+from carnival import cmd, connection
 
 
 @pytest.mark.slow
 @pytest.mark.remote
 def test_apt_install(suspend_capture, ubuntu_ssh_host):
     with suspend_capture:
-        with global_context.SetContext(ubuntu_ssh_host):
+        with connection.SetConnection(ubuntu_ssh_host):
             assert cmd.fs.is_file_exists("/usr/bin/mc") is False
             assert cmd.apt.install("mc", hide=True) is True
             assert cmd.apt.install("mc", hide=True) is False
@@ -18,7 +18,7 @@ def test_apt_install(suspend_capture, ubuntu_ssh_host):
 @pytest.mark.remote
 def test_apt_install_multiple(suspend_capture, ubuntu_ssh_host):
     with suspend_capture:
-        with global_context.SetContext(ubuntu_ssh_host):
+        with connection.SetConnection(ubuntu_ssh_host):
             assert cmd.fs.is_file_exists("/usr/bin/mc") is False
             assert cmd.fs.is_file_exists("/usr/bin/htop") is False
             assert cmd.apt.install_multiple("htop", "mc", hide=True) is True
@@ -32,7 +32,7 @@ def test_apt_install_multiple(suspend_capture, ubuntu_ssh_host):
 @pytest.mark.remote
 def test_apt_get_installed_version(suspend_capture, ubuntu_ssh_host):
     with suspend_capture:
-        with global_context.SetContext(ubuntu_ssh_host):
+        with connection.SetConnection(ubuntu_ssh_host):
             assert cmd.fs.is_file_exists("/usr/bin/mc") is False
             assert cmd.apt.get_installed_version("mc") is None
 
@@ -50,7 +50,7 @@ def test_apt_get_installed_version(suspend_capture, ubuntu_ssh_host):
 @pytest.mark.remote
 def test_apt_is_pkg_installed(suspend_capture, ubuntu_ssh_host):
     with suspend_capture:
-        with global_context.SetContext(ubuntu_ssh_host):
+        with connection.SetConnection(ubuntu_ssh_host):
             assert cmd.fs.is_file_exists("/usr/bin/mc") is False
             assert cmd.apt.is_pkg_installed("mc") is False
 

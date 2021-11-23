@@ -1,11 +1,11 @@
 import abc
 import re
-from dataclasses import dataclass
 import copy
 import typing
 
-from carnival import Step, global_context
+from carnival import Step, connection
 from carnival.host import AnyHost
+from carnival.exceptions import ContextBuilderError
 
 
 def _underscore(word: str) -> str:
@@ -16,26 +16,7 @@ def _underscore(word: str) -> str:
     return word.lower()
 
 
-@dataclass
-class TaskResult:
-    """
-    Возвращается вызовом метода Task.step
-    """
-    host: AnyHost
-    """
-    Хост на котором выполнялся шаг
-    """
-    step: Step
-    """
-    Шаг
-    """
-    result: typing.Any
-    """
-    Результат выполения шага
-    """
-
-
-class Task:
+class TaskBase:
     """
     Задача это единица выполнения одного или несколькоих шагов на определенных хостах.
 
@@ -45,66 +26,69 @@ class Task:
     carnival автоматически генерирует имена задач из этих частей, но есть возможность управлять этим вручную,
     используя два атрибута класса Task.
 
-    name: название задачи. если не определено имя будет сгенерировано автоматически.
-    module_name: имя модуля. если назначить пустую строку, полное имя будет включать только название задачи.
+    name:
+    module_name:
+
+    >>> class CheckDiskSpace(TaskBase):
+    >>> help = "Print server root disk usage"
+    >>>
+    >>> def run(self, disk: str = "/") -> None:
+    >>>    with connection.SetConnection(my_server):
+    >>>        cmd.cli.run(f"df -h {disk}", hide=False)
+
     """
 
     # Имя задачи
     name: str = ""
+    """
+    название задачи. если не определено имя будет сгенерировано автоматически.
+    """
     module_name: typing.Optional[str] = None
+    """
+    имя модуля. если назначить пустую строку, полное имя будет включать только название задачи.
+    """
+
     help: str = ""
+    """
+    Строка помощи при вызове carnival help
+    """
 
     @classmethod
     def get_name(cls) -> str:
         return cls.name if cls.name else _underscore(cls.__name__)
 
-    def call_task(self, task_class: typing.Type['Task']) -> typing.Any:
+    def call_task(self, task_class: typing.Type['TaskBase']) -> typing.Any:
         """
         Запустить другую задачу
         Возвращает результат работы задачи
         """
         return task_class().run()
 
-    def extend_host_context(self, host: AnyHost) -> typing.Dict[str, typing.Any]:
+    def validate(self) -> typing.List[str]:
         """
-        Метод для переопределения контекста хоста, вызываемый методом `.step` по умолчанию контекст не переопределяется
-
-        :param host: хост на котором готовится запуск
-        """
-        return copy.deepcopy(host.context)
-
-    def step(self, steps: typing.List[Step], hosts: typing.List[AnyHost]) -> typing.List[TaskResult]:
-        """
-        Запустить шаг(и) на хост(ах)
-        Возвращает объект TaskResult для получения результатов работы каждого шага на каждом хосте
+        Хук для проверки валидности задачи перед запуском, не вызывается автоматически
         """
 
-        results = []
-
-        for host in hosts:
-            with global_context.SetContext(host):
-                for step in steps:
-                    step_name = _underscore(step.__class__.__name__)
-                    print(f"💃💃💃 Running {self.get_name()}:{step_name} at {host}")
-                    r = TaskResult(
-                        host=host,
-                        step=step,
-                        result=step.run_with_context(self.extend_host_context(host=host)),
-                    )
-                    results.append(r)
-        return results
+        return []
 
     @abc.abstractmethod
-    def run(self) -> typing.Any:
+    def run(self) -> None:
         """
         Реализация выполнения задачи
         """
         raise NotImplementedError
 
 
-class SimpleTask(abc.ABC, Task):
+class StepsTask(abc.ABC, TaskBase):
     """
     Запустить шаги `steps` на хостах `hosts`
+
+    >>> class InstallPackages(StepsTask):
+    >>>    help = "Install packages"
+    >>>
+    >>>    hosts = [my_server]
+    >>>    steps = [InstallStep()]
+
     """
 
     hosts: typing.List[AnyHost]
@@ -116,8 +100,44 @@ class SimpleTask(abc.ABC, Task):
     Список шагов в порядке выполнения
     """
 
+    def extend_host_context(self, host: AnyHost) -> typing.Dict[str, typing.Any]:
+        """
+        Метод для переопределения контекста хоста
+
+        :param host: хост на котором готовится запуск
+        """
+        return copy.deepcopy(host.context)
+
+    def validate(self) -> typing.List[str]:
+        """
+        Хук для проверки валидности задачи перед запуском, проверяет примеримость контекста хостов на шагах
+        """
+
+        errors: typing.List[str] = []
+
+        for host in self.hosts:
+            for step in self.steps:
+                try:
+                    step.run_with_context(self.extend_host_context(host=host))
+                except ContextBuilderError as ex:
+                    errors.append(f"{self.__class__.__qualname__} -> {step.__class__.__qualname__} on {host}: {ex}")
+
+        return errors
+
     def run(self) -> None:
-        self.step(
-            steps=self.steps,
-            hosts=self.hosts,
-        )
+        errors = self.validate()
+
+        if errors:
+            print("There is context building errors")
+            for e in errors:
+                print(f" * {e}")
+            return
+
+        for host in self.hosts:
+            host_ctx = self.extend_host_context(host=host)
+            with connection.SetConnection(host):
+                for step in self.steps:
+                    step_name = _underscore(step.__class__.__name__)
+                    print(f"💃💃💃 Running {self.get_name()}:{step_name} at {host}")
+                    call_step = step.run_with_context(host_ctx)
+                    call_step()

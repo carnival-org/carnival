@@ -1,7 +1,7 @@
 from io import BytesIO
 from typing import Any, Iterable
 
-from carnival import global_context
+from carnival import connection
 from carnival.templates import render
 from fabric.transfer import Result, Transfer  # type:ignore
 from patchwork import transfers  # type:ignore
@@ -18,7 +18,7 @@ def rsync(
     <https://fabric-patchwork.readthedocs.io/en/latest/api/transfers.html#patchwork.transfers.rsync>
     """
     return transfers.rsync(
-        c=global_context.conn,
+        c=connection.conn,
         source=source,
         target=target,
         exclude=exclude,
@@ -38,7 +38,7 @@ def get(remote: str, local: str, preserve_mode: bool = True) -> Result:
     :param local: путь куда сохранить файл
     :param preserve_mode: сохранить права
     """
-    t = Transfer(global_context.conn)
+    t = Transfer(connection.conn)
     return t.get(remote=remote, local=local, preserve_mode=preserve_mode)
 
 
@@ -51,7 +51,7 @@ def put(local: str, remote: str, preserve_mode: bool = True) -> Result:
     :param remote: путь куда сохранить на сервере
     :param preserve_mode: сохранить права
     """
-    t = Transfer(global_context.conn)
+    t = Transfer(connection.conn)
     return t.put(local=local, remote=remote, preserve_mode=preserve_mode)
 
 
@@ -67,5 +67,5 @@ def put_template(template_path: str, remote: str, **context: Any) -> Result:
     :param context: контекс для рендеринга jinja2
     """
     filestr = render(template_path=template_path, **context)
-    t = Transfer(global_context.conn)
+    t = Transfer(connection.conn)
     return t.put(local=BytesIO(filestr.encode()), remote=remote, preserve_mode=False)

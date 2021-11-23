@@ -49,12 +49,12 @@ from carnival import Step, Host, Task, cmd
 class Deploy(Task):
     def run(self):
         self.step(
-            DeployFrontend(),
-            Host("1.2.3.5", ssh_user="root", can="context", additional="give"),
+            [DeployFrontend(), ],
+            [Host("1.2.3.5", ssh_user="root", can="context", additional="give"), ],
         )
 
         self.step(
-            DeployFrontend(),
+            [DeployFrontend(), ],
             [
                 Host("root@1.2.3.6", can="give", additional="context"),
                 Host("root@1.2.3.7", can="context", additional="give"),

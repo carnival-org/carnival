@@ -4,13 +4,8 @@
 
 .. automodule:: carnival.host
 
-.. autoattribute:: carnival.host.LOCAL_ADDRS
-
-.. autoclass:: carnival.host.Host
+.. autoclass:: carnival.host.SSHHost()
     :special-members: __init__
 
-.. autoclass:: carnival.host.SSHHost
-    :special-members: __init__
-
-.. autoclass:: carnival.host.LocalHost
+.. autoclass:: carnival.host.LocalHost()
     :special-members: __init__

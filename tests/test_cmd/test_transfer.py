@@ -25,6 +25,6 @@ def test_rsync(suspend_capture, ubuntu_ssh_host, centos_ssh_host):
             with global_context.SetContext(host):
                 cmd.system.ssh_copy_id()
                 assert cmd.fs.is_dir_exists("/docs") is False
-                cmd.transfer.rsync("./docs", "/")
+                cmd.transfer.rsync("./docs", "/", strict_host_keys=False)
                 assert cmd.fs.is_dir_exists("/docs") is True
                 cmd.cli.run("rm -rf /docs")

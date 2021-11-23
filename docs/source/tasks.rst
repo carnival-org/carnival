@@ -2,15 +2,14 @@
 Задача (Task)
 ###################
 
-.. autoclass:: carnival.Task
-    :members: run
+.. autoclass:: carnival.Task()
+    :members:
 
 Простые задачи
 ================
 
-.. autoclass:: carnival.SimpleTask
-    :undoc-members: hosts, steps
-    :exclude-members: run
+.. autoclass:: carnival.SimpleTask()
+    :members: hosts, steps
 
 
 Встроенные задачи
@@ -19,12 +18,11 @@
 carnival имеет встроенные задачи для удобства использования
 
 .. automodule:: carnival.internal_tasks
-    :undoc-members:
     :members:
+    :exclude-members: run
 
 Результат выполнения Task.step
 =================================
 
-.. autoclass:: carnival.task.TaskResult
-    :undoc-members:
+.. autoclass:: carnival.task.TaskResult()
     :members:

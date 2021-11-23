@@ -1,11 +1,10 @@
 import inspect
 import os
-from itertools import chain
-from typing import TYPE_CHECKING, Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List
 
-if TYPE_CHECKING:
-    from carnival.host import AnyHost
-    from carnival.step import Step
+
+class ContextBuilderError(BaseException):
+    pass
 
 
 class PassAllArgs(BaseException):
@@ -40,14 +39,18 @@ def build_kwargs(fn: Callable[..., Any], context: Dict[str, Any]) -> Dict[str, A
         return context.copy()
 
     kwargs = {}
-    for context_name, context_val in context.items():
-        if context_name in arg_names:
-            kwargs[context_name] = context_val
+    for arg_name in arg_names:
+        # TODO: check if variable has default value
+        # if arg_name not in context:
+        #     raise ContextBuilderError("Required context var '{arg_name}' is not present in context.")
+
+        if arg_name in context:
+            kwargs[arg_name] = context[arg_name]
     return kwargs
 
 
-def build_context(step: 'Step', host: 'AnyHost') -> Dict[str, Any]:
-    run_context: Dict[str, Any] = {'host': host}
+def build_context(*context_chain: Dict[str, Any]) -> Dict[str, Any]:
+    run_context: Dict[str, Any] = {}
 
     env_prefix = "CARNIVAL_CTX_"
     # Build context from environment variables
@@ -55,14 +58,15 @@ def build_context(step: 'Step', host: 'AnyHost') -> Dict[str, Any]:
         if env_name.startswith(env_prefix):
             run_context[env_name[len(env_prefix):]] = env_val
 
-    for var_name, var_val in chain(host.context.items(), step.context.items()):
-        if isinstance(var_val, context_ref):
-            try:
-                run_context[var_name] = run_context[var_val.context_var_name]
-            except KeyError as e:
-                raise KeyError(f"There is no '{var_val.context_var_name}' variable in context") from e
-        else:
-            run_context[var_name] = var_val
+    for context_item in context_chain:
+        for var_name, var_val in context_item.items():
+            if isinstance(var_val, context_ref):
+                try:
+                    run_context[var_name] = run_context[var_val.context_var_name]
+                except KeyError as e:
+                    raise ContextBuilderError(f"There is no '{var_val.context_var_name}' variable in context") from e
+            else:
+                run_context[var_name] = var_val
 
     return run_context
 

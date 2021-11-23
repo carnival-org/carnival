@@ -1,7 +1,7 @@
 from typing import Type
 
 import pytest
-from carnival import Host, Step
+from carnival import Step, SSHHost, LocalHost
 from paramiko.client import WarningPolicy
 
 
@@ -19,12 +19,12 @@ def noop_step_class() -> Type[Step]:
 
 
 @pytest.fixture(scope="function")
-def noop_step(noop_step_class) -> Step:
+def noop_step(noop_step_class: Type[Step]) -> Step:
     return noop_step_class()
 
 
 @pytest.fixture(scope="function")
-def noop_step_context(noop_step_class) -> Step:
+def noop_step_context(noop_step_class: Type[Step]) -> Step:
     return noop_step_class(additional="context")
 
 
@@ -48,12 +48,12 @@ def suspend_capture(pytestconfig):
 
 @pytest.fixture(scope="function")
 def local_host():
-    return Host("local")
+    return LocalHost()
 
 
 @pytest.fixture(scope="function")
 def ubuntu_ssh_host():
-    return Host(
+    return SSHHost(
         "127.0.0.1",
         ssh_user="root", ssh_password="secret", ssh_port=22222,
         missing_host_key_policy=WarningPolicy
@@ -62,7 +62,7 @@ def ubuntu_ssh_host():
 
 @pytest.fixture(scope="function")
 def centos_ssh_host():
-    return Host(
+    return SSHHost(
         "127.0.0.1",
         ssh_user="root", ssh_password="secret", ssh_port=22223,
         missing_host_key_policy=WarningPolicy

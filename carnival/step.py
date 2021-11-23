@@ -1,8 +1,7 @@
 import abc
-from typing import Any, no_type_check
+import typing
 
 from carnival.context import build_context, build_kwargs
-from carnival.host import AnyHost
 
 
 class Step:
@@ -28,19 +27,24 @@ class Step:
     >>>         ...
 
     """
-    def __init__(self, **context: Any):
+    def __init__(self, **context: typing.Any):
         """
         :param context: Переменные контекста, назначенные при вызове Шага
         """
         self.context = context
 
-    def run_with_context(self, host: AnyHost) -> Any:
-        context = build_context(self, host)
+    def run_with_context(self, host_ctx: typing.Dict[str, typing.Any]) -> typing.Any:
+        """
+        Выполнить шаг
+
+        :param host_ctx: конекст хоста, (`AnyHost.context`)
+        """
+        context = build_context(host_ctx, self.context)
         kwargs = build_kwargs(self.run, context)
         return self.run(**kwargs)  # type: ignore
 
     @abc.abstractmethod
-    @no_type_check
+    @typing.no_type_check
     def run(self, **kwargs) -> None:
         """
         Метод который нужно определить для выполнения комманд

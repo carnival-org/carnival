@@ -2,4 +2,4 @@ from carnival import internal_tasks
 
 
 def test_help(capsys):
-    internal_tasks.Help(False).run()
+    internal_tasks.Help().run()

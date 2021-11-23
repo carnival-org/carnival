@@ -17,6 +17,12 @@ j2_env = Environment(loader=ChoiceLoader([
 
 
 def render(template_path: str, **context: Any) -> str:
+    """
+    Отрендерить jinja2-шаблон в строку
+
+    :param template_path: относительный путь до шаблона, ищется в текущей папке проекта и в папках плагинов
+    :param context: контекст шаблона
+    """
     template = j2_env.get_template(template_path)
     return template.render(
         conn=global_context.conn,

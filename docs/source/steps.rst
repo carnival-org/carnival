@@ -3,9 +3,9 @@
 ###################
 
 
-.. autoclass:: carnival.Step
+.. autoclass:: carnival.Step()
     :special-members: __init__
-    :members: run
+    :members:
 
 
 Работа с контекстом

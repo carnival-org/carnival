@@ -1,7 +1,7 @@
 import sys
 
 from carnival.step import Step
-from carnival.host import Host, SSHHost, LocalHost
+from carnival.host import SSHHost, LocalHost
 from carnival.task import Task, SimpleTask
 from carnival import cmd
 from carnival import internal_tasks
@@ -19,7 +19,7 @@ if not sys.warnoptions:
 
 __all__ = [
     'Step',
-    'Host', 'SSHHost', 'LocalHost',
+    'SSHHost', 'LocalHost',
     'Task', 'SimpleTask',
     'cmd',
     'log',

@@ -1,7 +1,8 @@
 import abc
 import re
 from dataclasses import dataclass
-from typing import Any, List, Optional, Type, Union
+import copy
+import typing
 
 from carnival import Step, global_context
 from carnival.host import AnyHost
@@ -21,8 +22,17 @@ class TaskResult:
     Возвращается вызовом метода Task.step
     """
     host: AnyHost
+    """
+    Хост на котором выполнялся шаг
+    """
     step: Step
-    result: Any
+    """
+    Шаг
+    """
+    result: typing.Any
+    """
+    Результат выполения шага
+    """
 
 
 class Task:
@@ -41,34 +51,33 @@ class Task:
 
     # Имя задачи
     name: str = ""
-    module_name: Optional[str] = None
+    module_name: typing.Optional[str] = None
     help: str = ""
 
     @classmethod
     def get_name(cls) -> str:
         return cls.name if cls.name else _underscore(cls.__name__)
 
-    def __init__(self, dry_run: bool):
-        self.dry_run = dry_run
-
-    def call_task(self, task_class: Type['Task']) -> Any:
+    def call_task(self, task_class: typing.Type['Task']) -> typing.Any:
         """
         Запустить другую задачу
         Возвращает результат работы задачи
         """
-        return task_class(dry_run=self.dry_run).run()
+        return task_class().run()
 
-    def step(self, steps: Union[Step, List[Step]], hosts: Union[AnyHost, List[AnyHost]]) -> List[TaskResult]:
+    def extend_host_context(self, host: AnyHost) -> typing.Dict[str, typing.Any]:
+        """
+        Метод для переопределения контекста хоста, вызываемый методом `.step` по умолчанию контекст не переопределяется
+
+        :param host: хост на котором готовится запуск
+        """
+        return copy.deepcopy(host.context)
+
+    def step(self, steps: typing.List[Step], hosts: typing.List[AnyHost]) -> typing.List[TaskResult]:
         """
         Запустить шаг(и) на хост(ах)
         Возвращает объект TaskResult для получения результатов работы каждого шага на каждом хосте
         """
-
-        if not isinstance(steps, list) and not isinstance(steps, tuple):
-            steps = [steps, ]
-
-        if not isinstance(hosts, list) and not isinstance(hosts, tuple):
-            hosts = [hosts, ]
 
         results = []
 
@@ -77,17 +86,16 @@ class Task:
                 for step in steps:
                     step_name = _underscore(step.__class__.__name__)
                     print(f"💃💃💃 Running {self.get_name()}:{step_name} at {host}")
-                    if not self.dry_run:
-                        r = TaskResult(
-                            host=host,
-                            step=step,
-                            result=step.run_with_context(host=host),
-                        )
-                        results.append(r)
+                    r = TaskResult(
+                        host=host,
+                        step=step,
+                        result=step.run_with_context(self.extend_host_context(host=host)),
+                    )
+                    results.append(r)
         return results
 
     @abc.abstractmethod
-    def run(self) -> Any:
+    def run(self) -> typing.Any:
         """
         Реализация выполнения задачи
         """
@@ -96,11 +104,17 @@ class Task:
 
 class SimpleTask(abc.ABC, Task):
     """
-    Запустить шаги `self.steps` на хостах `self.hosts`
+    Запустить шаги `steps` на хостах `hosts`
     """
 
-    hosts: List[AnyHost]
-    steps: List[Step]
+    hosts: typing.List[AnyHost]
+    """
+    Список хостов
+    """
+    steps: typing.List[Step]
+    """
+    Список шагов в порядке выполнения
+    """
 
     def run(self) -> None:
         self.step(

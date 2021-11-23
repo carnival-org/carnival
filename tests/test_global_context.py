@@ -1,4 +1,4 @@
-from invoke import Context
+from invoke import Context  # type: ignore
 
 from carnival import global_context
 from carnival.host import LocalHost

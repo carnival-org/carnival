@@ -612,6 +612,45 @@ optional = false
 python-versions = ">=3.6"
 
 [[package]]
+name = "types-cryptography"
+version = "3.3.9"
+description = "Typing stubs for cryptography"
+category = "dev"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+types-enum34 = "*"
+types-ipaddress = "*"
+
+[[package]]
+name = "types-enum34"
+version = "1.1.1"
+description = "Typing stubs for enum34"
+category = "dev"
+optional = false
+python-versions = "*"
+
+[[package]]
+name = "types-ipaddress"
+version = "1.0.1"
+description = "Typing stubs for ipaddress"
+category = "dev"
+optional = false
+python-versions = "*"
+
+[[package]]
+name = "types-paramiko"
+version = "2.8.1"
+description = "Typing stubs for paramiko"
+category = "dev"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+types-cryptography = "*"
+
+[[package]]
 name = "typing-extensions"
 version = "4.0.0"
 description = "Backported and Experimental Type Hints for Python 3.6+"
@@ -635,7 +674,7 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "0bd692935054058ef39d395c7f82379a69f70ea8d85086138ee6b8388467ccc8"
+content-hash = "852e5189887c64423410a97cf36fbbce2b9ad0679f07e453810e05949848499f"
 
 [metadata.files]
 alabaster = [
@@ -1071,8 +1110,25 @@ tomli = [
     {file = "tomli-1.2.2-py3-none-any.whl", hash = "sha256:f04066f68f5554911363063a30b108d2b5a5b1a010aa8b6132af78489fe3aade"},
     {file = "tomli-1.2.2.tar.gz", hash = "sha256:c6ce0015eb38820eaf32b5db832dbc26deb3dd427bd5f6556cf0acac2c214fee"},
 ]
+types-cryptography = [
+    {file = "types-cryptography-3.3.9.tar.gz", hash = "sha256:39b8ce64fe89a7e31ea49030ee19ad81724c38ca7283e2c1f91b2ecfeea8b102"},
+    {file = "types_cryptography-3.3.9-py3-none-any.whl", hash = "sha256:2127dda3016ba9a6e518a76dec46a009a7da112ace79fc6b590fd028fa24db6b"},
+]
+types-enum34 = [
+    {file = "types-enum34-1.1.1.tar.gz", hash = "sha256:55c44c44f193636ed82f1cb68a9a632e1ea7096724f024c25e015976809df339"},
+    {file = "types_enum34-1.1.1-py3-none-any.whl", hash = "sha256:b6d55d7c91867bd2fd6fc90651d91629c98b27cb26df11b1db658ae7a72bb768"},
+]
+types-ipaddress = [
+    {file = "types-ipaddress-1.0.1.tar.gz", hash = "sha256:dc5540c7fd8d4b3ffe8461bc01f27513c0abe5f2088e491218bd0a98a0b4584e"},
+    {file = "types_ipaddress-1.0.1-py3-none-any.whl", hash = "sha256:9d0a642526c4a1f87ee9ae29d91b93f708508b891d038db2e1c9f06219383516"},
+]
+types-paramiko = [
+    {file = "types-paramiko-2.8.1.tar.gz", hash = "sha256:93b51bd729ac8f9e2bc11b4bdfee190b53cca45268084687737c03c697bd0142"},
+    {file = "types_paramiko-2.8.1-py3-none-any.whl", hash = "sha256:7d7b8ca317019ae746ee8886a691a76e5974783f4ec9b6868962ef91535eddc3"},
+]
 typing-extensions = [
     {file = "typing_extensions-4.0.0-py3-none-any.whl", hash = "sha256:829704698b22e13ec9eaf959122315eabb370b0884400e9818334d8b677023d9"},
+    {file = "typing_extensions-4.0.0.tar.gz", hash = "sha256:2cdf80e4e04866a9b3689a51869016d36db0814d84b8d8a568d22781d45d27ed"},
 ]
 urllib3 = [
     {file = "urllib3-1.26.7-py2.py3-none-any.whl", hash = "sha256:c4fdf4019605b6e5423637e01bc9fe4daef873709a7973e195ceba0a62bbc844"},

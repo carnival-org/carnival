@@ -6,7 +6,6 @@ from carnival.task import TaskBase, StepsTask
 from carnival import cmd
 from carnival import internal_tasks
 from carnival.utils import log
-from carnival.context import context_ref
 
 
 if not sys.warnoptions:
@@ -23,6 +22,5 @@ __all__ = [
     'TaskBase', 'StepsTask',
     'cmd',
     'log',
-    'context_ref',
     'internal_tasks',
 ]

@@ -1,10 +1,14 @@
 import os
 from typing import Any
 
-from jinja2 import (ChoiceLoader, Environment, FileSystemLoader, PackageLoader,
-                    PrefixLoader)
+from jinja2 import (
+    ChoiceLoader,
+    Environment,
+    FileSystemLoader,
+    PackageLoader,
+    PrefixLoader,
+)
 
-from carnival import connection
 from carnival.plugins import discover_plugins
 
 """
@@ -24,9 +28,4 @@ def render(template_path: str, **context: Any) -> str:
     :param context: контекст шаблона
     """
     template = j2_env.get_template(template_path)
-    return template.render(
-        conn=connection.conn,
-        connected_host=connection.host,
-        host_context=connection,
-        **context,
-    )
+    return template.render(**context)

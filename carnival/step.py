@@ -1,7 +1,8 @@
 import abc
 import typing
 
-from carnival.context import build_context, build_kwargs
+from carnival.host import AnyHost
+from carnival.exceptions import StepValidationError
 
 
 class Step:
@@ -27,29 +28,26 @@ class Step:
     >>>         ...
 
     """
-    def __init__(self, **context: typing.Any):
-        """
-        :param context: Переменные контекста, назначенные при вызове Шага
-        """
-        self.context = context
+    def __init__(self) -> None:
+        pass
 
-    def run_with_context(self, host_ctx: typing.Dict[str, typing.Any]) -> typing.Callable[[], typing.Any]:
+    def validate(self, host: AnyHost) -> None:
         """
-        Выполнить шаг
+        Валидатор шага, запускается перед выполнением
+        Должен выкидывать .StepValidationError в случае ошибки
 
-        :param host_ctx: конекст хоста, (`AnyHost.context`)
+        :param host: На котором будет выполнен шаг
+
+        :raises StepValidationError: в случае ошибок валидации
         """
-        context = build_context(host_ctx, self.context)
-        kwargs = build_kwargs(self.run, context)
-        return lambda: self.run(**kwargs)  # type: ignore
+        raise StepValidationError("Step validation is not implemented")
 
     @abc.abstractmethod
-    @typing.no_type_check
-    def run(self, **kwargs) -> None:
+    def run(self, host: AnyHost) -> typing.Any:
         """
         Метод который нужно определить для выполнения комманд
 
-        :param kwargs: Автоматические подставляемые переменные контекста, поддерживается `**kwargs`
+        :param host: Хост для выполнения шага
         """
 
         raise NotImplementedError

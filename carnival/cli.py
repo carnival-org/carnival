@@ -1,6 +1,7 @@
 import os
 import sys
-from typing import Any, Dict, Iterable, Type
+import typing
+import collections
 
 import click
 import dotenv
@@ -23,10 +24,10 @@ def is_completion_script(complete_var: str) -> bool:
     return os.getenv(complete_var, None) is not None
 
 
-task_types: Dict[str, Type[TaskBase]] = {}
+task_types: typing.OrderedDict[str, typing.Type[TaskBase]] = collections.OrderedDict()
 
 
-def except_hook(type: Type[Any], value: Any, traceback: Any) -> None:
+def except_hook(type: typing.Type[typing.Any], value: typing.Any, traceback: typing.Any) -> None:
     print(f"{type.__name__}: {value} \nYou can use --debug flag to see full traceback.")
 
 
@@ -49,7 +50,7 @@ def main() -> int:
     @click.command()
     @click.option('--debug', is_flag=True, default=False, help="Turn on debug mode")
     @click.argument('tasks', required=True, type=click.Choice(list(task_types.keys())), nargs=-1)
-    def cli(debug: bool, tasks: Iterable[str]) -> None:
+    def cli(debug: bool, tasks: typing.Iterable[str]) -> None:
         if debug is True:
             print("Debug mode on.")
         else:

@@ -12,7 +12,6 @@ class Help(TaskBase):
         from carnival.cli import task_types
 
         task_list = list(task_types.keys())
-        task_list.sort()
 
         ralign = 4
         if task_list:

@@ -1,13 +1,14 @@
 from io import BytesIO
 from typing import Any, Iterable
 
-from carnival import connection
+from carnival.host import AnyConnection
 from carnival.templates import render
 from fabric.transfer import Result, Transfer  # type:ignore
 from patchwork import transfers  # type:ignore
 
 
 def rsync(
+    c: AnyConnection,
     source: str, target: str,
     exclude: Iterable[str] = (),
     delete: bool = False, strict_host_keys: bool = True,
@@ -18,7 +19,7 @@ def rsync(
     <https://fabric-patchwork.readthedocs.io/en/latest/api/transfers.html#patchwork.transfers.rsync>
     """
     return transfers.rsync(
-        c=connection.conn,
+        c=c,
         source=source,
         target=target,
         exclude=exclude,
@@ -29,7 +30,7 @@ def rsync(
     )
 
 
-def get(remote: str, local: str, preserve_mode: bool = True) -> Result:
+def get(c: AnyConnection, remote: str, local: str, preserve_mode: bool = True) -> Result:
     """
     Скачать файл с сервера
     <http://docs.fabfile.org/en/2.5/api/transfer.html#fabric.transfer.Transfer.get>
@@ -38,11 +39,11 @@ def get(remote: str, local: str, preserve_mode: bool = True) -> Result:
     :param local: путь куда сохранить файл
     :param preserve_mode: сохранить права
     """
-    t = Transfer(connection.conn)
+    t = Transfer(c)
     return t.get(remote=remote, local=local, preserve_mode=preserve_mode)
 
 
-def put(local: str, remote: str, preserve_mode: bool = True) -> Result:
+def put(c: AnyConnection, local: str, remote: str, preserve_mode: bool = True) -> Result:
     """
     Закачать файл на сервер
     <http://docs.fabfile.org/en/2.5/api/transfer.html#fabric.transfer.Transfer.put>
@@ -51,11 +52,11 @@ def put(local: str, remote: str, preserve_mode: bool = True) -> Result:
     :param remote: путь куда сохранить на сервере
     :param preserve_mode: сохранить права
     """
-    t = Transfer(connection.conn)
+    t = Transfer(c)
     return t.put(local=local, remote=remote, preserve_mode=preserve_mode)
 
 
-def put_template(template_path: str, remote: str, **context: Any) -> Result:
+def put_template(c: AnyConnection, template_path: str, remote: str, **context: Any) -> Result:
     """
     Отрендерить файл с помощью jinja-шаблонов и закачать на сервер
     См раздел templates.
@@ -67,5 +68,5 @@ def put_template(template_path: str, remote: str, **context: Any) -> Result:
     :param context: контекс для рендеринга jinja2
     """
     filestr = render(template_path=template_path, **context)
-    t = Transfer(connection.conn)
+    t = Transfer(c)
     return t.put(local=BytesIO(filestr.encode()), remote=remote, preserve_mode=False)

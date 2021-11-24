@@ -1,11 +1,10 @@
 import abc
 import re
-import copy
 import typing
 
-from carnival import Step, connection
+from carnival import Step
 from carnival.host import AnyHost
-from carnival.exceptions import ContextBuilderError
+from carnival.exceptions import StepValidationError
 
 
 def _underscore(word: str) -> str:
@@ -93,34 +92,34 @@ class StepsTask(abc.ABC, TaskBase):
 
     hosts: typing.List[AnyHost]
     """
-    Список хостов
-    """
-    steps: typing.List[Step]
-    """
-    Список шагов в порядке выполнения
+    Список хостов для выполнения шагов
     """
 
-    def extend_host_context(self, host: AnyHost) -> typing.Dict[str, typing.Any]:
+    @abc.abstractmethod
+    def get_steps(self, host: AnyHost) -> typing.List[Step]:
         """
-        Метод для переопределения контекста хоста
-
-        :param host: хост на котором готовится запуск
+        Список шагов в порядке выполнения
         """
-        return copy.deepcopy(host.context)
+        raise NotImplementedError
 
     def validate(self) -> typing.List[str]:
         """
         Хук для проверки валидности задачи перед запуском, проверяет примеримость контекста хостов на шагах
         """
 
+        from carnival.cli import carnival_tasks_module
+        from carnival.tasks_loader import get_task_full_name
+
         errors: typing.List[str] = []
 
         for host in self.hosts:
-            for step in self.steps:
+            for step in self.get_steps(host):
                 try:
-                    step.run_with_context(self.extend_host_context(host=host))
-                except ContextBuilderError as ex:
-                    errors.append(f"{self.__class__.__qualname__} -> {step.__class__.__qualname__} on {host}: {ex}")
+                    step.validate(host=host)
+                except StepValidationError as ex:
+                    task_name = get_task_full_name(carnival_tasks_module, self.__class__)
+                    step_name = step.__class__.__name__
+                    errors.append(f"{task_name} -> {step_name} on {host}: {ex}")
 
         return errors
 
@@ -128,16 +127,13 @@ class StepsTask(abc.ABC, TaskBase):
         errors = self.validate()
 
         if errors:
-            print("There is context building errors")
+            print("There is validation errors")
             for e in errors:
                 print(f" * {e}")
             return
 
         for host in self.hosts:
-            host_ctx = self.extend_host_context(host=host)
-            with connection.SetConnection(host):
-                for step in self.steps:
-                    step_name = _underscore(step.__class__.__name__)
-                    print(f"💃💃💃 Running {self.get_name()}:{step_name} at {host}")
-                    call_step = step.run_with_context(host_ctx)
-                    call_step()
+            for step in self.get_steps(host):
+                step_name = _underscore(step.__class__.__name__)
+                print(f"💃💃💃 Running {self.get_name()}:{step_name} at {host}")
+                step.run(host=host)

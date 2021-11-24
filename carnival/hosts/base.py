@@ -79,6 +79,11 @@ class Host:
     Базовый класс для хостов
     """
 
+    addr: str
+    """
+    Адрес хоста
+    """
+
     def __init__(self, **context: typing.Any) -> None:
         """
         :param context: Контекст хоста

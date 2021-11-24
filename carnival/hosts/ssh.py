@@ -71,6 +71,11 @@ class SshHost(base.Host):
     SSH хост
     """
 
+    addr: str
+    """
+    Домен либо ip хоста
+    """
+
     def __init__(
         self,
         addr: str,

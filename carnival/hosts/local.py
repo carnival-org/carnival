@@ -45,6 +45,11 @@ class LocalHost(base.Host):
     Локальный хост, работает по локальному терминалу
     """
 
+    addr: str = "local"
+    """
+    Адрес хоста, всегда `local`
+    """
+
     def __init__(self, **context: typing.Any) -> None:
         """
         :param context: Контекст хоста

@@ -24,6 +24,6 @@ def test_rsync(suspend_capture, ubuntu_ssh_host, centos_ssh_host):
         with suspend_capture:
             with host.connect() as c:
                 assert cmd.fs.is_dir_exists(c, "/docs") is False
-                cmd.transfer.rsync(c, "./docs", "/", ssh_opts='-o "StrictHostKeyChecking=no"')
+                cmd.transfer.rsync(c.host, "./docs", "/", ssh_opts='-o "StrictHostKeyChecking=no"')
                 assert cmd.fs.is_dir_exists(c, "/docs") is True
                 cmd.cli.run(c, "rm -rf /docs")

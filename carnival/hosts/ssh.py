@@ -68,7 +68,7 @@ class SshConnection(base.Connection):
 
 class SshHost(base.Host):
     """
-    Локальный хост, работает по локальному терминалу
+    SSH хост
     """
 
     def __init__(

@@ -1,15 +1,8 @@
 #######################
-Базовые комманды (cmd)
+Базовые команды (cmd)
 #######################
 
 .. automodule:: carnival.cmd
-
-Apt
-======
-
-.. automodule:: carnival.cmd.apt
-    :undoc-members:
-    :members:
 
 Cli
 ======
@@ -29,13 +22,6 @@ System
 =======
 
 .. automodule:: carnival.cmd.system
-    :undoc-members:
-    :members:
-
-Systemd
-========
-
-.. automodule:: carnival.cmd.systemd
     :undoc-members:
     :members:
 

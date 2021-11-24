@@ -17,6 +17,10 @@ from invoke.context import Result as InvokeResult  # type: ignore
 
 @dataclass
 class Result:
+    """
+    Результат выполнения команды
+    """
+
     return_code: int
     ok: bool
     stdout: str
@@ -27,13 +31,25 @@ class Result:
         return Result(
             return_code=invoke_result.exited,
             ok=invoke_result.ok,
-            stdout=invoke_result.stdout,
-            stderr=invoke_result.stderr,
+            stdout=invoke_result.stdout.replace("\r", ""),
+            stderr=invoke_result.stderr.replace("\r", ""),
         )
 
 
 class Connection:
+    host: "Host"
+    """
+    Хост с которым связан конект
+    """
+
     def __init__(self, host: "Host") -> None:
+        """
+        Конекст с хостом, все конекты являются контекст-менеджерами
+
+        >>> with host.connection() as c:
+        >>>    c.run("ls -1")
+
+        """
         self.host = host
 
     def __enter__(self) -> "Connection":
@@ -49,26 +65,34 @@ class Connection:
         hide: bool = False, warn: bool = True, cwd: typing.Optional[str] = None,
     ) -> Result:
         """
-        Запустить комманду
+        Запустить команду
 
-        См <https://docs.pyinvoke.org/en/latest/api/runners.html>
+        :param command: Команда для запуска
+        :param hide: Скрыть вывод команды
+        :param warn: Вывести stderr
+        :param cwd: Перейти в папку при выполнении команды
         """
 
 
 class Host:
     """
-    Локальный хост, работает по локальному терминалу
-
-    :param context: Контекст хоста
+    Базовый класс для хостов
     """
 
     def __init__(self, **context: typing.Any) -> None:
+        """
+        :param context: Контекст хоста
+        """
+
         self.addr = ""
         self.context = context
         self.context['host'] = self
 
     @abc.abstractmethod
     def connect(self) -> Connection:
+        """
+        Создать конект с хостом
+        """
         ...
 
     def __str__(self) -> str:

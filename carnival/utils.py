@@ -17,6 +17,12 @@ def log(message: str, host: typing.Optional[Host], file: typing.Optional[_Writer
 
 
 def envvar(varname: str) -> str:
+    """
+    Получить переменную из окружения
+    Замена context_ref для carnival v3
+    :raises: ValueError если переменной в окружении нет
+    """
+
     if varname not in os.environ:
         raise ValueError(f"{varname} is not persent in environment")
 

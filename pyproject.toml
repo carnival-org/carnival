@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "carnival"
-version = "2.0.0"
+version = "3.0.0"
 description = "Fabric-based software provisioning tool"
 authors = ["Dmirty Simonov <demalf@gmail.com>"]
 license = "MIT"
@@ -10,7 +10,6 @@ include = ["carnival/py.typed"]
 python = "^3.8"
 Fabric = "2.6.0"
 invoke = "1.6.0"
-patchwork = "1.0.1"
 Jinja2 = "3.0.3"
 Click = "8.0.3"
 python-dotenv = "0.19.2"

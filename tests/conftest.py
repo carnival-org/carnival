@@ -13,7 +13,7 @@ def pytest_configure(config):
 @pytest.fixture(scope="function")
 def noop_step_class() -> Type[Step]:
     class NoopStep(Step):
-        def run(self):
+        def run(self, c):
             pass
     return NoopStep
 

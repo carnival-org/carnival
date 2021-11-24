@@ -6,7 +6,7 @@ TESTSERVER_ADDR=test_server_addr CARNIVAL_TASKS_MODULE=carnival_tasks_example po
 import typing
 
 import os
-from carnival import cmd, TaskBase, SshHost, Step, Host, StepsTask, Connection
+from carnival import cmd, TaskBase, SshHost, Step, Host, Task, Connection
 from carnival.exceptions import StepValidationError
 
 
@@ -39,7 +39,7 @@ class InstallStep(Step):
         cmd.cli.run(c, f"apt-get install -y {self.packages}")
 
 
-class InstallPackages(StepsTask):
+class InstallPackages(Task):
     help = "Install packages"
 
     hosts = [my_server]

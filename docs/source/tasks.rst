@@ -2,13 +2,13 @@
 Задача (Task)
 ###################
 
-.. autoclass:: carnival.TaskBase()
+.. autoclass:: carnival.TaskBase
     :members:
 
-Простые задачи
+Задачи с шагами
 ================
 
-.. autoclass:: carnival.StepsTask()
+.. autoclass:: carnival.Task
     :members:
 
 

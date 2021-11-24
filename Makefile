@@ -15,7 +15,7 @@ qa:
 	poetry run mypy .
 
 .PHONY: test
-test: docs qa dev
+test: qa docs dev
 	poetry run python3 -m pytest -x --cov-report term --cov=carnival -vv tests/
 
 .PHONY: test_fast

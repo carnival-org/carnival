@@ -32,7 +32,8 @@ def rsync(
 ) -> Result:
     """
     Залить папку с локального диска на сервер по rsync
-    :param host: сервер
+
+    :param host: сервер куда заливать
     :param source: локальный путь до папки
     :param target: путь куда нужно залить
     :param rsync_opts: параметры команды rsync
@@ -65,6 +66,7 @@ def get(c: Connection, remote: str, local: str, preserve_mode: bool = True) -> N
     Скачать файл с сервера
     <http://docs.fabfile.org/en/2.5/api/transfer.html#fabric.transfer.Transfer.get>
 
+    :param c: Конект с хостом
     :param remote: путь до файла на сервере
     :param local: путь куда сохранить файл
     :param preserve_mode: сохранить права
@@ -79,6 +81,7 @@ def put(c: Connection, local: str, remote: str, preserve_mode: bool = True) -> N
     Закачать файл на сервер
     <http://docs.fabfile.org/en/2.5/api/transfer.html#fabric.transfer.Transfer.put>
 
+    :param c: Конект с хостом
     :param local: путь до локального файла
     :param remote: путь куда сохранить на сервере
     :param preserve_mode: сохранить права
@@ -95,6 +98,7 @@ def put_template(c: Connection, template_path: str, remote: str, **context: Any)
 
     <http://docs.fabfile.org/en/2.5/api/transfer.html#fabric.transfer.Transfer.put>
 
+    :param c: Конект с хостом
     :param template_path: путь до локального файла jinja
     :param remote: путь куда сохранить на сервере
     :param context: контекс для рендеринга jinja2

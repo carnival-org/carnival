@@ -46,6 +46,9 @@ class LocalHost(base.Host):
     """
 
     def __init__(self, **context: typing.Any) -> None:
+        """
+        :param context: Контекст хоста
+        """
         super().__init__(**context)
         self.addr = "local"
 

@@ -30,11 +30,11 @@ class TaskBase:
     module_name:
 
     >>> class CheckDiskSpace(TaskBase):
-    >>> help = "Print server root disk usage"
+    >>>     help = "Print server root disk usage"
     >>>
-    >>> def run(self, disk: str = "/") -> None:
-    >>>    with connection.SetConnection(my_server):
-    >>>        cmd.cli.run(f"df -h {disk}", hide=False)
+    >>>     def run(self) -> None:
+    >>>         with my_server.connect() as c:
+    >>>             cmd.cli.run(f"df -h /", hide=False)
 
     """
 
@@ -82,7 +82,7 @@ class TaskBase:
         raise NotImplementedError
 
 
-class StepsTask(abc.ABC, TaskBase):
+class Task(abc.ABC, TaskBase):
     """
     Запустить шаги `steps` на хостах `hosts`
 
@@ -90,7 +90,7 @@ class StepsTask(abc.ABC, TaskBase):
     >>>    help = "Install packages"
     >>>
     >>>    hosts = [my_server]
-    >>>    steps = [InstallStep()]
+    >>>    steps = [InstallStep(my_server.context['packages'])]
 
     """
 

@@ -13,7 +13,6 @@ extensions = [
 autodoc_mock_imports = [
     'fabric',
     'invoke',
-    'patchwork',
     'jinja2',
     'click',
     'paramiko',

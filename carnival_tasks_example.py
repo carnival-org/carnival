@@ -6,32 +6,45 @@ TESTSERVER_ADDR=test_server_addr CARNIVAL_TASKS_MODULE=carnival_tasks_example po
 import typing
 
 import os
-from carnival import cmd
-from carnival.task import TaskBase, StepsTask
-from carnival.host import SSHHost
-from carnival.step import Step
-from carnival import connection
+from carnival import cmd, TaskBase, SshHost, Step, Host, StepsTask, Connection
+from carnival.exceptions import StepValidationError
 
 
 my_server_ip = os.getenv("TESTSERVER_ADDR", "1.2.3.4")
-my_server = SSHHost(my_server_ip, ssh_user="root", packages=['htop', "mc"])
+my_server = SshHost(my_server_ip, ssh_user="root", packages=['htop', "mc"])
 
 
 class CheckDiskSpace(TaskBase):
     help = "Print server root disk usage"
 
     def run(self, disk: str = "/") -> None:
-        with connection.SetConnection(my_server):
-            cmd.cli.run(f"df -h {disk}", hide=False)
+        with my_server.connect() as c:
+            cmd.cli.run(c, f"df -h {disk}", hide=False)
 
 
 class InstallStep(Step):
-    def run(self, packages: typing.List[str], update: bool = True) -> None:
-        cmd.apt.install_multiple(*packages, update=update)
+    def __init__(self, packages: typing.List[str], update: bool = True) -> None:
+        self.packages = " ".join(packages)
+        self.packages = self.packages.strip()
+        self.update = update
+
+    def validate(self, c: Connection) -> None:
+        if not self.packages:
+            raise StepValidationError("packages cant be empty!")
+
+    def run(self, c: Connection) -> None:
+        if self.update:
+            cmd.cli.run(c, "apt-get update")
+
+        cmd.cli.run(c, f"apt-get install -y {self.packages}")
 
 
 class InstallPackages(StepsTask):
     help = "Install packages"
 
     hosts = [my_server]
-    steps = [InstallStep()]
+
+    def get_steps(self, host: Host) -> typing.List[Step]:
+        return [
+            InstallStep(packages=host.context['packages']),
+        ]

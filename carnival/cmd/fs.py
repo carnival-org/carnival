@@ -2,9 +2,7 @@ from typing import List, Optional
 import re
 
 from carnival import cmd
-from carnival.host import AnyConnection
-
-from invoke import Result  # type: ignore
+from carnival import Connection, Result
 
 
 def _escape_for_regex(text: str) -> str:
@@ -19,7 +17,7 @@ def _escape_for_regex(text: str) -> str:
     return regex
 
 
-def mkdirs(c: AnyConnection, *dirs: str) -> List[Result]:
+def mkdirs(c: Connection, *dirs: str) -> List[Result]:
     """
     Создать директории
 
@@ -28,7 +26,7 @@ def mkdirs(c: AnyConnection, *dirs: str) -> List[Result]:
     return [cmd.cli.run(c, f"mkdir -p {x}", hide=True) for x in dirs]
 
 
-def is_dir_exists(c: AnyConnection, dir_path: str) -> bool:
+def is_dir_exists(c: Connection, dir_path: str) -> bool:
     """
     Узнать существует ли директория
 
@@ -37,7 +35,7 @@ def is_dir_exists(c: AnyConnection, dir_path: str) -> bool:
     return bool(cmd.cli.run(c, f"test -d {dir_path}", warn=True, hide=True).ok)
 
 
-def is_file_contains(c: AnyConnection, filename: str, text: str, exact: bool = False, escape: bool = True) -> bool:
+def is_file_contains(c: Connection, filename: str, text: str, exact: bool = False, escape: bool = True) -> bool:
     """
     Содержит ли файл текст
 
@@ -53,10 +51,10 @@ def is_file_contains(c: AnyConnection, filename: str, text: str, exact: bool = F
         if exact:
             text = "^{}$".format(text)
     egrep_cmd = 'egrep "{}" "{}"'.format(text, filename)
-    return c.run(egrep_cmd, hide=True, warn=True).ok  # type: ignore
+    return c.run(egrep_cmd, hide=True, warn=True).ok
 
 
-def is_file_exists(c: AnyConnection, path: str) -> bool:
+def is_file_exists(c: Connection, path: str) -> bool:
     """
     Проверить существует ли файл
 
@@ -64,11 +62,11 @@ def is_file_exists(c: AnyConnection, path: str) -> bool:
     """
 
     cmd = 'test -e "$(echo {})"'.format(path)
-    return c.run(cmd, hide=True, warn=True).ok  # type: ignore
+    return c.run(cmd, hide=True, warn=True).ok
 
 
 def ensure_dir_exists(
-    c: AnyConnection,
+    c: Connection,
     path: str,
     user: Optional[str] = None,
     group: Optional[str] = None,

@@ -3,8 +3,9 @@ import re
 import typing
 
 from carnival import Step
-from carnival.host import AnyHost
+from carnival import Host
 from carnival.exceptions import StepValidationError
+from carnival.utils import log
 
 
 def _underscore(word: str) -> str:
@@ -52,6 +53,9 @@ class TaskBase:
     Строка помощи при вызове carnival help
     """
 
+    def __init__(self, no_validate: bool) -> None:
+        self.no_validate = no_validate
+
     @classmethod
     def get_name(cls) -> str:
         return cls.name if cls.name else _underscore(cls.__name__)
@@ -61,7 +65,7 @@ class TaskBase:
         Запустить другую задачу
         Возвращает результат работы задачи
         """
-        return task_class().run()
+        return task_class(no_validate=self.no_validate).run()
 
     def validate(self) -> typing.List[str]:
         """
@@ -90,13 +94,13 @@ class StepsTask(abc.ABC, TaskBase):
 
     """
 
-    hosts: typing.List[AnyHost]
+    hosts: typing.List[Host]
     """
     Список хостов для выполнения шагов
     """
 
     @abc.abstractmethod
-    def get_steps(self, host: AnyHost) -> typing.List[Step]:
+    def get_steps(self, host: Host) -> typing.List[Step]:
         """
         Список шагов в порядке выполнения
         """
@@ -113,27 +117,34 @@ class StepsTask(abc.ABC, TaskBase):
         errors: typing.List[str] = []
 
         for host in self.hosts:
-            for step in self.get_steps(host):
-                try:
-                    step.validate(host=host)
-                except StepValidationError as ex:
-                    task_name = get_task_full_name(carnival_tasks_module, self.__class__)
-                    step_name = step.__class__.__name__
-                    errors.append(f"{task_name} -> {step_name} on {host}: {ex}")
+            with host.connect() as c:
+                for step in self.get_steps(host):
+                    try:
+                        step.validate(c=c)
+                    except StepValidationError as ex:
+                        task_name = get_task_full_name(carnival_tasks_module, self.__class__)
+                        step_name = step.__class__.__name__
+                        errors.append(f"{task_name} -> {step_name} on {host}: {ex}")
 
         return errors
 
     def run(self) -> None:
-        errors = self.validate()
+        from carnival.cli import carnival_tasks_module
+        from carnival.tasks_loader import get_task_full_name
 
-        if errors:
-            print("There is validation errors")
-            for e in errors:
-                print(f" * {e}")
-            return
+        if not self.no_validate:
+            errors = self.validate()
+
+            if errors:
+                print("There is validation errors")
+                for e in errors:
+                    print(f" * {e}")
+                return
 
         for host in self.hosts:
-            for step in self.get_steps(host):
-                step_name = _underscore(step.__class__.__name__)
-                print(f"💃💃💃 Running {self.get_name()}:{step_name} at {host}")
-                step.run(host=host)
+            with host.connect() as c:
+                for step in self.get_steps(host):
+                    task_name = get_task_full_name(carnival_tasks_module, self.__class__)
+                    step_name = step.__class__.__name__
+                    log(f"Running {task_name}:{step_name}", host=host)
+                    step.run(c=c)

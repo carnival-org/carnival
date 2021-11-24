@@ -37,6 +37,7 @@ def main() -> int:
         >>> Usage: python -m carnival [OPTIONS] {help|test}...
         >>> Options:
         >>> --debug        Turn on debug mode
+        >>> --no_validate  Disable step validation
         >>> --help         Show this message and exit.
     """
     global task_types
@@ -49,15 +50,19 @@ def main() -> int:
 
     @click.command()
     @click.option('--debug', is_flag=True, default=False, help="Turn on debug mode")
+    @click.option('--no_validate', is_flag=True, default=False, help="Disable step validation")
     @click.argument('tasks', required=True, type=click.Choice(list(task_types.keys())), nargs=-1)
-    def cli(debug: bool, tasks: typing.Iterable[str]) -> None:
+    def cli(debug: bool, no_validate: bool, tasks: typing.Iterable[str]) -> None:
         if debug is True:
             print("Debug mode on.")
         else:
             sys.excepthook = except_hook
 
+        if no_validate:
+            print("Step validation disabled")
+
         for task in tasks:
-            task_types[task]().run()
+            task_types[task](no_validate=no_validate).run()
 
     cli(complete_var=complete_var)
     return 0

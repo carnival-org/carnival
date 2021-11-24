@@ -1,8 +1,9 @@
 import abc
 import typing
 
-from carnival.host import AnyHost
-from carnival.exceptions import StepValidationError
+
+if typing.TYPE_CHECKING:
+    from carnival import Connection
 
 
 class Step:
@@ -31,7 +32,7 @@ class Step:
     def __init__(self) -> None:
         pass
 
-    def validate(self, host: AnyHost) -> None:
+    def validate(self, c: "Connection") -> None:
         """
         Валидатор шага, запускается перед выполнением
         Должен выкидывать .StepValidationError в случае ошибки
@@ -39,15 +40,20 @@ class Step:
         :param host: На котором будет выполнен шаг
 
         :raises StepValidationError: в случае ошибок валидации
+
+        >>> from carnival.exceptions import StepValidationError
+        >>> ...
+        >>> def validate(self, c: "Connection") -> None:
+        >>>     raise StepValidationError("Step validation is not implemented")
         """
-        raise StepValidationError("Step validation is not implemented")
+        pass
 
     @abc.abstractmethod
-    def run(self, host: AnyHost) -> typing.Any:
+    def run(self, c: "Connection") -> typing.Any:
         """
         Метод который нужно определить для выполнения комманд
 
-        :param host: Хост для выполнения шага
+        :param c: Соединение с хостом для выполнения шага
         """
 
         raise NotImplementedError

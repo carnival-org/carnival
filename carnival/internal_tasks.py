@@ -41,7 +41,7 @@ class Validate(TaskBase):
         task_list.sort()
 
         for task_name in task_list:
-            all_errors += task_types[task_name]().validate()
+            all_errors += task_types[task_name](no_validate=False).validate()
 
         if all_errors:
             for e in all_errors:

@@ -1,5 +1,5 @@
 import pytest
-from carnival import cmd, connection
+from carnival import cmd
 from jinja2 import DictLoader, Environment
 
 
@@ -7,24 +7,23 @@ from jinja2 import DictLoader, Environment
 def test_put_template(suspend_capture, mocker, ubuntu_ssh_host, centos_ssh_host):
     for host in [ubuntu_ssh_host, centos_ssh_host]:
         with suspend_capture:
-            with connection.SetConnection(host):
+            with host.connect() as c:
                 mocker.patch(
                     'carnival.templates.j2_env',
                     new=Environment(loader=DictLoader({"index.html": "Hello: {{ name }}"})),
                 )
-                assert cmd.fs.is_file_exists("/index") is False
-                cmd.transfer.put_template("index.html", "/index")
-                assert cmd.fs.is_file_exists("/index") is True
-                cmd.cli.run("rm /index")
+                assert cmd.fs.is_file_exists(c, "/index") is False
+                cmd.transfer.put_template(c, "index.html", "/index")
+                assert cmd.fs.is_file_exists(c, "/index") is True
+                cmd.cli.run(c, "rm /index")
 
 
 @pytest.mark.remote
 def test_rsync(suspend_capture, ubuntu_ssh_host, centos_ssh_host):
     for host in [ubuntu_ssh_host, centos_ssh_host]:
         with suspend_capture:
-            with connection.SetConnection(host):
-                cmd.system.ssh_copy_id()
-                assert cmd.fs.is_dir_exists("/docs") is False
-                cmd.transfer.rsync("./docs", "/", strict_host_keys=False)
-                assert cmd.fs.is_dir_exists("/docs") is True
-                cmd.cli.run("rm -rf /docs")
+            with host.connect() as c:
+                assert cmd.fs.is_dir_exists(c, "/docs") is False
+                cmd.transfer.rsync(c, "./docs", "/", ssh_opts='-o "StrictHostKeyChecking=no"')
+                assert cmd.fs.is_dir_exists(c, "/docs") is True
+                cmd.cli.run(c, "rm -rf /docs")

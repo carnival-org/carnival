@@ -1,10 +1,8 @@
 from carnival import cmd
-from carnival.host import AnyConnection
-
-from invoke import Result  # type: ignore
+from carnival import Connection, Result
 
 
-def set_password(c: AnyConnection, username: str, password: str) -> Result:
+def set_password(c: Connection, username: str, password: str) -> Result:
     """
     Установить пароль пользователю
 
@@ -14,7 +12,7 @@ def set_password(c: AnyConnection, username: str, password: str) -> Result:
     return cmd.cli.run(c, f"echo '{username}:{password}' | chpasswd", hide=True)
 
 
-def get_current_user_name(c: AnyConnection) -> str:
+def get_current_user_name(c: Connection) -> str:
     """
     Получить имя текущего пользователя
     """
@@ -22,14 +20,14 @@ def get_current_user_name(c: AnyConnection) -> str:
     return id_res.strip()
 
 
-def get_current_user_id(c: AnyConnection) -> int:
+def get_current_user_id(c: Connection) -> int:
     """
     Получить id текущего пользователя
     """
     return int(cmd.cli.run(c, "id -u", hide=True).stdout.strip())
 
 
-def is_current_user_root(c: AnyConnection) -> bool:
+def is_current_user_root(c: Connection) -> bool:
     """
     Проверить что текущий пользователь - `root`
     """

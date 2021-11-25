@@ -43,7 +43,7 @@ class SshConnection(base.Connection):
     def run(
         self,
         command: str,
-        hide: bool = False, warn: bool = True, cwd: typing.Optional[str] = None,
+        hide: bool = False, warn: bool = False, cwd: typing.Optional[str] = None,
     ) -> base.Result:
         assert self._c is not None, "Connection is not created"
         # lazy connect

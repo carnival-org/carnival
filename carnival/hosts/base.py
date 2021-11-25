@@ -62,7 +62,7 @@ class Connection:
     def run(
         self,
         command: str,
-        hide: bool = False, warn: bool = True, cwd: typing.Optional[str] = None,
+        hide: bool = False, warn: bool = False, cwd: typing.Optional[str] = None,
     ) -> Result:
         """
         Запустить команду

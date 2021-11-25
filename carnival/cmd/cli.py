@@ -3,7 +3,11 @@ import typing
 from carnival import Connection, Result
 
 
-def run(c: Connection, command: str, warn: bool = True, hide: bool = False, cwd: typing.Optional[str] = None) -> Result:
+def run(
+    c: Connection,
+    command: str,
+    warn: bool = False, hide: bool = False, cwd: typing.Optional[str] = None
+) -> Result:
     """
     Запустить команду
 

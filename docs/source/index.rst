@@ -21,7 +21,7 @@ Carnival |release|
    :maxdepth: 2
    :caption: See also:
 
-   Carnival contrib <https://carnival.readthedocs.io/ru/latest/>
+   Carnival contrib <https://carnival-contrib.readthedocs.io/ru/latest/>
 
 
 Indices and tables

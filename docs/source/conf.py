@@ -7,6 +7,10 @@ project = 'Carnival'
 copyright = '2021, Dmitry Simonov'
 author = 'Dmitry Simonov'
 
+html_theme_options = {
+    "page_width": "1024px",
+}
+
 extensions = [
     'sphinx.ext.autodoc',
 ]

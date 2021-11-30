@@ -1,8 +1,10 @@
 import sys
-
-from carnival.step import Step
+import dotenv
+import os
+from carnival.step import Step, InlineStep
 from carnival.hosts.base import Host, Connection, Result
-from carnival.hosts.local import LocalHost
+from carnival.role import Role, SingleHostRole
+from carnival.hosts.local import LocalHost, localhost_connection
 from carnival.hosts.ssh import SshHost
 from carnival.task import TaskBase, Task
 from carnival import cmd
@@ -18,9 +20,26 @@ if not sys.warnoptions:
     )
 
 
+# Load dotenv first
+carnival_dotenv = os.getenv("CARNIVAL_DOTENV", '.env')
+"""
+Поддерживается передача переменных через `.env-файлы`.
+
+Путь до файла `.env-файла`, по умолчанию `.env`,
+можно изменить через переменную окружения `CARNIVAL_DOTENV`.
+"""
+
+try:
+    dotenv.load_dotenv(dotenv_path=carnival_dotenv)
+except OSError:
+    # dotenv file not found
+    pass
+
+
 __all__ = [
-    'Step',
-    'SshHost', 'LocalHost', 'Host', 'Connection', 'Result',
+    'Step', 'InlineStep',
+    'SshHost', 'LocalHost', 'localhost_connection', 'Host', 'Connection', 'Result',
+    'Role', 'SingleHostRole',
     'TaskBase', 'Task',
     'cmd',
     'log',

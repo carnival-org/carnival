@@ -2,7 +2,7 @@ import pytest
 import typing
 
 from carnival import LocalHost, Step
-from carnival import Host
+from carnival.role import Role
 from carnival.task import _underscore, TaskBase, Task
 
 
@@ -45,10 +45,10 @@ def test_simple_task(noop_step, mocker):
     with pytest.raises(NotImplementedError):
         TaskBase(False).run()  # type: ignore
 
-    class DryTask(Task):
+    class DryTask(Task[Role]):
         hosts = [LocalHost(), ]
 
-        def get_steps(self, host: Host) -> typing.List[Step]:
+        def get_steps(self) -> typing.List[Step]:
             return [noop_step, ]
     t = DryTask(True)
 

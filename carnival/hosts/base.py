@@ -11,7 +11,7 @@ Carnival не предоставляет никаких сложных абст�
 import typing
 import abc
 from dataclasses import dataclass
-
+from carnival.role import RoleBase, role_repository
 from invoke.context import Result as InvokeResult  # type: ignore
 
 
@@ -84,13 +84,21 @@ class Host:
     Адрес хоста
     """
 
-    def __init__(self, **context: typing.Any) -> None:
+    def __init__(
+        self,
+        roles: typing.List[typing.Type[RoleBase]] = [],
+        context: typing.Optional[typing.Dict[str, typing.Any]] = None,
+    ) -> None:
         """
         :param context: Контекст хоста
         """
 
         self.addr = ""
-        self.context = context
+        self.context = context or {}
+
+        self.roles = roles
+        role_repository.add(host=self, roles=roles)
+
         self.context['host'] = self
 
     @abc.abstractmethod

@@ -4,6 +4,7 @@ from paramiko.client import MissingHostKeyPolicy, AutoAddPolicy
 from fabric.connection import Connection as FabricConnection  # type: ignore
 
 from carnival.hosts import base
+from carnival.role import RoleBase
 
 
 class SshConnection(base.Connection):
@@ -86,7 +87,8 @@ class SshHost(base.Host):
         ssh_connect_timeout: int = 10,
         missing_host_key_policy: typing.Type[MissingHostKeyPolicy] = AutoAddPolicy,
 
-        **context: typing.Any,
+        roles: typing.List[typing.Type[RoleBase]] = [],
+        context: typing.Optional[typing.Dict[str, typing.Any]] = None,
      ):
         """
         :param addr: Адрес сервера
@@ -102,7 +104,7 @@ class SshHost(base.Host):
         if "@" in addr:
             raise ValueError("Please set user in 'ssh_user' arg")
 
-        super().__init__(**context)
+        super().__init__(roles=roles, context=context)
 
         self.addr = addr
         self.ssh_port = ssh_port

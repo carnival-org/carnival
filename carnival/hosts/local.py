@@ -2,6 +2,7 @@ import typing
 from invoke.context import Context  # type: ignore
 
 from carnival.hosts import base
+from carnival.role import RoleBase
 
 
 class LocalConnection(base.Connection):
@@ -50,11 +51,15 @@ class LocalHost(base.Host):
     Адрес хоста, всегда `local`
     """
 
-    def __init__(self, **context: typing.Any) -> None:
+    def __init__(
+        self,
+        roles: typing.List[typing.Type[RoleBase]] = [],
+        context: typing.Optional[typing.Dict[str, typing.Any]] = None,
+    ) -> None:
         """
         :param context: Контекст хоста
         """
-        super().__init__(**context)
+        super().__init__(roles=roles, context=context)
         self.addr = "local"
 
     def connect(self) -> LocalConnection:

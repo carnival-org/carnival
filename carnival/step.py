@@ -28,6 +28,9 @@ class Step:
     def __init__(self) -> None:
         pass
 
+    def get_name(self) -> str:
+        return self.__class__.__name__
+
     def validate(self, c: "Connection") -> None:
         """
         Валидатор шага, запускается перед выполнением
@@ -53,3 +56,32 @@ class Step:
         """
 
         raise NotImplementedError
+
+
+T = typing.TypeVar("T")
+
+
+class InlineStep(typing.Generic[T], Step):
+    """
+    Шаг, который можно создать прямо внутри задачи
+
+    >>> class InstallPackages(StepsTask):
+    >>>    help = "Install packages"
+    >>>
+    >>>    hosts = [my_server]
+    >>>    steps = [InlineStep("install_packages", lambda c: c.run("apt-get install htop"))]
+
+    """
+    def __init__(self, name: str, fn: typing.Callable[["Connection", ], T]) -> None:
+        """
+        :param name: имя шага которое выводится в консоли при запуске шага
+        :param fn: функция которая будет вызвана при запуске шага, возвращаемое значение вернется из шага
+        """
+        self.fn = fn
+        self.name = name
+
+    def get_name(self) -> str:
+        return self.name
+
+    def run(self, c: "Connection") -> T:
+        return self.fn(c)

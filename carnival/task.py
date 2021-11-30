@@ -1,9 +1,10 @@
 import abc
 import re
 import typing
+import sys
 
 from carnival import Step
-from carnival import Host
+from carnival.role import Role
 from carnival.exceptions import StepValidationError
 from carnival.utils import log
 
@@ -39,7 +40,7 @@ class TaskBase:
     """
 
     # Имя задачи
-    name: str = ""
+    name: typing.ClassVar[str] = ""
     """
     название задачи. если не определено имя будет сгенерировано автоматически.
     """
@@ -82,11 +83,14 @@ class TaskBase:
         raise NotImplementedError
 
 
-class Task(abc.ABC, TaskBase):
+RoleT = typing.TypeVar("RoleT", bound=Role)
+
+
+class Task(typing.Generic[RoleT], abc.ABC, TaskBase):
     """
     Запустить шаги `steps` на хостах `hosts`
 
-    >>> class InstallPackages(StepsTask):
+    >>> class InstallPackages(Task):
     >>>    help = "Install packages"
     >>>
     >>>    hosts = [my_server]
@@ -94,13 +98,21 @@ class Task(abc.ABC, TaskBase):
 
     """
 
-    hosts: typing.List[Host]
+    role: RoleT
     """
-    Список хостов для выполнения шагов
+    Роль, доступная в методе `.get_steps`
     """
 
+    def __init__(self, no_validate: bool) -> None:
+        super().__init__(no_validate=no_validate)
+        # Get role from generic
+        self.role_class: typing.Type[RoleT] = typing.get_args(self.__class__.__orig_bases__[0])[0]  # type: ignore
+        self.hostroles: typing.List[RoleT] = self.role_class.get_hostroles()
+        if not self.hostroles:
+            print(f"[WARN]: not hosts for {self.role_class}", file=sys.stderr)
+
     @abc.abstractmethod
-    def get_steps(self, host: Host) -> typing.List[Step]:
+    def get_steps(self) -> typing.List[Step]:
         """
         Список шагов в порядке выполнения
         """
@@ -116,15 +128,17 @@ class Task(abc.ABC, TaskBase):
 
         errors: typing.List[str] = []
 
-        for host in self.hosts:
-            with host.connect() as c:
-                for step in self.get_steps(host):
+        for hostrole in self.hostroles:
+            with hostrole.host.connect() as c:
+                self.role = hostrole
+                for step in self.get_steps():
                     try:
                         step.validate(c=c)
                     except StepValidationError as ex:
                         task_name = get_task_full_name(carnival_tasks_module, self.__class__)
-                        step_name = step.__class__.__name__
-                        errors.append(f"{task_name} -> {step_name} on {host}: {ex}")
+                        step_name = step.get_name()
+                        errors.append(f"{task_name} -> {step_name} on {hostrole.host}: {ex}")
+                del self.role
 
         return errors
 
@@ -141,10 +155,11 @@ class Task(abc.ABC, TaskBase):
                     print(f" * {e}")
                 return
 
-        for host in self.hosts:
-            with host.connect() as c:
-                for step in self.get_steps(host):
+        for hostrole in self.hostroles:
+            with hostrole.host.connect() as c:
+                self.role = hostrole
+                for step in self.get_steps():
                     task_name = get_task_full_name(carnival_tasks_module, self.__class__)
-                    step_name = step.__class__.__name__
-                    log(f"Running {task_name}:{step_name}", host=host)
+                    step_name = step.get_name()
+                    log(f"Running {task_name}:{step_name}", host=hostrole.host)
                     step.run(c=c)

@@ -6,12 +6,16 @@ TESTSERVER_ADDR=test_server_addr CARNIVAL_TASKS_MODULE=carnival_tasks_example po
 import typing
 
 import os
-from carnival import cmd, TaskBase, SshHost, Step, Host, Task, Connection
+from carnival import cmd, TaskBase, SshHost, Step, Task, Connection, Role
 from carnival.exceptions import StepValidationError
 
 
+class PackagesRole(Role):
+    packages = ['htop', "mc"]
+
+
 my_server_ip = os.getenv("TESTSERVER_ADDR", "1.2.3.4")
-my_server = SshHost(my_server_ip, ssh_user="root", packages=['htop', "mc"])
+my_server = SshHost(my_server_ip, ssh_user="root", roles=[PackagesRole, ])
 
 
 class CheckDiskSpace(TaskBase):
@@ -39,12 +43,10 @@ class InstallStep(Step):
         cmd.cli.run(c, f"apt-get install -y {self.packages}")
 
 
-class InstallPackages(Task):
+class InstallPackages(Task[PackagesRole]):
     help = "Install packages"
 
-    hosts = [my_server]
-
-    def get_steps(self, host: Host) -> typing.List[Step]:
+    def get_steps(self) -> typing.List[Step]:
         return [
-            InstallStep(packages=host.context['packages']),
+            InstallStep(packages=self.role.packages),
         ]

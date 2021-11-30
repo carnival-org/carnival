@@ -1,4 +1,5 @@
 from carnival import TaskBase
+from carnival.utils import get_class_full_name
 
 
 class Help(TaskBase):
@@ -49,3 +50,17 @@ class Validate(TaskBase):
             return
 
         print("All tasks are valid.")
+
+
+class Roles(TaskBase):
+    """
+    Показать список ролей и хостов
+    """
+    module_name = ""
+    help = "Show all roles and hosts"
+
+    def run(self) -> None:
+        from carnival.role import role_repository
+
+        for role, hosts in role_repository.items():
+            print(f"{get_class_full_name(role)}: {', '.join([x.addr for x in hosts])}")

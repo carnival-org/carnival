@@ -53,8 +53,22 @@ def main() -> int:
         if no_validate:
             print("Step validation disabled")
 
-        for task in tasks:
-            task_types[task](no_validate=no_validate).run()
+        # Build chain and validate
+        task_chain: typing.List[TaskBase] = []
+        for task_class_str in tasks:
+            task = task_types[task_class_str](no_validate=no_validate)
+            if not task.no_validate:
+                errors = task.validate()
+                if errors:
+                    print(f"There is validation errors for task {task_class_str}")
+                    for e in errors:
+                        print(f" * {e}")
+                    return
+            task_chain.append(task)
+
+        # Run
+        for task in task_chain:
+            task.run()
 
     cli(complete_var=complete_var)
     return 0

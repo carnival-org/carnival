@@ -9,9 +9,10 @@ Carnival не предоставляет никаких сложных абст�
 """
 
 import typing
+import ipaddress
+import socket
 import abc
 from dataclasses import dataclass
-from carnival.role import RoleBase, role_repository
 from invoke.context import Result as InvokeResult  # type: ignore
 
 
@@ -86,20 +87,33 @@ class Host:
 
     def __init__(
         self,
-        roles: typing.List[typing.Type[RoleBase]] = [],
-        context: typing.Optional[typing.Dict[str, typing.Any]] = None,
     ) -> None:
         """
         :param context: Контекст хоста
         """
 
         self.addr = ""
-        self.context = context or {}
 
-        self.roles = roles
-        role_repository.add(host=self, roles=roles)
+    @property
+    def ip(self) -> str:
+        # Maybe self.addr is ip?
+        try:
+            ip_obj: typing.Union[ipaddress.IPv4Address, ipaddress.IPv6Address] = ipaddress.ip_address(self.addr)
+            return ip_obj.__str__()
+        except ValueError:
+            # Not ip
+            pass
 
-        self.context['host'] = self
+        # Maybe hostname?
+        try:
+            return socket.gethostbyname(self.addr)
+        except socket.gaierror:
+            # No ;(
+            pass
+
+        # TODO: maybe addr is ~/.ssh/config section?
+
+        raise ValueError("cant get host ip")
 
     @abc.abstractmethod
     def connect(self) -> Connection:

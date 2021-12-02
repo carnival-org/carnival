@@ -107,7 +107,7 @@ class Task(typing.Generic[RoleT], abc.ABC, TaskBase):
         super().__init__(no_validate=no_validate)
         # Get role from generic
         self.role_class: typing.Type[RoleT] = typing.get_args(self.__class__.__orig_bases__[0])[0]  # type: ignore
-        self.hostroles: typing.List[RoleT] = self.role_class.get_hostroles()
+        self.hostroles: typing.List[RoleT] = self.role_class.resolve()
         if not self.hostroles:
             print(f"[WARN]: not hosts for {self.role_class}", file=sys.stderr)
 

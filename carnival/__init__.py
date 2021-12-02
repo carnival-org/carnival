@@ -3,7 +3,7 @@ import dotenv
 import os
 from carnival.step import Step, InlineStep
 from carnival.hosts.base import Host, Connection, Result
-from carnival.role import Role, SingleHostRole
+from carnival.role import Role, SingleRole
 from carnival.hosts.local import LocalHost, localhost_connection
 from carnival.hosts.ssh import SshHost
 from carnival.task import TaskBase, Task
@@ -39,7 +39,7 @@ except OSError:
 __all__ = [
     'Step', 'InlineStep',
     'SshHost', 'LocalHost', 'localhost_connection', 'Host', 'Connection', 'Result',
-    'Role', 'SingleHostRole',
+    'Role', 'SingleRole',
     'TaskBase', 'Task',
     'cmd',
     'log',

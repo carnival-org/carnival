@@ -63,4 +63,4 @@ class Roles(TaskBase):
         from carnival.role import role_repository
 
         for role, hosts in role_repository.items():
-            print(f"{get_class_full_name(role)}: {', '.join([x.addr for x in hosts])}")
+            print(f"{get_class_full_name(role)}: {', '.join([x.host.addr for x in hosts])}")

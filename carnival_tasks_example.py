@@ -14,8 +14,10 @@ class PackagesRole(Role):
     packages = ['htop', "mc"]
 
 
-my_server_ip = os.getenv("TESTSERVER_ADDR", "1.2.3.4")
-my_server = SshHost(my_server_ip, ssh_user="root", roles=[PackagesRole, ])
+my_server_ip = os.getenv("TESTSERVER_ADDR", "1.2.3.4")  # Dynamic ip for testing
+my_server = SshHost(my_server_ip, ssh_user="root")
+
+PackagesRole(my_server)  # Bind server to role
 
 
 class CheckDiskSpace(TaskBase):

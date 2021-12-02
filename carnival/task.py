@@ -3,7 +3,7 @@ import re
 import typing
 import sys
 
-from colorama import Fore, Style, Back  # type: ignore
+from colorama import Fore as F, Style as S, Back as B  # type: ignore
 
 from carnival import Step
 from carnival.role import Role
@@ -134,7 +134,7 @@ class Task(abc.ABC, typing.Generic[RoleT], TaskBase):
         from carnival.cli import carnival_tasks_module
         from carnival.tasks_loader import get_task_full_name
         task_name = get_task_full_name(carnival_tasks_module, self.__class__)
-        print(f"Validating task {Style.BRIGHT}{Fore.BLUE}{task_name}{Fore.RESET}{Style.RESET_ALL}", end="", flush=True)
+        print(f"Validating task {S.BRIGHT}{F.BLUE}{task_name}{F.RESET}{S.RESET_ALL}", end="", flush=True)
         errors: typing.List[str] = []
 
         for hostrole in self.hostroles:
@@ -143,20 +143,20 @@ class Task(abc.ABC, typing.Generic[RoleT], TaskBase):
                 for step in self.get_steps():
                     try:
                         step.validate(c=c)
-                        print(f"{Fore.GREEN}.{Fore.RESET}", end="", flush=True)
+                        print(f"{F.GREEN}.{F.RESET}", end="", flush=True)
                     except StepValidationError as ex:
                         step_name = step.get_name()
-                        errors.append(f"{task_name} -> {step_name} on {hostrole.host}: {Fore.RED}{ex}{Fore.RESET}")
+                        errors.append(f"{task_name} -> {step_name} on {hostrole.host}: {F.RED}{ex}{F.RESET}")
                         print("{Fore.RED}e{Fore.RESET}", end="", flush=True)
                 del self.role
 
         if errors:
-            print(f" {Fore.RED}{len(errors)} errors{Fore.RESET}")
+            print(f" {F.RED}{len(errors)} errors{F.RESET}")
             for e in errors:
                 print(f" * {e}")
             return False
 
-        print(f" {Style.BRIGHT}{Fore.GREEN}OK{Fore.RESET}{Style.RESET_ALL}")
+        print(f" {S.BRIGHT}{F.GREEN}OK{F.RESET}{S.RESET_ALL}")
         return True
 
     def run(self) -> None:
@@ -169,5 +169,8 @@ class Task(abc.ABC, typing.Generic[RoleT], TaskBase):
                 for step in self.get_steps():
                     task_name = get_task_full_name(carnival_tasks_module, self.__class__)
                     step_name = step.get_name()
-                    print(f"{Back.YELLOW}💃💃💃{Back.BLUE} {hostrole.host}{Back.RESET}{Fore.RESET}> Running {Style.BRIGHT}{task_name}:{step_name}{Style.RESET_ALL}")
+                    print(
+                        f"{B.YELLOW}💃💃💃{B.BLUE} {hostrole.host}{B.RESET}{F.RESET}> "
+                        f"Running {S.BRIGHT}{task_name}:{step_name}{S.RESET_ALL}"
+                    )
                     step.run(c=c)

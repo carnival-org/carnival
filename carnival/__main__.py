@@ -1,3 +1,4 @@
+import sys
 from carnival.cli import main
 
-main()
+sys.exit(main())

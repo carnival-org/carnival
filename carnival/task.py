@@ -3,10 +3,11 @@ import re
 import typing
 import sys
 
+from colorama import Fore, Style, Back  # type: ignore
+
 from carnival import Step
 from carnival.role import Role
 from carnival.exceptions import StepValidationError
-from carnival.utils import log
 
 
 def _underscore(word: str) -> str:
@@ -61,19 +62,24 @@ class TaskBase:
     def get_name(cls) -> str:
         return cls.name if cls.name else _underscore(cls.__name__)
 
-    def call_task(self, task_class: typing.Type['TaskBase']) -> typing.Any:
+    def call_task(self, task_class: typing.Type['TaskBase']) -> bool:
         """
         Запустить другую задачу
         Возвращает результат работы задачи
         """
-        return task_class(no_validate=self.no_validate).run()
+        task = task_class(no_validate=self.no_validate)
+        is_valid = task.validate()
+        if is_valid:
+            task.run()
 
-    def validate(self) -> typing.List[str]:
+        return is_valid
+
+    def validate(self) -> bool:
         """
         Хук для проверки валидности задачи перед запуском, не вызывается автоматически
         """
 
-        return []
+        return True
 
     @abc.abstractmethod
     def run(self) -> None:
@@ -86,7 +92,7 @@ class TaskBase:
 RoleT = typing.TypeVar("RoleT", bound=Role)
 
 
-class Task(typing.Generic[RoleT], abc.ABC, TaskBase):
+class Task(abc.ABC, typing.Generic[RoleT], TaskBase):
     """
     Запустить шаги `steps` на хостах `hosts`
 
@@ -118,14 +124,17 @@ class Task(typing.Generic[RoleT], abc.ABC, TaskBase):
         """
         raise NotImplementedError
 
-    def validate(self) -> typing.List[str]:
+    def validate(self) -> bool:
         """
         Хук для проверки валидности задачи перед запуском, проверяет примеримость контекста хостов на шагах
         """
+        if self.no_validate:
+            return True
 
         from carnival.cli import carnival_tasks_module
         from carnival.tasks_loader import get_task_full_name
-
+        task_name = get_task_full_name(carnival_tasks_module, self.__class__)
+        print(f"Validating task {Style.BRIGHT}{Fore.BLUE}{task_name}{Fore.RESET}{Style.RESET_ALL}", end="", flush=True)
         errors: typing.List[str] = []
 
         for hostrole in self.hostroles:
@@ -134,26 +143,25 @@ class Task(typing.Generic[RoleT], abc.ABC, TaskBase):
                 for step in self.get_steps():
                     try:
                         step.validate(c=c)
+                        print(f"{Fore.GREEN}.{Fore.RESET}", end="", flush=True)
                     except StepValidationError as ex:
-                        task_name = get_task_full_name(carnival_tasks_module, self.__class__)
                         step_name = step.get_name()
-                        errors.append(f"{task_name} -> {step_name} on {hostrole.host}: {ex}")
+                        errors.append(f"{task_name} -> {step_name} on {hostrole.host}: {Fore.RED}{ex}{Fore.RESET}")
+                        print("{Fore.RED}e{Fore.RESET}", end="", flush=True)
                 del self.role
 
-        return errors
+        if errors:
+            print(f" {Fore.RED}{len(errors)} errors{Fore.RESET}")
+            for e in errors:
+                print(f" * {e}")
+            return False
+
+        print(f" {Style.BRIGHT}{Fore.GREEN}OK{Fore.RESET}{Style.RESET_ALL}")
+        return True
 
     def run(self) -> None:
         from carnival.cli import carnival_tasks_module
         from carnival.tasks_loader import get_task_full_name
-
-        if not self.no_validate:
-            errors = self.validate()
-
-            if errors:
-                print("There is validation errors")
-                for e in errors:
-                    print(f" * {e}")
-                return
 
         for hostrole in self.hostroles:
             with hostrole.host.connect() as c:
@@ -161,5 +169,5 @@ class Task(typing.Generic[RoleT], abc.ABC, TaskBase):
                 for step in self.get_steps():
                     task_name = get_task_full_name(carnival_tasks_module, self.__class__)
                     step_name = step.get_name()
-                    log(f"Running {task_name}:{step_name}", host=hostrole.host)
+                    print(f"{Back.YELLOW}💃💃💃{Back.BLUE} {hostrole.host}{Back.RESET}{Fore.RESET}> Running {Style.BRIGHT}{task_name}:{step_name}{Style.RESET_ALL}")
                     step.run(c=c)

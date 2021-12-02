@@ -9,7 +9,6 @@ from carnival.hosts.ssh import SshHost
 from carnival.task import TaskBase, Task
 from carnival import cmd
 from carnival import internal_tasks
-from carnival.utils import log
 
 
 if not sys.warnoptions:
@@ -42,6 +41,5 @@ __all__ = [
     'Role', 'SingleRole',
     'TaskBase', 'Task',
     'cmd',
-    'log',
     'internal_tasks',
 ]

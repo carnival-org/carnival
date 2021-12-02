@@ -36,20 +36,11 @@ class Validate(TaskBase):
     def run(self) -> None:
         from carnival.cli import task_types
 
-        all_errors = []
-
         task_list = list(task_types.keys())
         task_list.sort()
 
         for task_name in task_list:
-            all_errors += task_types[task_name](no_validate=False).validate()
-
-        if all_errors:
-            for e in all_errors:
-                print(f" * {e}")
-            return
-
-        print("All tasks are valid.")
+            task_types[task_name](no_validate=False).validate()
 
 
 class Roles(TaskBase):

@@ -25,9 +25,10 @@ def try_get(
     fact_id: str,
 ) -> typing.Tuple[bool, typing.Optional[str]]:
     global __vc
+    cachekey = __build_vc_key(step_class=step_class, host=host, fact_id=fact_id)
 
     return (
-        __build_vc_key(step_class=step_class, host=host, fact_id=fact_id) in __vc,
+        cachekey in __vc,
         __vc.get(
             __build_vc_key(step_class=step_class, host=host, fact_id=fact_id),
             None,

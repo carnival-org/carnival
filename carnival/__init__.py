@@ -7,7 +7,6 @@ from carnival.role import Role, SingleRole
 from carnival.hosts.local import LocalHost, localhost_connection
 from carnival.hosts.ssh import SshHost
 from carnival.task import TaskBase, Task
-from carnival import cmd
 from carnival import internal_tasks
 
 
@@ -40,6 +39,5 @@ __all__ = [
     'SshHost', 'LocalHost', 'localhost_connection', 'Host', 'Connection', 'Result',
     'Role', 'SingleRole',
     'TaskBase', 'Task',
-    'cmd',
     'internal_tasks',
 ]

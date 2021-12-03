@@ -26,9 +26,6 @@ class Step:
 
     """
 
-    def __init__(self) -> None:
-        pass
-
     def get_name(self) -> str:
         return self.__class__.__name__
 
@@ -72,11 +69,16 @@ class InlineStep(typing.Generic[T], Step):
     """
     Шаг, который можно создать прямо внутри задачи
 
-    >>> class InstallPackages(StepsTask):
+    >>> from carnival import Task
+    >>>
+    >>> class InstallPackages(Task):
     >>>    help = "Install packages"
     >>>
     >>>    hosts = [my_server]
-    >>>    steps = [InlineStep("install_packages", lambda c: c.run("apt-get install htop"))]
+    >>>    def get_steps(self) -> typing.List["Step"]:
+    >>>        return [
+    >>>            InlineStep("install_packages", lambda c: c.run("apt-get install htop"))
+    >>>        ]
 
     """
     def __init__(self, name: str, fn: typing.Callable[["Connection", ], T]) -> None:

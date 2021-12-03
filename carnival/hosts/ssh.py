@@ -11,6 +11,7 @@ class SshConnection(base.Connection):
         self,
         host: "SshHost",
     ) -> None:
+        super().__init__(host)
         self.host: "SshHost" = host
 
         self._c: typing.Optional[FabricConnection] = None

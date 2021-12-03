@@ -47,7 +47,7 @@ class Connection:
         """
         Конекст с хостом, все конекты являются контекст-менеджерами
 
-        >>> with host.connection() as c:
+        >>> with host.connect() as c:
         >>>    c.run("ls -1")
 
         """
@@ -63,7 +63,9 @@ class Connection:
     def run(
         self,
         command: str,
-        hide: bool = False, warn: bool = False, cwd: typing.Optional[str] = None,
+        hide: bool = False,
+        warn: bool = False,
+        cwd: typing.Optional[str] = None,
     ) -> Result:
         """
         Запустить команду
@@ -80,19 +82,10 @@ class Host:
     Базовый класс для хостов
     """
 
-    addr: str
+    addr: str = ""
     """
     Адрес хоста
     """
-
-    def __init__(
-        self,
-    ) -> None:
-        """
-        :param context: Контекст хоста
-        """
-
-        self.addr = ""
 
     @property
     def ip(self) -> str:

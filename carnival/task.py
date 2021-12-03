@@ -5,9 +5,9 @@ import sys
 
 from colorama import Fore as F, Style as S, Back as B  # type: ignore
 
-from carnival import Step
-from carnival.role import Role
-from carnival.exceptions import StepValidationError
+if typing.TYPE_CHECKING:
+    from carnival.role import Role
+    from carnival import Step
 
 
 def _underscore(word: str) -> str:
@@ -89,7 +89,7 @@ class TaskBase:
         raise NotImplementedError
 
 
-RoleT = typing.TypeVar("RoleT", bound=Role)
+RoleT = typing.TypeVar("RoleT", bound="Role")
 
 
 class Task(abc.ABC, typing.Generic[RoleT], TaskBase):
@@ -118,7 +118,7 @@ class Task(abc.ABC, typing.Generic[RoleT], TaskBase):
             print(f"[WARN]: not hosts for {self.role_class}", file=sys.stderr)
 
     @abc.abstractmethod
-    def get_steps(self) -> typing.List[Step]:
+    def get_steps(self) -> typing.List["Step"]:
         """
         Список шагов в порядке выполнения
         """
@@ -134,20 +134,22 @@ class Task(abc.ABC, typing.Generic[RoleT], TaskBase):
         from carnival.cli import carnival_tasks_module
         from carnival.tasks_loader import get_task_full_name
         task_name = get_task_full_name(carnival_tasks_module, self.__class__)
-        print(f"Validating task {S.BRIGHT}{F.BLUE}{task_name}{F.RESET}{S.RESET_ALL}", end="", flush=True)
+        print(f"Validating task {S.BRIGHT}{F.BLUE}{task_name}{F.RESET}{S.RESET_ALL} ", end="", flush=True)
         errors: typing.List[str] = []
 
         for hostrole in self.hostroles:
             with hostrole.host.connect() as c:
                 self.role = hostrole
                 for step in self.get_steps():
-                    try:
-                        step.validate(c=c)
+                    step_errors = step.validate(c=c)
+
+                    if not step_errors:
                         print(f"{F.GREEN}.{F.RESET}", end="", flush=True)
-                    except StepValidationError as ex:
+                    else:
                         step_name = step.get_name()
-                        errors.append(f"{task_name} -> {step_name} on {hostrole.host}: {F.RED}{ex}{F.RESET}")
-                        print("{Fore.RED}e{Fore.RESET}", end="", flush=True)
+                        for e in step_errors:
+                            errors.append(f"{task_name} -> {step_name} on {hostrole.host}: {F.RED}{e}{F.RESET}")
+                        print(f"{F.RED}e{F.RESET}", end="", flush=True)
                 del self.role
 
         if errors:

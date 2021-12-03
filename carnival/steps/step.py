@@ -1,8 +1,8 @@
 import abc
 import typing
 
-
 if typing.TYPE_CHECKING:
+    from carnival.steps.validators import StepValidatorBase
     from carnival import Connection
 
 
@@ -25,27 +25,34 @@ class Step:
     >>>         ...
 
     """
+
     def __init__(self) -> None:
         pass
 
     def get_name(self) -> str:
         return self.__class__.__name__
 
-    def validate(self, c: "Connection") -> None:
+    def get_validators(self) -> typing.List["StepValidatorBase"]:
+        """
+        Получить список валидаторов для метода `.validate`
+        """
+        return []
+
+    def validate(self, c: "Connection") -> typing.List[str]:
         """
         Валидатор шага, запускается перед выполнением
-        Должен выкидывать .StepValidationError в случае ошибки
-
-        :param host: На котором будет выполнен шаг
-
-        :raises StepValidationError: в случае ошибок валидации
-
-        >>> from carnival.exceptions import StepValidationError
-        >>> ...
-        >>> def validate(self, c: "Connection") -> None:
-        >>>     raise StepValidationError("Step validation is not implemented")
+        :param c: Конект к хосту
+        :return: Список ошибок
         """
-        pass
+
+        errors: typing.List[str] = []
+
+        for validator in self.get_validators():
+            err = validator.validate(c=c)
+            if err is not None:
+                errors.append(err)
+
+        return errors
 
     @abc.abstractmethod
     def run(self, c: "Connection") -> typing.Any:

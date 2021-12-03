@@ -7,7 +7,6 @@ import typing
 
 import os
 from carnival import cmd, TaskBase, SshHost, Step, Task, Connection, Role
-from carnival.exceptions import StepValidationError
 
 
 class PackagesRole(Role):
@@ -34,9 +33,12 @@ class InstallStep(Step):
         self.packages = self.packages.strip()
         self.update = update
 
-    def validate(self, c: Connection) -> None:
+    def validate(self, c: Connection) -> typing.List[str]:
+        errors = []
         if not self.packages:
-            raise StepValidationError("packages cant be empty!")
+            errors.append("packages cant be empty!")
+
+        return errors
 
     def run(self, c: Connection) -> None:
         if self.update:

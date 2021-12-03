@@ -1,8 +1,8 @@
 import sys
 import dotenv
 import os
-from carnival.step import Step, InlineStep
 from carnival.hosts.base import Host, Connection, Result
+from carnival.steps import Step, InlineStep
 from carnival.role import Role, SingleRole
 from carnival.hosts.local import LocalHost, localhost_connection
 from carnival.hosts.ssh import SshHost

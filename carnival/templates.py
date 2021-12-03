@@ -9,9 +9,17 @@ from jinja2 import (
     PrefixLoader,
 )
 from jinja2.runtime import StrictUndefined
-from jinja2.exceptions import UndefinedError
+from jinja2.exceptions import UndefinedError, TemplateSyntaxError
 
 from carnival.plugins import discover_plugins
+
+
+def escape_yaml(data: str) -> str:
+    """
+    Jinja2 filter for escape yaml dollar sign
+    """
+    return data.replace("$", "$$")
+
 
 """
 Initialize loader on current working dir and plugin modules
@@ -21,8 +29,12 @@ j2_env = Environment(
         FileSystemLoader(os.getcwd()),
         PrefixLoader({x: PackageLoader(x, package_path="") for x in discover_plugins().keys()}),
     ]),
+    keep_trailing_newline=True,
     undefined=StrictUndefined,
 )
+
+
+j2_env.filters['escape_yaml'] = escape_yaml
 
 
 def render(template_path: str, **context: Any) -> str:
@@ -36,4 +48,10 @@ def render(template_path: str, **context: Any) -> str:
         template = j2_env.get_template(template_path)
         return template.render(**context)
     except UndefinedError as ex:
-        raise UndefinedError(f"Can't render template {template_path}: {ex}")
+        raise UndefinedError(f"Can't render template {template_path} - {ex}") from ex
+    except TemplateSyntaxError as ex:
+        raise TemplateSyntaxError(
+            message=f"Can't render template {template_path}:{ex.lineno} - {ex.message}",
+            lineno=ex.lineno,
+            filename=ex.filename,
+        ) from ex

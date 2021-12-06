@@ -6,10 +6,15 @@
 
 ![MIT](https://img.shields.io/github/license/carnival-org/carnival)
 
-Software provisioning tool, built on top of [Fabric](http://www.fabfile.org/)
+Software provisioning tool
 
 * Runs on MacOs and Linux
 * Tested on Ubuntu and CentOS
+* Uses mypy strict typing mode [mypy.ini](mypy.ini)
+* Safe, full run chain is validated before run
+
+# Example
+See [carnival_tasks_example.py](carnival_tasks_example.py)
 
 ## Install
 ```bash

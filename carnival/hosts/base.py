@@ -3,28 +3,59 @@ import ipaddress
 import socket
 import abc
 from dataclasses import dataclass
-from invoke.context import Result as InvokeResult  # type: ignore
 
 
-@dataclass
+class CommandError(BaseException):
+    pass
+
+
 class Result:
     """
     Результат выполнения команды
     """
 
-    return_code: int
-    ok: bool
-    stdout: str
-    stderr: str
+    def __init__(
+        self,
+        return_code: int,
+        stderr: str,
+        stdout: str,
 
-    @classmethod
-    def from_invoke_result(cls, invoke_result: InvokeResult) -> "Result":
-        return Result(
-            return_code=invoke_result.exited,
-            ok=invoke_result.ok,
-            stdout=invoke_result.stdout.replace("\r", ""),
-            stderr=invoke_result.stderr.replace("\r", ""),
-        )
+        command: str,
+        hide: bool,
+        warn: bool,
+    ):
+        """
+        :param return_code: код возврата
+        :param output: комбинированный вывод stdout & stderr
+        :param command: команда, которая была запущена
+        :param hide: не показывать вывод в консоли
+        :param warn: вывести результат неуспешной команды вместо того чтобы выкинуть исключение :py:exc:`.CommandError`
+        """
+        self.return_code = return_code
+        self.stderr = stderr.strip()
+        self.stdout = stdout.strip()
+
+        if not self.ok or len(self.stderr):
+            if not warn:
+                if self.stderr:
+                    print(stderr)
+                raise CommandError(f"{command} failed with exist code: {return_code}")
+
+        if not hide:
+            print(self.stdout)
+
+    @property
+    def ok(self) -> bool:
+        return self.return_code == 0
+
+
+@dataclass
+class StatResult:
+    st_mode: int
+    st_size: int
+    st_uid: int
+    st_gid: int
+    st_atime: float
 
 
 class Connection:
@@ -33,7 +64,7 @@ class Connection:
     Хост с которым связан конект
     """
 
-    def __init__(self, host: "Host") -> None:
+    def __init__(self, host: "Host", run_timeout: int = 120) -> None:
         """
         Конекст с хостом, все конекты являются контекст-менеджерами
 
@@ -42,6 +73,7 @@ class Connection:
 
         """
         self.host = host
+        self.run_timeout = run_timeout
 
     def __enter__(self) -> "Connection":
         raise NotImplementedError
@@ -64,6 +96,32 @@ class Connection:
         :param hide: Скрыть вывод команды
         :param warn: Вывести stderr
         :param cwd: Перейти в папку при выполнении команды
+        """
+
+    @abc.abstractmethod
+    def file_stat(self, path: str) -> StatResult:
+        """
+        Получить fstat файла
+
+        :param path:  путь до файла
+        """
+
+    @abc.abstractmethod
+    def file_read(self, path: str) -> typing.ContextManager[typing.IO[bytes]]:
+        """
+        Открыть файл на чтение
+
+        :param path: путь до файла
+        :return: дескриптор файла
+        """
+
+    @abc.abstractmethod
+    def file_write(self, path: str) -> typing.ContextManager[typing.IO[bytes]]:
+        """
+        Открыть файл на запись
+
+        :param path: путь до файла
+        :return: дескриптор файла
         """
 
 

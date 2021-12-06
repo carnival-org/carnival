@@ -1,43 +1,55 @@
 import typing
-from invoke.context import Context  # type: ignore
+import os
+from subprocess import Popen, PIPE
 
 from carnival.hosts import base
 
 
 class LocalConnection(base.Connection):
-    def __init__(self, host: base.Host) -> None:
-        super().__init__(host)
-
-        self._c: typing.Optional[Context] = None
-
     def __enter__(self) -> base.Connection:
-        self._c = Context()
         return self
 
     def __exit__(self, *args: typing.Any) -> None:
-        self._c = None
+        pass
 
     def run(
         self,
         command: str,
-        hide: bool = False, warn: bool = False, cwd: typing.Optional[str] = None,
+        hide: bool = False,
+        warn: bool = False,
+        cwd: typing.Optional[str] = None,
     ) -> base.Result:
-        assert self._c is not None, "Connection is not open"
+        with Popen(command, shell=True, stderr=PIPE, stdin=PIPE, stdout=PIPE, cwd=cwd) as proc:
+            retcode = proc.wait(timeout=self.run_timeout)
 
-        handler_kwargs = {
-            "command": command,
-            "hide": hide,
-            "pty": True,
-            "warn": warn,
-        }
+            assert proc.stdout is not None
+            assert proc.stderr is not None
 
-        handler = self._c.run
+            return base.Result(
+                return_code=retcode,
+                stdout=proc.stdout.read().decode().replace("\r", ""),
+                stderr=proc.stderr.read().decode().replace("\r", ""),
 
-        if cwd is not None:
-            with self._c.cd(cwd):
-                return base.Result.from_invoke_result(handler(**handler_kwargs))
+                command=command,
+                hide=hide,
+                warn=warn,
+            )
 
-        return base.Result.from_invoke_result(handler(**handler_kwargs))
+    def file_stat(self, path: str) -> base.StatResult:
+        stat = os.stat(path)
+        return base.StatResult(
+            st_mode=stat.st_mode,
+            st_size=stat.st_size,
+            st_uid=stat.st_uid,
+            st_gid=stat.st_gid,
+            st_atime=stat.st_atime,
+        )
+
+    def file_read(self, path: str) -> typing.ContextManager[typing.IO[bytes]]:
+        return open(path, 'rb')
+
+    def file_write(self, path: str) -> typing.ContextManager[typing.IO[bytes]]:
+        return open(path, 'wb')
 
 
 class LocalHost(base.Host):
@@ -49,15 +61,6 @@ class LocalHost(base.Host):
     """
     Адрес хоста, всегда `localhost`
     """
-
-    def __init__(
-        self,
-    ) -> None:
-        """
-        :param context: Контекст хоста
-        """
-        super().__init__()
-        self.addr = "local"
 
     def connect(self) -> LocalConnection:
         return LocalConnection(host=self)

@@ -6,51 +6,29 @@ TESTSERVER_ADDR=test_server_addr CARNIVAL_TASKS_MODULE=carnival_tasks_example po
 import typing
 
 import os
-from carnival import TaskBase, SshHost, Step, Task, Connection, Role
+from carnival import SshHost, Task, Role
+from carnival.steps import Step
+from carnival.contrib.steps import apt
 
 
+# Define role
 class PackagesRole(Role):
     packages = ['htop', "mc"]
 
 
+# Define host
 my_server_ip = os.getenv("TESTSERVER_ADDR", "1.2.3.4")  # Dynamic ip for testing
 my_server = SshHost(my_server_ip, ssh_user="root")
 
-PackagesRole(my_server)  # Bind server to role
+# Assign host to role
+PackagesRole(my_server)
 
 
-class CheckDiskSpace(TaskBase):
-    help = "Print server root disk usage"
-
-    def run(self, disk: str = "/") -> None:
-        with my_server.connect() as c:
-            c.run(f"df -h {disk}", hide=False)
-
-
-class InstallStep(Step):
-    def __init__(self, packages: typing.List[str], update: bool = True) -> None:
-        self.packages = " ".join(packages)
-        self.packages = self.packages.strip()
-        self.update = update
-
-    def validate(self, c: Connection) -> typing.List[str]:
-        errors = []
-        if not self.packages:
-            errors.append("packages cant be empty!")
-
-        return errors
-
-    def run(self, c: Connection) -> None:
-        if self.update:
-            c.run("apt-get update")
-
-        c.run(f"apt-get install -y {self.packages}")
-
-
+# Create task for role
 class InstallPackages(Task[PackagesRole]):
     help = "Install packages"
 
     def get_steps(self) -> typing.List[Step]:
         return [
-            InstallStep(packages=self.role.packages),
+            apt.InstallMultiple(self.role.packages)
         ]

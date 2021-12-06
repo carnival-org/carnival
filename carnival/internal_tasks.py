@@ -5,6 +5,8 @@ from carnival.utils import get_class_full_name
 class Help(TaskBase):
     """
     Показать список доступных задач
+
+        $ carnival help
     """
     module_name = ""
     help = "List available tasks and help"
@@ -29,6 +31,8 @@ class Help(TaskBase):
 class Validate(TaskBase):
     """
     Запустить валидацию доступых задач и напечатать список ошибок
+
+        $ carnival validate
     """
     module_name = ""
     help = "Validate available tasks"
@@ -46,6 +50,8 @@ class Validate(TaskBase):
 class Roles(TaskBase):
     """
     Показать список ролей и хостов
+
+        $ carnival roles
     """
     module_name = ""
     help = "Show all roles and hosts"

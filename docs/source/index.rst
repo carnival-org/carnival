@@ -11,18 +11,12 @@ Carnival |release|
    :caption: Содержимое:
 
    hosts.rst
+   role.rst
    steps.rst
+   contrib_steps.rst
    tasks.rst
    cli.rst
    templates.rst
-   commands.rst
-
-.. toctree::
-   :maxdepth: 2
-   :caption: See also:
-
-   Carnival contrib <https://carnival-contrib.readthedocs.io/ru/latest/>
-
 
 Indices and tables
 ==================

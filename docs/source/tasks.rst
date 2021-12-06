@@ -2,14 +2,15 @@
 Задача (Task)
 ###################
 
-.. autoclass:: carnival.TaskBase
+.. autoclass:: carnival.TaskBase()
     :members:
 
-Задачи с шагами
+Задачи ролей
 ================
 
-.. autoclass:: carnival.Task
-    :members:
+.. autoclass:: carnival.Task()
+    :members: get_steps, role
+    :show-inheritance:
 
 
 Встроенные задачи

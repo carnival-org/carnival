@@ -94,7 +94,6 @@ class SshHost(base.Host):
         :param ssh_port: SSH порт
         :param ssh_connect_timeout: SSH таймаут соединения
         :param ssh_gateway: Gateway
-        :param context: Контекст хоста
         """
         if ":" in addr:
             raise ValueError("Please set port in 'ssh_port' arg")

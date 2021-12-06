@@ -16,7 +16,9 @@ from carnival.plugins import discover_plugins
 
 def escape_yaml(data: str) -> str:
     """
-    Jinja2 filter for escape yaml dollar sign
+    Jinja2 фильтр для экранирования строк в yaml
+
+    экранирует `$`
     """
     return data.replace("$", "$$")
 

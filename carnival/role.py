@@ -1,3 +1,27 @@
+"""
+Роль это определенная функция которую можно передать хосту.
+У каждой роли может быть несколько задач (Task) для выполнения операций, связанных с ролью
+Например деплой, рестарт, просмотр состояния итд
+
+Роли назначаются хостам, одному или нескольким. После назначения все задачи роли будут выполняться
+на хостах которым назначена эта роль.
+
+>>> from carnival import Role, Host
+>>>
+>>>
+>>> class NginxRole(Role):
+>>>     def __init__(self, host: Host, port: int = 80):
+>>>         super().__init__(host)  # Не забываем вызвать конструктор роли, который регистрирует назначение хоста роли
+>>>         self.port = port
+>>>
+>>> # inventory.py
+>>>
+>>> from carnival import SshHost
+>>> my_server = SshHost("1.2.3.4")
+>>> NginxRole(my_server, port=8080)  # Назначаем хосту роль
+>>>
+"""
+
 import typing
 
 if typing.TYPE_CHECKING:
@@ -5,30 +29,38 @@ if typing.TYPE_CHECKING:
 
 
 T = typing.TypeVar("T")
-RoleBaseT = typing.TypeVar("RoleBaseT", bound="RoleBase")
+RoleT = typing.TypeVar("RoleT", bound="Role")
 
 
-class RoleBase:
+class Role:
     """
-    Хост, доступная из инстанса роли
+    Объект роли, может быть назначена к нескольким хостам
     """
 
     def __init__(self, host: "Host") -> None:
+        """
+        Конструктор роли, назначает хост на роль в carnival
+
+        :param host: хост, назначаемый роли
+        """
         self.host = host
         role_repository.add(role=self)
 
-
-class Role(RoleBase):
-    """
-    Роль для нескольких хостов
-    """
-
     @classmethod
-    def resolve(cls: typing.Type[RoleBaseT]) -> typing.List["RoleBaseT"]:
+    def resolve(cls: typing.Type[RoleT]) -> typing.List["RoleT"]:
+        """
+        Получить список созданных ролей по классу роли
+        """
         return role_repository.get(cls)
 
     @classmethod
-    def resolve_host(cls: typing.Type[RoleBaseT], host: "Host") -> RoleBaseT:
+    def resolve_host(cls: typing.Type[RoleT], host: "Host") -> RoleT:
+        """
+        Получить роль по классу роли и хосту
+        :param host: хост роли
+        :return: Инстанс роли с хостом, если такой зарегистрирован в carnival
+        :raise: ValueError - если хост не зарегистрирован в этой роли
+        """
         for role in role_repository.get(cls):
             if role.host == host:
                 return role
@@ -37,11 +69,15 @@ class Role(RoleBase):
 
 class SingleRole(Role):
     """
-    Роль для одного хоста
+    Роль, которая может быть назначена только одному хосту
     """
 
     @classmethod
-    def resolve_single(cls: typing.Type[RoleBaseT]) -> RoleBaseT:
+    def resolve_single(cls: typing.Type[RoleT]) -> RoleT:
+        """
+        Получить роль по классу роли
+        """
+
         from carnival.utils import get_class_full_name
 
         hostroles = role_repository.get(cls)
@@ -53,16 +89,16 @@ class SingleRole(Role):
 
 class _RoleRepository:
     def __init__(self) -> None:
-        self._rolehosts: typing.List["RoleBase"] = list()
+        self._rolehosts: typing.List["Role"] = list()
 
-    def items(self) -> typing.Iterable[typing.Tuple[typing.Type[RoleBase], typing.List[RoleBase]]]:
-        result: typing.Dict[typing.Type[RoleBase], typing.List[RoleBase]] = dict()
+    def items(self) -> typing.List[typing.Tuple[typing.Type[Role], typing.List[Role]]]:
+        result: typing.Dict[typing.Type[Role], typing.List[Role]] = dict()
         for role in self._rolehosts:
             result.setdefault(role.__class__, list())
             result[role.__class__].append(role)
         return list(result.items())
 
-    def add(self, role: RoleBase) -> None:
+    def add(self, role: Role) -> None:
         from carnival.utils import get_class_full_name
 
         if isinstance(role, SingleRole):
@@ -75,8 +111,8 @@ class _RoleRepository:
 
         self._rolehosts.append(role)
 
-    def get(self, role_class: typing.Type[RoleBaseT]) -> typing.List[RoleBaseT]:
-        result: typing.List[RoleBaseT] = []
+    def get(self, role_class: typing.Type[RoleT]) -> typing.List[RoleT]:
+        result: typing.List[RoleT] = []
         for role in self._rolehosts:
             if isinstance(role, role_class):
                 result.append(role)
@@ -84,13 +120,6 @@ class _RoleRepository:
 
 
 role_repository = _RoleRepository()
-
-
-# def role_ref(role_class: RoleBaseT, getter: typing.Callable[[RoleBaseT], T]) -> typing.List[T]:
-#     resuts: typing.List[T] = []
-#     for role in role_repository.get(role_class):
-#         resuts.append(getter(role))
-#     return resuts
 
 
 __all__ = (

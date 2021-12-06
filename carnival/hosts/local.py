@@ -45,9 +45,9 @@ class LocalHost(base.Host):
     Локальный хост, работает по локальному терминалу
     """
 
-    addr: str = "local"
+    addr: str = "localhost"
     """
-    Адрес хоста, всегда `local`
+    Адрес хоста, всегда `localhost`
     """
 
     def __init__(

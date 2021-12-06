@@ -1,3 +1,14 @@
+"""
+Задача это единица выполнения одного или несколькоих шагов на определенных хостах.
+
+Именование задач.
+=================
+
+Полное имя задачи состоит из двух частей. <module_name>.<name>.
+carnival автоматически генерирует имена задач из этих частей, но есть возможность управлять этим вручную,
+используя два атрибута класса Task.
+"""
+
 import abc
 import re
 import typing
@@ -20,23 +31,18 @@ def _underscore(word: str) -> str:
 
 class TaskBase:
     """
-    Задача это единица выполнения одного или несколькоих шагов на определенных хостах.
+    Базовый обьект задачи
 
-    Именование задач.
-
-    Полное имя задачи состоит из двух частей. <module_name>.<name>.
-    carnival автоматически генерирует имена задач из этих частей, но есть возможность управлять этим вручную,
-    используя два атрибута класса Task.
-
-    name:
-    module_name:
-
+    >>> from carnival import SshHost
+    >>>
+    >>> my_server = SshHost("192.168.1.10")
+    >>>
     >>> class CheckDiskSpace(TaskBase):
     >>>     help = "Print server root disk usage"
     >>>
     >>>     def run(self) -> None:
     >>>         with my_server.connect() as c:
-    >>>             cmd.cli.run(f"df -h /", hide=False)
+    >>>             c.run(f"df -h /", hide=False)
 
     """
 
@@ -62,18 +68,6 @@ class TaskBase:
     def get_name(cls) -> str:
         return cls.name if cls.name else _underscore(cls.__name__)
 
-    def call_task(self, task_class: typing.Type['TaskBase']) -> bool:
-        """
-        Запустить другую задачу
-        Возвращает результат работы задачи
-        """
-        task = task_class(no_validate=self.no_validate)
-        is_valid = task.validate()
-        if is_valid:
-            task.run()
-
-        return is_valid
-
     def validate(self) -> bool:
         """
         Хук для проверки валидности задачи перед запуском, не вызывается автоматически
@@ -94,19 +88,39 @@ RoleT = typing.TypeVar("RoleT", bound="Role")
 
 class Task(abc.ABC, typing.Generic[RoleT], TaskBase):
     """
-    Запустить шаги `steps` на хостах `hosts`
+    Задача роли
 
-    >>> class InstallPackages(Task):
+    >>> from carnival import SshHost, Role
+    >>> from my_steps import InstallStep
+    >>>
+    >>> my_server = SshHost("192.168.1.10")
+    >>>
+    >>> class MyRole(Role):  # Определяем роль
+    >>>     packages = ['htop', 'mc']
+    >>>
+    >>>
+    >>> class Install(Task[MyRole]):  # определяем задачу для этой роли
     >>>    help = "Install packages"
     >>>
     >>>    hosts = [my_server]
-    >>>    steps = [InstallStep(my_server.context['packages'])]
-
+    >>>
+    >>>    def get_steps(self) -> typing.List["Step"]:
+    >>>        return [
+    >>>            InstallStep(self.role.packages)
+    >>>        ]
+    >>>
     """
 
     role: RoleT
     """
-    Роль, доступная в методе `.get_steps`
+    Роль, доступная в методе :py:meth:`~Task.get_steps`
+
+    Задачи привязываются к ролям через указание generic-типа
+
+    >>> from carnival import Task
+    >>>
+    >>> class DeployNginx(Task[NginxRole]):
+    >>>     ...
     """
 
     def __init__(self, no_validate: bool) -> None:
@@ -125,9 +139,6 @@ class Task(abc.ABC, typing.Generic[RoleT], TaskBase):
         raise NotImplementedError
 
     def validate(self) -> bool:
-        """
-        Хук для проверки валидности задачи перед запуском, проверяет примеримость контекста хостов на шагах
-        """
         if self.no_validate:
             return True
 

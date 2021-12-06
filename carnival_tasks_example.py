@@ -6,7 +6,7 @@ TESTSERVER_ADDR=test_server_addr CARNIVAL_TASKS_MODULE=carnival_tasks_example po
 import typing
 
 import os
-from carnival import cmd, TaskBase, SshHost, Step, Task, Connection, Role
+from carnival import TaskBase, SshHost, Step, Task, Connection, Role
 
 
 class PackagesRole(Role):
@@ -24,7 +24,7 @@ class CheckDiskSpace(TaskBase):
 
     def run(self, disk: str = "/") -> None:
         with my_server.connect() as c:
-            cmd.cli.run(c, f"df -h {disk}", hide=False)
+            c.run(f"df -h {disk}", hide=False)
 
 
 class InstallStep(Step):
@@ -42,9 +42,9 @@ class InstallStep(Step):
 
     def run(self, c: Connection) -> None:
         if self.update:
-            cmd.cli.run(c, "apt-get update")
+            c.run("apt-get update")
 
-        cmd.cli.run(c, f"apt-get install -y {self.packages}")
+        c.run(f"apt-get install -y {self.packages}")
 
 
 class InstallPackages(Task[PackagesRole]):

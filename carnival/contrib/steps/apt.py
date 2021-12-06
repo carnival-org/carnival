@@ -7,6 +7,21 @@ from carnival import Connection
 from carnival.steps import validators
 
 
+class Update(Step):
+    """
+    apt-get update
+    """
+
+    def get_validators(self) -> typing.List[validators.StepValidatorBase]:
+        return [
+            validators.CommandRequiredValidator('apt-get'),
+        ]
+
+    def run(self, c: Connection) -> None:
+        c.run("DEBIAN_FRONTEND=noninteractive sudo apt-get update", hide=True)
+        print(f"{S.BRIGHT}apt packages list{S.RESET_ALL}: {F.YELLOW}updated{F.RESET}")
+
+
 class GetPackageVersions(Step):
     """
     Получить список доступных версий пакета
@@ -102,11 +117,10 @@ class ForceInstall(Step):
     Установить пакет без проверки установлен ли он
     """
 
-    def __init__(self, pkgname: str, version: typing.Optional[str] = None, update: bool = False, hide: bool = False):
+    def __init__(self, pkgname: str, version: typing.Optional[str] = None, update: bool = False):
         self.pkgname = pkgname
         self.version = version
         self.update = update
-        self.hide = hide
 
     def get_validators(self) -> typing.List[validators.StepValidatorBase]:
         return [
@@ -119,9 +133,9 @@ class ForceInstall(Step):
             pkgname = f"{self.pkgname}={self.version}"
 
         if self.update:
-            c.run("DEBIAN_FRONTEND=noninteractive sudo apt-get update", hide=self.hide)
+            Update().run(c)
 
-        c.run(f"DEBIAN_FRONTEND=noninteractive sudo apt-get install -y {pkgname}", hide=self.hide)
+        c.run(f"DEBIAN_FRONTEND=noninteractive sudo apt-get install -y {pkgname}")
 
 
 class Install(Step):
@@ -133,23 +147,20 @@ class Install(Step):
         pkgname: str,
         version: typing.Optional[str] = None,
         update: bool = True,
-        hide: bool = False,
     ) -> None:
         """
         :param pkgname: название пакета
         :param version: версия
         :param update: запустить apt-get update перед установкой
-        :param hide: скрыть вывод этапов
         """
         self.pkgname = pkgname
         self.version = version
         self.update = update
-        self.hide = hide
 
         self.is_package_installed = IsPackageInstalled(pkgname=self.pkgname, version=self.version)
         self.force_install = ForceInstall(
             pkgname=self.pkgname, version=self.version,
-            update=self.update, hide=self.hide
+            update=self.update,
         )
 
     def get_validators(self) -> typing.List[validators.StepValidatorBase]:
@@ -168,7 +179,7 @@ class Install(Step):
                 return False
             return False
 
-        ForceInstall(pkgname=self.pkgname, version=self.version, update=self.update, hide=self.hide).run(c=c)
+        ForceInstall(pkgname=self.pkgname, version=self.version, update=self.update).run(c=c)
         print(f"{S.BRIGHT}{self.pkgname}{S.RESET_ALL}: {F.YELLOW}installed{F.RESET}")
         return True
 
@@ -178,16 +189,17 @@ class InstallMultiple(Step):
     Установить несколько пакетов, если они не установлены
     """
 
-    def __init__(self, pkg_names: typing.List[str], update: bool = True, hide: bool = False) -> None:
+    def __init__(self, pkg_names: typing.List[str], update: bool = True) -> None:
         """
         :param pkg_names: список пакетов которые нужно установить
         :param update: запустить apt-get update перед установкой
-        :param hide: скрыть вывод этапов
         """
 
         self.pkg_names = pkg_names
         self.update = update
-        self.hide = hide
+
+    def get_name(self) -> str:
+        return f"{super().get_name()}(pkg_names={self.pkg_names})"
 
     def get_validators(self) -> typing.List[validators.StepValidatorBase]:
         return [
@@ -202,10 +214,10 @@ class InstallMultiple(Step):
             return False
 
         if self.update:
-            c.run("DEBIAN_FRONTEND=noninteractive sudo apt-get update", hide=self.hide)
+            c.run("DEBIAN_FRONTEND=noninteractive sudo apt-get update", hide=True)
 
         for pkg in self.pkg_names:
-            Install(pkgname=pkg, update=False, hide=self.hide).run(c=c)
+            Install(pkgname=pkg, update=False).run(c=c)
         return True
 
 
@@ -214,13 +226,11 @@ class Remove(Step):
     Удалить пакет
     """
 
-    def __init__(self, pkg_names: typing.List[str], hide: bool = False) -> None:
+    def __init__(self, pkg_names: typing.List[str]) -> None:
         """
         :param pkg_names: список пакетов которые нужно удалить
-        :param hide: скрыть вывод этапов
         """
         self.pkg_names = pkg_names
-        self.hide = hide
 
     def get_validators(self) -> typing.List[validators.StepValidatorBase]:
         return [
@@ -232,7 +242,9 @@ class Remove(Step):
         ]
 
     def run(self, c: Connection) -> None:
-        c.run(
-            f"DEBIAN_FRONTEND=noninteractive sudo apt-get remove --auto-remove -y {' '.join(self.pkg_names)}",
-            hide=self.hide
-        )
+        for pkg in self.pkg_names:
+            if IsPackageInstalled(pkg).run(c):
+                c.run(
+                    f"DEBIAN_FRONTEND=noninteractive sudo apt-get remove --auto-remove -y {' '.join(self.pkg_names)}",
+                )
+                print(f"{S.BRIGHT}{pkg}{S.RESET_ALL}: {F.YELLOW}removed{F.RESET}")

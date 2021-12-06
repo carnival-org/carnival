@@ -5,8 +5,9 @@ from hashlib import sha1
 
 from tqdm import tqdm  # type: ignore
 from colorama import Style as S, Fore as F  # type: ignore
+from paramiko.config import SSH_PORT
 
-from carnival import Connection, localhost_connection
+from carnival import Connection, localhost_connection, SshHost
 from carnival.templates import render
 from carnival.steps import shortcuts, Step, validators
 
@@ -63,7 +64,7 @@ class GetFile(Step):
         return [
             validators.IsFileValidator(self.remote_path),
             validators.Not(
-                validators.IsDirectoryValidator(self.local_path, on_localhost=True),
+                validators.Local(validators.IsDirectoryValidator(self.local_path)),
                 error_message=f"{self.remote_path} must be full file path, not directory",
             )
         ]
@@ -109,7 +110,7 @@ class PutFile(Step):
 
     def get_validators(self) -> typing.List["validators.StepValidatorBase"]:
         return [
-            validators.IsFileValidator(self.local_path, on_localhost=True),
+            validators.Local(validators.IsFileValidator(self.local_path)),
             validators.Not(
                 validators.IsDirectoryValidator(self.remote_path),
                 error_message=f"{self.remote_path} must be full file path, not directory",
@@ -187,8 +188,103 @@ class PutTemplate(Step):
         print(f"{S.BRIGHT}{self.remote_path}{S.RESET_ALL}: {F.YELLOW}uploaded{F.RESET}")
 
 
+class Rsync(Step):
+    """
+    Залить папку с локального диска на сервер по rsync
+    """
+
+    def __init__(
+        self,
+        src_dir_or_file: str,
+        dst_dir: str,
+
+        rsync_opts: typing.Optional[str] = None,
+        ssh_opts: str = '',
+        rsync_command: str = "rsync",
+        rsync_timeout: int = 120,
+    ):
+        """
+        :param src_dir_or_file: локальный путь до папки или файла
+        :param dst_dir: путь куда нужно залить
+        :param rsync_opts: параметры команды rsync
+        :param ssh_opts: параметры ssh
+        :param rsync_command: путь до rsync
+        """
+        self.src_dir_or_file = src_dir_or_file
+        self.dst_dir = dst_dir
+        self.rsync_opts = rsync_opts or "--progress -pthrvz --timeout=60"
+        self.ssh_opts = ssh_opts
+        self.rsync_command = rsync_command
+        self.rsync_timeout = rsync_timeout
+
+    def get_name(self) -> str:
+        return f"{super().get_name()}(source={self.src_dir_or_file}, dest={self.dst_dir})"
+
+    @staticmethod
+    def _host_for_ssh(host: SshHost) -> str:
+        """
+        Return `user@addr` if user given, else `addr`
+        """
+
+        if host.ssh_user:
+            return f"{host.ssh_user}@{host.addr}"
+        return host.addr
+
+    @staticmethod
+    def _validate_dst_host_double_gateway(c: Connection) -> bool:
+        assert isinstance(c.host, SshHost)
+        if c.host.ssh_gateway is not None:
+            if c.host.ssh_gateway.ssh_gateway is not None:
+                return True
+        return False
+
+    def get_validators(self) -> typing.List[validators.StepValidatorBase]:
+        return [
+            validators.InlineValidator(
+                lambda c: not isinstance(c.host, SshHost),
+                "remote host must be ssh connected host",
+            ),
+            validators.InlineValidator(
+                self._validate_dst_host_double_gateway,
+                "gateway for gateway s not supported for rsync, please use .ssh/config",
+            ),
+            validators.Local(validators.CommandRequiredValidator("rsync")),
+            validators.Or(
+                validators=[
+                    validators.Local(validators.IsFileValidator(self.src_dir_or_file)),
+                    validators.Local(validators.IsDirectoryValidator(self.src_dir_or_file)),
+                ],
+                error_message="'src_dir_or_file' must be file or directory",
+            )
+        ]
+
+    def run(self, c: "Connection") -> typing.Any:
+        assert isinstance(c.host, SshHost)
+
+        # Ensure dir exists
+        c.run(f"mkdir -p {self.dst_dir}", hide=True)
+
+        ssh_opts = self.ssh_opts
+
+        if c.host.ssh_port != SSH_PORT:
+            ssh_opts = f"-p {c.host.ssh_port} {ssh_opts}"
+
+        if c.host.ssh_gateway is not None:
+            ssh_opts = f"-J {self._host_for_ssh(c.host.ssh_gateway)}:{c.host.ssh_gateway.ssh_port}"
+
+        ssh_opts = ssh_opts.strip()
+        if ssh_opts:
+            ssh_opts = f'-e "ssh {ssh_opts.strip()}"'
+
+        host_str = self._host_for_ssh(c.host)
+        command = f'{self.rsync_command} {self.rsync_opts} {ssh_opts} {self.src_dir_or_file} {host_str}:{self.dst_dir}'
+
+        return localhost_connection.run(command, hide=False, timeout=self.rsync_timeout)
+
+
 __all__ = (
     "GetFile",
     "PutFile",
     "PutTemplate",
+    "Rsync",
 )

@@ -1,3 +1,6 @@
+import io
+from threading import Thread
+import sys
 import typing
 import ipaddress
 import socket
@@ -19,34 +22,104 @@ class Result:
         return_code: int,
         stderr: str,
         stdout: str,
-
         command: str,
-        hide: bool,
-        warn: bool,
-    ):
+    ) -> None:
         """
         :param return_code: код возврата
-        :param output: комбинированный вывод stdout & stderr
+        :param stderr: содержимое stderr
+        :param stdout: содержимое stdout
         :param command: команда, которая была запущена
-        :param hide: не показывать вывод в консоли
+
+        """
+        self.command = command
+        self.return_code = return_code
+        self.stderr = stderr.replace("\r", "").strip()
+        self.stdout = stdout.replace("\r", "").strip()
+
+    def check_result(self, warn: bool) -> None:
+        """
+        Проверить результат выполнения, выкинуть ошибку если она была
+
         :param warn: вывести результат неуспешной команды вместо того чтобы выкинуть исключение :py:exc:`.CommandError`
         """
-        self.return_code = return_code
-        self.stderr = stderr.strip()
-        self.stdout = stdout.strip()
-
         if not self.ok or len(self.stderr):
-            if not warn:
-                if self.stderr:
-                    print(stderr)
-                raise CommandError(f"{command} failed with exist code: {return_code}")
+            if self.stdout:
+                print(self.stdout, flush=True)
+            if self.stderr:
+                print(self.stderr, flush=True)
 
-        if not hide:
-            print(self.stdout)
+            if not warn:
+                raise CommandError(f"{self.command} failed with exist code: {self.return_code}")
 
     @property
     def ok(self) -> bool:
         return self.return_code == 0
+
+
+class ResultPromise:
+    command: str
+    stdout: typing.IO[bytes]
+    stderr: typing.IO[bytes]
+
+    @abc.abstractmethod
+    def is_done(self) -> bool: ...
+
+    @abc.abstractmethod
+    def wait(self) -> int: ...
+
+    def get_result(self, hide: bool) -> Result:
+        """
+        Получить результат
+
+        :param hide: скрыть stdin & stdout
+        """
+        if hide is True:
+            retcode = self.wait()
+            return Result(
+                return_code=retcode,
+                stderr=self.stderr.read().decode(),
+                stdout=self.stdout.read().decode(),
+                command=self.command,
+            )
+
+        # Копируем stdout & stderr команды на экран и в буферы
+        # чтобы вернуть результат
+        threads = []
+
+        cmd_stdout = io.BytesIO()
+        cmd_stderr = io.BytesIO()
+
+        def output_thread(fromio: typing.IO[bytes], toios: typing.List[typing.IO[bytes]]) -> None:
+            while not self.is_done():
+                data = fromio.read(1)
+                for toio in toios:
+                    toio.write(data)
+                    toio.flush()
+
+            data = fromio.read()
+            for toio in toios:
+                toio.write(data)
+                toio.flush()
+
+        threads.append(Thread(target=output_thread, args=(self.stdout, [sys.stdout.buffer, cmd_stdout])))
+        # threads.append(Thread(target=output_thread, args=(self.stderr, [sys.stderr.buffer, cmd_stderr])))
+
+        for t in threads:
+            t.start()
+
+        for t in threads:
+            t.join()
+
+        cmd_stdout.seek(0)
+        cmd_stderr.seek(0)
+
+        retcode = self.wait()
+        return Result(
+            return_code=retcode,
+            stderr=cmd_stderr.read().decode(),
+            stdout=cmd_stdout.read().decode(),
+            command=self.command,
+        )
 
 
 @dataclass
@@ -64,7 +137,7 @@ class Connection:
     Хост с которым связан конект
     """
 
-    def __init__(self, host: "Host", run_timeout: int = 120) -> None:
+    def __init__(self, host: "Host") -> None:
         """
         Конекст с хостом, все конекты являются контекст-менеджерами
 
@@ -73,7 +146,6 @@ class Connection:
 
         """
         self.host = host
-        self.run_timeout = run_timeout
 
     def __enter__(self) -> "Connection":
         raise NotImplementedError
@@ -82,12 +154,21 @@ class Connection:
         pass
 
     @abc.abstractmethod
+    def run_promise(
+        self,
+        command: str,
+        cwd: typing.Optional[str] = None,
+        timeout: int = 60,
+    ) -> ResultPromise:
+        raise NotImplementedError
+
     def run(
         self,
         command: str,
-        hide: bool = False,
+        hide: bool = True,
         warn: bool = False,
         cwd: typing.Optional[str] = None,
+        timeout: int = 60,
     ) -> Result:
         """
         Запустить команду
@@ -96,7 +177,15 @@ class Connection:
         :param hide: Скрыть вывод команды
         :param warn: Вывести stderr
         :param cwd: Перейти в папку при выполнении команды
+        :param timeout: таймаут выполнения команды
         """
+        result = self.run_promise(
+            command=command,
+            cwd=cwd,
+            timeout=timeout,
+        ).get_result(hide=hide)
+        result.check_result(warn=warn)
+        return result
 
     @abc.abstractmethod
     def file_stat(self, path: str) -> StatResult:

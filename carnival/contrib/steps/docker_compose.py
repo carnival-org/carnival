@@ -15,18 +15,32 @@ class UploadService(Step):
     """
 
     def __init__(
-            self,
-            app_dir: str,
+        self,
+        app_dir: str,
 
-            template_files: typing.List[typing.Union[str, typing.Tuple[str, str]]],
-            template_context: typing.Dict[str, typing.Any],
+        static_files: typing.List[typing.Union[str, typing.Tuple[str, str]]],
+        template_files: typing.List[typing.Union[str, typing.Tuple[str, str]]],
+        template_context: typing.Dict[str, typing.Any],
     ):
         """
         :param app_dir: Путь до папки назначения
+        :param static_files: Список файлов. Может быть списком файлов или кортежей (src, dst)
         :param template_files: Список jinja2-шаблонов. Может быть списком файлов или кортежей (src, dst)
         :param template_context: Контекст шаблонов, один на все шаблоны
         """
         self.app_dir = app_dir
+
+        self.static_files: typing.List[typing.Tuple[str, str]] = []
+        for dest in static_files:
+            if isinstance(dest, str):
+                file_path = dest
+                dest_fname = os.path.basename(file_path)
+            elif isinstance(dest, tuple):
+                file_path, dest_fname = dest
+            else:
+                raise ValueError(f"Cant parse static file definition: {dest}")
+
+            self.static_files.append((file_path, dest_fname))
 
         self.template_files: typing.List[typing.Tuple[str, str]] = []
         for dest in template_files:
@@ -36,13 +50,18 @@ class UploadService(Step):
             elif isinstance(dest, tuple):
                 template_path, dest_fname = dest
             else:
-                raise ValueError(f"Cant parse template_file definition: {dest}")
+                raise ValueError(f"Cant parse template file definition: {dest}")
 
             self.template_files.append((template_path, dest_fname))
 
         self.template_context = template_context
 
-        self.transfer_chain = []
+        self.transfer_chain: typing.List[Step] = []
+        for file_path, dest_fname in self.static_files:
+            self.transfer_chain.append(transfer.PutFile(
+                local_path=file_path,
+                remote_path=os.path.join(self.app_dir, dest_fname),
+            ))
         for template_path, dest_fname in self.template_files:
             self.transfer_chain.append(transfer.PutTemplate(
                 template_path=template_path,

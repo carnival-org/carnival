@@ -4,7 +4,7 @@ import os
 from carnival.hosts.base import Host, Connection, Result
 from carnival.steps import Step, InlineStep
 from carnival.role import Role, SingleRole
-from carnival.hosts.local import LocalHost, localhost_connection
+from carnival.hosts.local import LocalHost, localhost_connection, localhost
 from carnival.hosts.ssh import SshHost
 from carnival.task import TaskBase, Task
 from carnival import internal_tasks
@@ -36,7 +36,8 @@ except OSError:
 
 __all__ = [
     'Step', 'InlineStep',
-    'SshHost', 'LocalHost', 'localhost_connection', 'Host', 'Connection', 'Result',
+    'SshHost', 'LocalHost', 'localhost', 'localhost_connection',
+    'Host', 'Connection', 'Result',
     'Role', 'SingleRole',
     'TaskBase', 'Task',
     'internal_tasks',

@@ -7,7 +7,7 @@ from carnival import Step
 from carnival import Connection
 from carnival.steps import validators, shortcuts
 
-from carnival.contrib.steps import apt, systemd
+from carnival.contrib.steps import apt, systemd, transfer
 
 
 class CeInstallUbuntu(Step):
@@ -15,31 +15,37 @@ class CeInstallUbuntu(Step):
     Установить docker на ubuntu
     https://docs.docker.com/engine/install/ubuntu/
     """
-    def __init__(self, docker_version: typing.Optional[str] = None) -> None:
+    def __init__(self, version: typing.Optional[str] = None) -> None:
         """
-        :param docker_version: версия docker-ce
+        :param version: версия docker-ce
         """
-        self.docker_version = docker_version
+        self.version = version
+
+    def get_name(self) -> str:
+        return f"{super().get_name()}(version={self.version or 'any'})"
 
     def get_validators(self) -> typing.List[validators.StepValidatorBase]:
         return [
             validators.CommandRequiredValidator("apt-get"),
-            validators.CommandRequiredValidator("curl"),
         ]
 
     def run(self, c: Connection) -> None:
         pkgname = "docker-ce"
-        if apt.IsPackageInstalled(pkgname=pkgname, version=self.docker_version).run(c=c):
-            print(f"{S.BRIGHT}docker-ce{S.RESET_ALL}: {F.GREEN}already installed{F.RESET}")
+        if apt.IsPackageInstalled(pkgname=pkgname, version=self.version).run(c=c):
+            return
 
-        print(f"Installing {pkgname}...")
-        c.run("sudo apt-get update")
-        c.run("sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common")
-        c.run("curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -")
-        c.run('sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"')  # noqa:E501
+        apt.InstallMultiple(
+            ["apt-transport-https", "ca-certificates", "curl", "software-properties-common"],
+            update=True
+        ).run(c)
 
-        apt.ForceInstall(pkgname=pkgname, version=self.docker_version, update=True, hide=True).run(c=c)
-        print(f"{S.BRIGHT}docker-ce{S.RESET_ALL}: {F.YELLOW}installed{F.RESET}")
+        c.run("curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -", hide=True)
+        c.run(
+            'add-apt-repository -y "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"',  # noqa:E501
+            hide=True
+        )
+        apt.Update().run(c)
+        apt.Install(pkgname, version=self.version, update=False).run(c)
 
 
 class ComposeInstall(Step):
@@ -65,7 +71,6 @@ class ComposeInstall(Step):
 
     def run(self, c: Connection) -> None:
         if shortcuts.is_cmd_exist(c, "docker-compose"):
-            print(f"{S.BRIGHT}docker-compose{S.RESET_ALL}: {F.GREEN}already installed{F.RESET}")
             return
 
         link = f"https://github.com/docker/compose/releases/download/{self.version}/docker-compose-`uname -s`-`uname -m`"  # noqa:501
@@ -84,7 +89,7 @@ class UploadImageFile(Step):
         docker_image_path: str,
         dest_dir: str = '/tmp/',
         rm_after_load: bool = False,
-        rsync_opts: typing.Optional[typing.Dict[str, typing.Any]] = None,
+        rsync_opts: typing.Optional[str] = None,
     ):
         """
         :param docker_image_path: tar-образ docker
@@ -97,7 +102,13 @@ class UploadImageFile(Step):
         self.docker_image_path = docker_image_path
         self.dest_dir = dest_dir
         self.rm_after_load = rm_after_load
-        self.rsync_opts = rsync_opts or {}
+        self.rsync_opts = rsync_opts
+
+        self.rsync_step = transfer.Rsync(
+            src_dir_or_file=self.docker_image_path,
+            dst_dir=self.dest_dir,
+            rsync_opts=self.rsync_opts
+        )
 
     def get_name(self) -> str:
         return f"{super().get_name()}(src={self.docker_image_path}, dst={self.dest_dir})"
@@ -106,13 +117,13 @@ class UploadImageFile(Step):
         return [
             validators.CommandRequiredValidator("systemctl"),
             validators.CommandRequiredValidator("docker"),
+            *self.rsync_step.get_validators(),
         ]
 
     def run(self, c: Connection) -> None:
         image_file_name = os.path.basename(self.docker_image_path)
         systemd.Start("docker").run(c=c)
-
-        shortcuts.rsync(c.host, self.docker_image_path, self.dest_dir, **self.rsync_opts)
+        self.rsync_step.run(c)
         c.run(f"cd {self.dest_dir}; docker load -i {image_file_name}")
 
         if self.rm_after_load:

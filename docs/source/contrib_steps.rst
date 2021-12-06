@@ -9,13 +9,6 @@ apt
     :special-members: __init__
     :exclude-members: get_validators, run
 
-cli
-====
-.. automodule:: carnival.contrib.steps.cli
-    :members:
-    :special-members: __init__
-    :exclude-members: get_validators, run
-
 docker
 ======
 .. automodule:: carnival.contrib.steps.docker

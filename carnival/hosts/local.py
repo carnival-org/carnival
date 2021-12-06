@@ -5,6 +5,33 @@ from subprocess import Popen, PIPE
 from carnival.hosts import base
 
 
+class LocalResultPromise(base.ResultPromise):
+    def __init__(
+            self,
+            command: str,
+            timeout: int,
+            cwd: typing.Optional[str]
+    ):
+        self.proc = Popen(command, shell=True, stderr=PIPE, stdin=PIPE, stdout=PIPE, cwd=cwd)
+        self.command = command
+        assert self.proc.stdout is not None
+        assert self.proc.stderr is not None
+        self.stdout = self.proc.stdout
+        self.stderr = self.proc.stderr
+        self.timeout = timeout
+
+    def is_done(self) -> bool:
+        return self.proc.poll() is not None
+
+    def wait(self) -> int:
+        return self.proc.wait(timeout=self.timeout)
+
+    def get_result(self, hide: bool) -> base.Result:
+        result = super().get_result(hide=hide)
+        self.proc.__exit__(None, None, None)
+        return result
+
+
 class LocalConnection(base.Connection):
     def __enter__(self) -> base.Connection:
         return self
@@ -12,28 +39,17 @@ class LocalConnection(base.Connection):
     def __exit__(self, *args: typing.Any) -> None:
         pass
 
-    def run(
+    def run_promise(
         self,
         command: str,
-        hide: bool = False,
-        warn: bool = False,
         cwd: typing.Optional[str] = None,
-    ) -> base.Result:
-        with Popen(command, shell=True, stderr=PIPE, stdin=PIPE, stdout=PIPE, cwd=cwd) as proc:
-            retcode = proc.wait(timeout=self.run_timeout)
-
-            assert proc.stdout is not None
-            assert proc.stderr is not None
-
-            return base.Result(
-                return_code=retcode,
-                stdout=proc.stdout.read().decode().replace("\r", ""),
-                stderr=proc.stderr.read().decode().replace("\r", ""),
-
-                command=command,
-                hide=hide,
-                warn=warn,
-            )
+        timeout: int = 60,
+    ) -> LocalResultPromise:
+        return LocalResultPromise(
+            command=command,
+            cwd=cwd,
+            timeout=timeout,
+        )
 
     def file_stat(self, path: str) -> base.StatResult:
         stat = os.stat(path)

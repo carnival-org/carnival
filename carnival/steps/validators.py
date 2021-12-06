@@ -95,20 +95,14 @@ class IsFileValidator(StepValidatorBase):
     """
     Проверяет что обьект по заданному пути является файлом
     """
-    def __init__(self, file_path: str, on_localhost: bool = False) -> None:
+    def __init__(self, file_path: str) -> None:
         """
         :param file_path: путь до обьекта
-        :param on_localhost: запустить проверку на localhost, вместо переданного хоста
         """
         self.file_path = file_path
-        self.on_localhost = on_localhost
-
         self.fact_id = f"isfile-{file_path}"
 
     def validate(self, c: "Connection") -> typing.Optional[str]:
-        if self.on_localhost:
-            c = localhost_connection
-
         is_exist, val = _validator_cache.try_get(self.__class__, c.host, self.fact_id)
 
         if is_exist:
@@ -128,20 +122,14 @@ class IsDirectoryValidator(StepValidatorBase):
     Проверяет что обьект по заданному пути является директорией
     """
 
-    def __init__(self, directory_path: str, on_localhost: bool = False) -> None:
+    def __init__(self, directory_path: str) -> None:
         """
         :param directory_path: путь до директории
-        :param on_localhost: запустить проверку на localhost, вместо переданного хоста
         """
         self.directory_path = directory_path
-        self.on_localhost = on_localhost
-
         self.fact_id = f"is_directory-{directory_path}"
 
     def validate(self, c: "Connection") -> typing.Optional[str]:
-        if self.on_localhost:
-            c = localhost_connection
-
         is_exist, val = _validator_cache.try_get(self.__class__, c.host, self.fact_id)
 
         if is_exist:
@@ -186,14 +174,14 @@ class Not(StepValidatorBase):
     >>> from carnival.steps import validators
     >>>
     >>>  Not(
-    >>>      CommandRequiredValidator("docker"),
-    >>>      "docker shoult not be exist"
+    >>>      validator=CommandRequiredValidator("docker"),
+    >>>      error_message="docker shoult not be exist"
     >>>  )
     """
     def __init__(
-            self,
-            validator: StepValidatorBase,
-            error_message: str,
+        self,
+        validator: StepValidatorBase,
+        error_message: str,
     ):
         """
         :param validator: валидатор
@@ -208,3 +196,50 @@ class Not(StepValidatorBase):
         if err is None:
             return self.error_message
         return None
+
+
+class Or(StepValidatorBase):
+    """
+    Валидатор который принимает список валидаторов и будет успешен если хотя бы один их них успешен
+    """
+    def __init__(
+        self,
+        validators: typing.List[StepValidatorBase],
+        error_message: str,
+    ):
+        """
+        :param validators: валидаторы
+        :param error_message: сообщение об ошибке валидатора
+        """
+
+        self.validators = validators
+        self.error_message = error_message
+
+    def validate(self, c: "Connection") -> typing.Optional[str]:
+        for v in self.validators:
+            err = v.validate(c)
+            if err is None:
+                return None
+
+        return self.error_message
+
+
+class Local(StepValidatorBase):
+    """
+    Запускает проверку валидатор а на локальном хосте
+
+    >>> from carnival.steps import validators
+    >>> Local(CommandRequiredValidator("docker"))  # Проверяем наличие docker на локальном хосте
+    """
+    def __init__(
+        self,
+        validator: StepValidatorBase,
+    ):
+        """
+        :param validator: валидатор
+        """
+
+        self.validator = validator
+
+    def validate(self, c: "Connection") -> typing.Optional[str]:
+        return self.validator.validate(localhost_connection)

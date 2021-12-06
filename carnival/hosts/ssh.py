@@ -7,6 +7,31 @@ from paramiko.config import SSH_PORT
 from carnival.hosts import base
 
 
+class SshResultPromise(base.ResultPromise):
+    def __init__(self, conn: SSHClient, command: str, cwd: typing.Optional[str], timeout: int):
+        self.command = command
+        self.timeout = timeout
+        self.conn = conn
+
+        if cwd is not None:
+            command = f"cd {cwd}; {command}"
+        # https://stackoverflow.com/questions/39429680/python-paramiko-redirecting-stderr-is-affected-by-get-pty-true
+        stdin, stdout, stderr = self.conn.exec_command(
+            command,
+            timeout=timeout,
+            get_pty=True,  # Combines stdout and stderr, we dont want it
+        )
+        self.stdout_channel = stdout.channel
+        self.stdout = stdout  # type: ignore
+        self.stderr = stderr  # type: ignore
+
+    def is_done(self) -> bool:
+        return self.stdout_channel.exit_status_ready()
+
+    def wait(self) -> int:
+        return self.stdout_channel.recv_exit_status()
+
+
 class SshConnection(base.Connection):
     def __init__(
         self,
@@ -18,9 +43,8 @@ class SshConnection(base.Connection):
         ssh_gateway: typing.Optional["SshHost"] = None,
         ssh_connect_timeout: int = 10,
         missing_host_key_policy: typing.Type[MissingHostKeyPolicy] = AutoAddPolicy,
-        run_timeout: int = 120,
     ) -> None:
-        super().__init__(host, run_timeout=run_timeout)
+        super().__init__(host)
         self.host: "SshHost" = host
 
         self.ssh_gateway = ssh_gateway
@@ -58,38 +82,18 @@ class SshConnection(base.Connection):
         if self.gw_conn is not None:
             self.gw_conn.conn.close()
 
-    def run(
-        self,
-        command: str,
-        hide: bool = False, warn: bool = False, cwd: typing.Optional[str] = None,
-    ) -> base.Result:
+    def run_promise(
+            self,
+            command: str,
+            cwd: typing.Optional[str] = None,
+            timeout: int = 60,
+    ) -> base.ResultPromise:
         assert self.conn is not None
-        initial_command = command
-
-        if cwd is not None:
-            command = f"cd {cwd}; {command}"
-
-        stdin, stdout, stderr = self.conn.exec_command(
-            command,
-            timeout=self.run_timeout,
-            get_pty=False,  # Combines stdout and stderr, we dont want it
-        )
-        retcode = stdout.channel.recv_exit_status()
-
-        stdout_str = stdout.read().decode().replace("\r", "")
-        stderr_str = stderr.read().decode().replace("\r", "")
-        stdout.close()
-        stderr.close()
-        stdin.close()
-
-        return base.Result(
-            return_code=retcode,
-            stdout=stdout_str,
-            stderr=stderr_str,
-
-            command=initial_command,
-            hide=hide,
-            warn=warn,
+        return SshResultPromise(
+            conn=self.conn,
+            command=command,
+            cwd=cwd,
+            timeout=timeout,
         )
 
     def file_stat(self, path: str) -> base.StatResult:

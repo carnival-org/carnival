@@ -18,7 +18,7 @@ class PackagesRole(Role):
 
 # Define host
 my_server_ip = os.getenv("TESTSERVER_ADDR", "1.2.3.4")  # Dynamic ip for testing
-my_server = SshHost(my_server_ip, ssh_user="root")
+my_server = SshHost(my_server_ip, user="root")
 
 # Assign host to role
 PackagesRole(my_server)

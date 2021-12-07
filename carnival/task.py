@@ -204,7 +204,7 @@ class Task(abc.ABC, typing.Generic[RoleT], TaskBase):
                     step.run(c=c)
 
 
-class TaskGroup(TaskBase):
+class TaskGroup(abc.ABC, TaskBase):
     """
     Задача, группирующая в себе другие задачи
 

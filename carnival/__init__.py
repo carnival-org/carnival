@@ -1,7 +1,9 @@
 import sys
 import dotenv
 import os
-from carnival.hosts.base import Host, Connection, Result
+from carnival.hosts.base.host import Host
+from carnival.hosts.base.connection import Connection
+from carnival.hosts.base.result import Result
 from carnival.steps import Step, InlineStep
 from carnival.role import Role, SingleRole
 from carnival.hosts.local import LocalHost, localhost_connection, localhost

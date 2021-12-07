@@ -50,7 +50,7 @@ def local_host():
 def ubuntu_ssh_host():
     return SshHost(
         "127.0.0.1",
-        ssh_user="root", ssh_password="secret", ssh_port=22222,
+        user="root", password="secret", port=22222,
         missing_host_key_policy=WarningPolicy
     )
 
@@ -59,6 +59,6 @@ def ubuntu_ssh_host():
 def centos_ssh_host():
     return SshHost(
         "127.0.0.1",
-        ssh_user="root", ssh_password="secret", ssh_port=22223,
+        user="root", password="secret", port=22223,
         missing_host_key_policy=WarningPolicy
     )

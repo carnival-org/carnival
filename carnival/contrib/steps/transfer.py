@@ -226,27 +226,15 @@ class Rsync(Step):
         Return `user@addr` if user given, else `addr`
         """
 
-        if host.ssh_user:
-            return f"{host.ssh_user}@{host.addr}"
+        if host.connect_config.user:
+            return f"{host.connect_config.user}@{host.addr}"
         return host.addr
-
-    @staticmethod
-    def _validate_dst_host_double_gateway(c: Connection) -> bool:
-        assert isinstance(c.host, SshHost)
-        if c.host.ssh_gateway is not None:
-            if c.host.ssh_gateway.ssh_gateway is not None:
-                return True
-        return False
 
     def get_validators(self) -> typing.List[validators.StepValidatorBase]:
         return [
             validators.InlineValidator(
                 lambda c: not isinstance(c.host, SshHost),
                 "remote host must be ssh connected host",
-            ),
-            validators.InlineValidator(
-                self._validate_dst_host_double_gateway,
-                "gateway for gateway s not supported for rsync, please use .ssh/config",
             ),
             validators.Local(validators.CommandRequiredValidator("rsync")),
             validators.Or(
@@ -266,11 +254,11 @@ class Rsync(Step):
 
         ssh_opts = self.ssh_opts
 
-        if c.host.ssh_port != SSH_PORT:
-            ssh_opts = f"-p {c.host.ssh_port} {ssh_opts}"
+        if c.host.connect_config.port != SSH_PORT:
+            ssh_opts = f"-p {c.host.connect_config.port} {ssh_opts}"
 
-        if c.host.ssh_gateway is not None:
-            ssh_opts = f"-J {self._host_for_ssh(c.host.ssh_gateway)}:{c.host.ssh_gateway.ssh_port}"
+        if c.host.connect_config.proxycommand is not None:
+            ssh_opts = f"-o ProxyCommand='{c.host.connect_config.proxycommand}'"
 
         ssh_opts = ssh_opts.strip()
         if ssh_opts:

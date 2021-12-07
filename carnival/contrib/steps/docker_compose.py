@@ -264,4 +264,4 @@ class LogsServices(Step):
         ]
 
     def run(self, c: Connection) -> typing.Any:
-        c.run(f"docker-compose logs -f --tail={self.tail} {self.services}", cwd=self.app_dir)
+        c.run(f"docker-compose logs -f --tail={self.tail} {self.services}", cwd=self.app_dir, hide=False)

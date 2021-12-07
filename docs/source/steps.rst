@@ -10,6 +10,7 @@
 .. autoclass:: carnival.InlineStep()
     :members:
     :show-inheritance:
+    :exclude-members: run
 
 
 Валидаторы

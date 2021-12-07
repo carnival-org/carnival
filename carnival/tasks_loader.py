@@ -47,8 +47,10 @@ def import_tasks_file(carnival_tasks_module: str, silent: bool) -> None:
             print(f"Cannot import {carnival_tasks_module}: {ex}", file=sys.stderr)
 
 
-def get_tasks_from_runtime(carnival_tasks_module: str) -> typing.Dict[str, typing.Type[TaskBase]]:
-    tasks: typing.Dict[str, typing.Type[TaskBase]] = {}
+def get_tasks_from_runtime(carnival_tasks_module: str) -> typing.Dict[str, typing.Type["TaskBase"]]:
+    from carnival.task import TaskBase
+
+    tasks: typing.Dict[str, typing.Type["TaskBase"]] = {}
 
     for task_class in task_subclasses(TaskBase):
         task_full_name = get_task_full_name(carnival_tasks_module, task_class)
@@ -60,7 +62,7 @@ def get_tasks_from_runtime(carnival_tasks_module: str) -> typing.Dict[str, typin
 def get_tasks(
     carnival_tasks_module: str,
     for_completion: bool = False,
-) -> typing.OrderedDict[str, typing.Type[TaskBase]]:
+) -> typing.OrderedDict[str, typing.Type["TaskBase"]]:
     sys.path.insert(0, os.getcwd())
     from carnival import internal_tasks  # noqa
     import_tasks_file(carnival_tasks_module, silent=for_completion)

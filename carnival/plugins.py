@@ -11,7 +11,7 @@ def discover_plugins() -> typing.Dict[str, typing.Any]:
     discovered_plugins: typing.Dict[str, typing.Any] = {}
 
     for finder, name, ispkg in pkgutil.iter_modules():
-        if name.startswith('carnival_') and name != 'carnival_tasks' and ispkg is False:
+        if name.startswith('carnival_') and name != 'carnival_tasks' and ispkg is True:
             discovered_plugins[name] = importlib.import_module(name)
 
     return discovered_plugins

@@ -18,9 +18,10 @@ class UploadService(Step):
         self,
         app_dir: str,
 
-        static_files: typing.List[typing.Union[str, typing.Tuple[str, str]]],
         template_files: typing.List[typing.Union[str, typing.Tuple[str, str]]],
         template_context: typing.Dict[str, typing.Any],
+
+        static_files: typing.List[typing.Union[str, typing.Tuple[str, str]]] = [],
     ):
         """
         :param app_dir: Путь до папки назначения

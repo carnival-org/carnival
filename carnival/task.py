@@ -40,6 +40,9 @@ class TaskBase:
     >>> class CheckDiskSpace(TaskBase):
     >>>     help = "Print server root disk usage"
     >>>
+    >>>     def get_validation_errors(self) -> typing.List[str]:
+    >>>         ...
+    >>>
     >>>     def run(self) -> None:
     >>>         with my_server.connect() as c:
     >>>             c.run(f"df -h /", hide=False)
@@ -68,11 +71,31 @@ class TaskBase:
     def get_name(cls) -> str:
         return cls.name if cls.name else _underscore(cls.__name__)
 
-    def validate(self) -> bool:
+    @abc.abstractmethod
+    def get_validation_errors(self) -> typing.List[str]:
         """
-        Хук для проверки валидности задачи перед запуском, не вызывается автоматически
+        Проверить возможность запуска задачи и вернуть список ошибок если есть
+        Вызывается методом :py:meth:`TaskBase.validate`
         """
+        raise NotImplementedError
 
+    def validate(self) -> bool:
+        if self.no_validate:
+            return True
+
+        from carnival.cli import carnival_tasks_module
+        from carnival.tasks_loader import get_task_full_name
+        task_name = get_task_full_name(carnival_tasks_module, self.__class__)
+        print(f"Validating task {S.BRIGHT}{F.BLUE}{task_name}{F.RESET}{S.RESET_ALL} ", end="", flush=True)
+        errors = self.get_validation_errors()
+
+        if errors:
+            print(f" {F.RED}{len(errors)} errors{F.RESET}")
+            for e in errors:
+                print(f" * {e}")
+            return False
+
+        print(f" {S.BRIGHT}{F.GREEN}OK{F.RESET}{S.RESET_ALL}")
         return True
 
     @abc.abstractmethod
@@ -89,6 +112,8 @@ RoleT = typing.TypeVar("RoleT", bound="Role")
 class Task(abc.ABC, typing.Generic[RoleT], TaskBase):
     """
     Задача роли
+
+    Задачи привязываются к ролям через указание generic-типа
 
     >>> from carnival import SshHost, Role
     >>> from my_steps import InstallStep
@@ -112,16 +137,6 @@ class Task(abc.ABC, typing.Generic[RoleT], TaskBase):
     """
 
     role: RoleT
-    """
-    Роль, доступная в методе :py:meth:`~Task.get_steps`
-
-    Задачи привязываются к ролям через указание generic-типа
-
-    >>> from carnival import Task
-    >>>
-    >>> class DeployNginx(Task[NginxRole]):
-    >>>     ...
-    """
 
     def __init__(self, no_validate: bool) -> None:
         super().__init__(no_validate=no_validate)
@@ -135,23 +150,31 @@ class Task(abc.ABC, typing.Generic[RoleT], TaskBase):
     def get_steps(self) -> typing.List["Step"]:
         """
         Список шагов в порядке выполнения
+
+        Из этого метода можно получить роль, на которой выполняется задача:
+        :py:attr:`self.role`
+
+        А из роли можно получить хосты, если это нужно
+
+
         """
         raise NotImplementedError
 
-    def validate(self) -> bool:
-        if self.no_validate:
-            return True
-
-        from carnival.cli import carnival_tasks_module
-        from carnival.tasks_loader import get_task_full_name
-        task_name = get_task_full_name(carnival_tasks_module, self.__class__)
-        print(f"Validating task {S.BRIGHT}{F.BLUE}{task_name}{F.RESET}{S.RESET_ALL} ", end="", flush=True)
+    def get_validation_errors(self) -> typing.List[str]:
         errors: typing.List[str] = []
+
+        if len(self.hostroles) == 0:
+            errors.append(f"{self.__class__.__name__} no hosts with role '{self.role.__class__.__name__}'")
 
         for hostrole in self.hostroles:
             with hostrole.host.connect() as c:
                 self.role = hostrole
-                for step in self.get_steps():
+                hostrolesteps = self.get_steps()
+
+                if len(hostrolesteps) == 0:
+                    errors.append(f"{self.__class__.__name__} no steps with host {hostrole.host}")
+
+                for step in hostrolesteps:
                     step_errors = step.validate(c=c)
 
                     if not step_errors:
@@ -159,18 +182,10 @@ class Task(abc.ABC, typing.Generic[RoleT], TaskBase):
                     else:
                         step_name = step.get_name()
                         for e in step_errors:
-                            errors.append(f"{task_name} -> {step_name} on {hostrole.host}: {F.RED}{e}{F.RESET}")
+                            errors.append(f"{step_name} on {hostrole.host}: {F.RED}{e}{F.RESET}")
                         print(f"{F.RED}e{F.RESET}", end="", flush=True)
                 del self.role
-
-        if errors:
-            print(f" {F.RED}{len(errors)} errors{F.RESET}")
-            for e in errors:
-                print(f" * {e}")
-            return False
-
-        print(f" {S.BRIGHT}{F.GREEN}OK{F.RESET}{S.RESET_ALL}")
-        return True
+        return errors
 
     def run(self) -> None:
         from carnival.cli import carnival_tasks_module
@@ -187,3 +202,34 @@ class Task(abc.ABC, typing.Generic[RoleT], TaskBase):
                         f"Running {S.BRIGHT}{task_name}:{step_name}{S.RESET_ALL}"
                     )
                     step.run(c=c)
+
+
+class TaskGroup(TaskBase):
+    """
+    Задача, группирующая в себе другие задачи
+
+    >>> class Deploy(TaskGroup):
+    >>>     tasks = [
+    >>>         DeployBackend,
+    >>>         DeployFrontend,
+    >>>     ]
+    """
+
+    tasks: typing.List[typing.Type[TaskBase]]
+
+    def get_validation_errors(self) -> typing.List[str]:
+        errors: typing.List[str] = []
+        if len(self.tasks) == 0:
+            errors.append(f"{self.__class__.__name__} 'tasks' cannot be empty")
+
+        for task_class in self.tasks:
+            task = task_class(no_validate=self.no_validate)
+            for error in task.get_validation_errors():
+                errors.append(f"{task_class.__name__} -> {error}")
+
+        return errors
+
+    def run(self) -> None:
+        for task_class in self.tasks:
+            task = task_class(no_validate=self.no_validate)
+            task.run()

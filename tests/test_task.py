@@ -17,11 +17,17 @@ def test_task_name():
         def run(self) -> None:
             pass
 
+        def get_validation_errors(self) -> typing.List[str]:
+            return []
+
     t = DryTask(True)
     assert t.get_name() == "dry_task"
 
     class DryNameTask(TaskBase):
         name = "nametask"
+
+        def get_validation_errors(self) -> typing.List[str]:
+            return []
 
         def run(self) -> None:
             pass
@@ -45,9 +51,12 @@ def test_simple_task(noop_step, mocker):
     with pytest.raises(NotImplementedError):
         TaskBase(False).run()  # type: ignore
 
-    class DryTask(Task[Role]):
-        hosts = [LocalHost(), ]
+    class TestRole(Role):
+        pass
 
+    TestRole(LocalHost())
+
+    class DryTask(Task[TestRole]):
         def get_steps(self) -> typing.List[Step]:
             return [noop_step, ]
     t = DryTask(True)

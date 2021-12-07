@@ -6,7 +6,7 @@ from carnival.steps import Step, InlineStep
 from carnival.role import Role, SingleRole
 from carnival.hosts.local import LocalHost, localhost_connection, localhost
 from carnival.hosts.ssh import SshHost
-from carnival.task import TaskBase, Task
+from carnival.task import TaskBase, Task, TaskGroup
 from carnival import internal_tasks
 
 
@@ -39,6 +39,6 @@ __all__ = [
     'SshHost', 'LocalHost', 'localhost', 'localhost_connection',
     'Host', 'Connection', 'Result',
     'Role', 'SingleRole',
-    'TaskBase', 'Task',
+    'Task', 'TaskGroup', 'TaskBase',
     'internal_tasks',
 ]

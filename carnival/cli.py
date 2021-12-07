@@ -7,8 +7,10 @@ import click
 import colorama  # type: ignore
 from colorama import Fore, Style
 
-from carnival.task import TaskBase
 from carnival.tasks_loader import get_tasks
+
+if typing.TYPE_CHECKING:
+    from carnival.task import TaskBase
 
 
 carnival_tasks_module = os.getenv("CARNIVAL_TASKS_MODULE", "carnival_tasks")
@@ -18,7 +20,7 @@ def is_completion_script(complete_var: str) -> bool:
     return os.getenv(complete_var, None) is not None
 
 
-task_types: typing.OrderedDict[str, typing.Type[TaskBase]] = collections.OrderedDict()
+task_types: typing.OrderedDict[str, typing.Type["TaskBase"]] = collections.OrderedDict()
 
 
 def except_hook(type: typing.Type[typing.Any], value: typing.Any, traceback: typing.Any) -> None:
@@ -59,7 +61,7 @@ def main() -> int:
 
         # Build chain and validate
         has_errors = False
-        task_chain: typing.List[TaskBase] = []
+        task_chain: typing.List["TaskBase"] = []
         for task_class_str in tasks:
             task = task_types[task_class_str](no_validate=no_validate)
             is_valid = task.validate()

@@ -1,3 +1,5 @@
+import typing
+
 from carnival import TaskBase
 from carnival.utils import get_class_full_name
 
@@ -10,6 +12,9 @@ class Help(TaskBase):
     """
     module_name = ""
     help = "List available tasks and help"
+
+    def get_validation_errors(self) -> typing.List[str]:
+        return []
 
     def run(self) -> None:
         from carnival.cli import task_types
@@ -37,6 +42,9 @@ class Validate(TaskBase):
     module_name = ""
     help = "Validate available tasks"
 
+    def get_validation_errors(self) -> typing.List[str]:
+        return []
+
     def run(self) -> None:
         from carnival.cli import task_types
 
@@ -55,6 +63,9 @@ class Roles(TaskBase):
     """
     module_name = ""
     help = "Show all roles and hosts"
+
+    def get_validation_errors(self) -> typing.List[str]:
+        return []
 
     def run(self) -> None:
         from carnival.role import role_repository

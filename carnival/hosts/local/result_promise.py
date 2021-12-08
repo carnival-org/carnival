@@ -1,4 +1,5 @@
 import typing
+import os
 from subprocess import Popen, PIPE
 
 from carnival.hosts.base.result_promise import ResultPromise
@@ -7,12 +8,25 @@ from carnival.hosts.base.result import Result
 
 class LocalResultPromise(ResultPromise):
     def __init__(
-            self,
-            command: str,
-            timeout: int,
-            cwd: typing.Optional[str]
+        self,
+        command: str,
+        timeout: int,
+        cwd: typing.Optional[str],
+        use_sudo: bool,
+        env: typing.Optional[typing.Dict[str, str]] = None,
     ):
-        self.proc = Popen(command, shell=True, stderr=PIPE, stdin=PIPE, stdout=PIPE, cwd=cwd)
+        proc_env = os.environ.copy()
+        if env is not None:
+            proc_env.update(env)
+
+        if use_sudo is True:
+            command = f"sudo -n -- sh -c '{command}'"
+
+        self.proc = Popen(
+            command, shell=True,
+            stderr=PIPE, stdin=PIPE, stdout=PIPE, cwd=cwd,
+            env=proc_env,
+        )
         self.command = command
         assert self.proc.stdout is not None
         assert self.proc.stderr is not None

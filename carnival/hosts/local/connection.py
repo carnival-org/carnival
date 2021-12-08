@@ -17,12 +17,16 @@ class LocalConnection(Connection):
     def run_promise(
             self,
             command: str,
+            use_sudo: bool,
+            env: typing.Optional[typing.Dict[str, str]] = None,
             cwd: typing.Optional[str] = None,
             timeout: int = 60,
     ) -> LocalResultPromise:
         return LocalResultPromise(
             command=command,
             cwd=cwd,
+            env=env,
+            use_sudo=use_sudo,
             timeout=timeout,
         )
 

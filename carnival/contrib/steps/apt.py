@@ -18,7 +18,11 @@ class Update(Step):
         ]
 
     def run(self, c: Connection) -> None:
-        c.run("DEBIAN_FRONTEND=noninteractive sudo apt-get update", hide=True)
+        c.run(
+            "apt-get update",
+            hide=True,
+            env={"DEBIAN_FRONTEND": "noninteractive"},
+        )
         print(f"{S.BRIGHT}apt packages list{S.RESET_ALL}: {F.YELLOW}updated{F.RESET}")
 
 
@@ -37,7 +41,12 @@ class GetPackageVersions(Step):
 
     def run(self, c: Connection) -> typing.List[str]:
         versions = []
-        result = c.run(f"DEBIAN_FRONTEND=noninteractive apt-cache madison {self.pkgname}", hide=True, warn=True)
+        result = c.run(
+            f"apt-cache madison {self.pkgname}",
+            env={"DEBIAN_FRONTEND": "noninteractive"},
+            hide=True,
+            warn=True
+        )
         if result.ok is False:
             return []
 
@@ -67,7 +76,8 @@ class GetInstalledPackageVersion(Step):
         :return: Версия пакета если установлен, `None` если пакет не установлен
         """
         result = c.run(
-            f"DEBIAN_FRONTEND=noninteractive dpkg -l {self.pkgname} | grep '{self.pkgname}'",
+            f"dpkg -l {self.pkgname} | grep '{self.pkgname}'",
+            env={"DEBIAN_FRONTEND": "noninteractive"},
             hide=True,
             warn=True,
         )
@@ -135,7 +145,7 @@ class ForceInstall(Step):
         if self.update:
             Update().run(c)
 
-        c.run(f"DEBIAN_FRONTEND=noninteractive sudo apt-get install -y {pkgname}")
+        c.run(f"apt-get install -y {pkgname}", env={"DEBIAN_FRONTEND": "noninteractive"})
 
 
 class Install(Step):
@@ -214,7 +224,7 @@ class InstallMultiple(Step):
             return False
 
         if self.update:
-            c.run("DEBIAN_FRONTEND=noninteractive sudo apt-get update", hide=True)
+            c.run("apt-get update", hide=True, env={"DEBIAN_FRONTEND": "noninteractive"})
 
         for pkg in self.pkg_names:
             Install(pkgname=pkg, update=False).run(c=c)
@@ -245,6 +255,7 @@ class Remove(Step):
         for pkg in self.pkg_names:
             if IsPackageInstalled(pkg).run(c):
                 c.run(
-                    f"DEBIAN_FRONTEND=noninteractive sudo apt-get remove --auto-remove -y {' '.join(self.pkg_names)}",
+                    f"apt-get remove --auto-remove -y {' '.join(self.pkg_names)}",
+                    env={"DEBIAN_FRONTEND": "noninteractive"},
                 )
                 print(f"{S.BRIGHT}{pkg}{S.RESET_ALL}: {F.YELLOW}removed{F.RESET}")

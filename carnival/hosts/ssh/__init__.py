@@ -22,6 +22,7 @@ class SshHost(Host):
         self,
         addr: str,
         port: int = SSH_PORT,
+        use_sudo: bool = False,
 
         user: typing.Optional[str] = None,
         password: typing.Optional[str] = None,
@@ -38,6 +39,8 @@ class SshHost(Host):
         :param gateway: Gateway
         :param connect_timeout: SSH таймаут соединения
         """
+        super(SshHost, self).__init__(use_sudo=use_sudo)
+
         if ":" in addr:
             raise ValueError("Please set port in 'ssh_port' arg")
         if "@" in addr:
@@ -70,4 +73,5 @@ class SshHost(Host):
         return SshConnection(
             host=self,
             conf=self.connect_config,
+            use_sudo=self.use_sudo,
         )

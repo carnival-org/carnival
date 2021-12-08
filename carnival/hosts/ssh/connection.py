@@ -20,8 +20,9 @@ class SshConnection(Connection):
         self,
         host: "SshHost",
         conf: HostnameConfig,
+        use_sudo: bool = False,
     ) -> None:
-        super().__init__(host)
+        super().__init__(host=host, use_sudo=use_sudo)
         self.host: "SshHost" = host
         self.conf = conf
         self.conn: typing.Optional[SSHClient] = None
@@ -40,17 +41,21 @@ class SshConnection(Connection):
             self.conn = self.conf.connect()
 
     def run_promise(
-            self,
-            command: str,
-            cwd: typing.Optional[str] = None,
-            timeout: int = 60,
+        self,
+        command: str,
+        use_sudo: bool,
+        env: typing.Optional[typing.Dict[str, str]] = None,
+        cwd: typing.Optional[str] = None,
+        timeout: int = 60,
     ) -> ResultPromise:
         self._ensure_connection()
         assert self.conn is not None, "Connection is not opened"
         return SshResultPromise(
             conn=self.conn,
             command=command,
+            env=env,
             cwd=cwd,
+            use_sudo=use_sudo,
             timeout=timeout,
         )
 

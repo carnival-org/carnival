@@ -74,8 +74,8 @@ class ComposeInstall(Step):
             return
 
         link = f"https://github.com/docker/compose/releases/download/{self.version}/docker-compose-`uname -s`-`uname -m`"  # noqa:501
-        c.run(f"sudo curl -sL {link} -o {self.dest}")
-        c.run(f"sudo chmod a+x {self.dest}")
+        c.run(f"curl -sL {link} -o {self.dest}")
+        c.run(f"chmod a+x {self.dest}")
         print(f"{S.BRIGHT}docker-compose{S.RESET_ALL}: {F.GREEN}already installed{F.RESET}")
 
 

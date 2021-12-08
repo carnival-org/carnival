@@ -12,6 +12,12 @@ class Host:
     Адрес хоста
     """
 
+    def __init__(self, use_sudo: bool = False):
+        """
+        :param use_sudo: использовать sudo для выполнения команд
+        """
+        self.use_sudo = use_sudo
+
     @property
     def ip(self) -> str:
         # Maybe self.addr is ip?

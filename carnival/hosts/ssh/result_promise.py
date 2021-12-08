@@ -6,17 +6,30 @@ from carnival.hosts.base.result_promise import ResultPromise
 
 
 class SshResultPromise(ResultPromise):
-    def __init__(self, conn: SSHClient, command: str, cwd: typing.Optional[str], timeout: int):
+    def __init__(
+        self,
+        conn: SSHClient,
+        command: str,
+        cwd: typing.Optional[str],
+        timeout: int,
+        use_sudo: bool,
+        env: typing.Optional[typing.Dict[str, str]] = None,
+    ):
         self.command = command
         self.timeout = timeout
         self.conn = conn
 
         if cwd is not None:
             command = f"cd {cwd}; {command}"
+
+        if use_sudo is True:
+            command = f"sudo -n -- sh -c '{command}'"
+
         # https://stackoverflow.com/questions/39429680/python-paramiko-redirecting-stderr-is-affected-by-get-pty-true
         _, stdout, stderr = self.conn.exec_command(
             command,
             timeout=timeout,
+            environment=env,
             get_pty=True,  # Combines stdout and stderr, we dont want it
         )
         self.stdout_channel = stdout.channel

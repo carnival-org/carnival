@@ -14,7 +14,7 @@ class SshResultPromise(ResultPromise):
         if cwd is not None:
             command = f"cd {cwd}; {command}"
         # https://stackoverflow.com/questions/39429680/python-paramiko-redirecting-stderr-is-affected-by-get-pty-true
-        stdin, stdout, stderr = self.conn.exec_command(
+        _, stdout, stderr = self.conn.exec_command(
             command,
             timeout=timeout,
             get_pty=True,  # Combines stdout and stderr, we dont want it

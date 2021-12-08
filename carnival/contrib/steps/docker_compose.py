@@ -1,6 +1,9 @@
 import os
 import typing
 from itertools import chain
+import time
+
+from colorama import Fore as F, Style as S  # type: ignore
 
 from carnival import Connection
 from carnival import Step
@@ -21,7 +24,7 @@ class UploadService(Step):
         template_files: typing.List[typing.Union[str, typing.Tuple[str, str]]],
         template_context: typing.Dict[str, typing.Any],
 
-        static_files: typing.List[typing.Union[str, typing.Tuple[str, str]]] = [],
+        static_files: typing.Iterable[typing.Union[str, typing.Tuple[str, str]]] = (),
     ):
         """
         :param app_dir: Путь до папки назначения
@@ -131,7 +134,7 @@ class Up(Step):
             scale_str = " ".join([f" --scale {service_name}={count}" for service_name, count in self.scale.items()])
         else:
             scale_str = ""
-        c.run(f"docker-compose up -d --remove-orphans {onlystr} {scale_str}", cwd=self.app_dir)
+        c.run(f"docker-compose up -d --remove-orphans {onlystr} {scale_str}", cwd=self.app_dir, hide=False)
 
 
 class Ps(Step):
@@ -157,7 +160,7 @@ class Ps(Step):
         ]
 
     def run(self, c: Connection) -> typing.Any:
-        c.run(f"docker-compose {self.subcommand} {self.flags}", cwd=self.app_dir)
+        c.run(f"docker-compose {self.subcommand} {self.flags}", cwd=self.app_dir, hide=False)
 
 
 class Restart(Ps):
@@ -265,3 +268,54 @@ class LogsServices(Step):
 
     def run(self, c: Connection) -> typing.Any:
         c.run(f"docker-compose logs -f --tail={self.tail} {self.services}", cwd=self.app_dir, hide=False)
+
+
+class WaitHealthy(Step):
+    def __init__(self, app_dir: str, service: str, timeout_sec: int = 60, interval_sec: int = 3):
+        self.app_dir = app_dir
+        self.service = service
+        self.timeout_sec = timeout_sec
+        self.interval_sec = interval_sec
+
+    def get_name(self) -> str:
+        return f"{super().get_name()}(service={self.service})"
+
+    def get_validators(self) -> typing.List[validators.StepValidatorBase]:
+        return [
+            validators.InlineValidator(
+                if_err_true_fn=lambda c: not self.service,
+                error_message="'service' must not be empty",
+            ),
+            validators.CommandRequiredValidator('docker'),
+            validators.CommandRequiredValidator('docker-compose'),
+        ]
+
+    def _get_health(self, c: Connection, container_id: str) -> str:
+        return c.run(
+            'docker inspect --format="{{json .State.Health.Status}}" %s' % container_id
+        ).stdout.strip().replace('"', "")
+
+    def run(self, c: "Connection") -> typing.Any:
+        start_at = time.time()
+
+        while True:
+            container_ids = c.run(f"docker-compose ps -aq {self.service}", cwd=self.app_dir).stdout.strip().split()
+            if container_ids:
+                statuses = [self._get_health(c, x) for x in container_ids]
+
+                print(f"{S.BRIGHT}{self.service}{S.RESET_ALL}:", end="")
+                for st in statuses:
+                    if st == 'healthy':
+                        print(f" {F.GREEN}{st}{F.RESET}", end="")
+                    elif st == 'null':
+                        print(f" {F.RED}{st}{F.RESET}", end="")
+                    else:
+                        print(f" {F.YELLOW}{st}{F.RESET}", end="")
+                print()
+
+                if all([x == 'healthy' for x in statuses]):
+                    return
+
+            if time.time() - start_at > self.timeout_sec:
+                raise TimeoutError("Service health wait timeout")
+            time.sleep(self.interval_sec)

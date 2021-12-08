@@ -27,12 +27,17 @@ class SshConnection(Connection):
         self.conn: typing.Optional[SSHClient] = None
 
     def __enter__(self) -> "SshConnection":
-        self.conn = self.conf.connect()
+        # Connection now lazy, see `._ensure_connection`
+        # self.conn = self.conf.connect()
         return self
 
     def __exit__(self, *args: typing.Any) -> None:
         if self.conn is not None:
             self.conn.close()
+
+    def _ensure_connection(self) -> None:
+        if self.conn is None:
+            self.conn = self.conf.connect()
 
     def run_promise(
             self,
@@ -40,6 +45,7 @@ class SshConnection(Connection):
             cwd: typing.Optional[str] = None,
             timeout: int = 60,
     ) -> ResultPromise:
+        self._ensure_connection()
         assert self.conn is not None, "Connection is not opened"
         return SshResultPromise(
             conn=self.conn,
@@ -49,6 +55,7 @@ class SshConnection(Connection):
         )
 
     def file_stat(self, path: str) -> StatResult:
+        self._ensure_connection()
         assert self.conn is not None, "Connection is not opened"
         sftp = self.conn.open_sftp()
 
@@ -69,6 +76,7 @@ class SshConnection(Connection):
 
     @contextmanager
     def file_read(self, path: str) -> typing.Generator[typing.IO[bytes], None, None]:
+        self._ensure_connection()
         assert self.conn is not None, "Connection is not opened"
         sftp = self.conn.open_sftp()
         with sftp.open(path, 'rb') as reader:
@@ -77,6 +85,7 @@ class SshConnection(Connection):
 
     @contextmanager
     def file_write(self, path: str) -> typing.Generator[typing.IO[bytes], None, None]:
+        self._ensure_connection()
         assert self.conn is not None, "Connection is not opened"
         sftp = self.conn.open_sftp()
         with sftp.open(path, 'wb') as writer:

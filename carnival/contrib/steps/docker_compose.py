@@ -271,7 +271,17 @@ class LogsServices(Step):
 
 
 class WaitHealthy(Step):
+    """
+    Дождаться когда heathcheck сервиса будет в состоянии healthy
+    """
+
     def __init__(self, app_dir: str, service: str, timeout_sec: int = 60, interval_sec: int = 3):
+        """
+        :param app_dir: Директория где лежит docker-compose.yml
+        :param service: сервис
+        :param timeout_sec: таймаут в секундах
+        :param interval_sec: период попроса состояния в секундах
+        """
         self.app_dir = app_dir
         self.service = service
         self.timeout_sec = timeout_sec

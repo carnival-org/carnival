@@ -16,6 +16,8 @@ class Connection:
     Хост с которым связан конект
     """
 
+    tempdir = "/tmp"
+
     def __init__(self, host: "Host", use_sudo: bool = False) -> None:
         """
         Конекст с хостом, все конекты являются контекст-менеджерами

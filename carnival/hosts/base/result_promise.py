@@ -4,6 +4,8 @@ import sys
 import typing
 import abc
 
+from colorama import Fore as F  # type: ignore
+
 from .result import Result
 
 
@@ -24,6 +26,9 @@ class ResultPromise:
 
         :param hide: скрыть stdin & stdout
         """
+        if hide is False:
+            print(f"{F.GREEN}${F.RESET} {self.command}")
+
         if hide is True:
             retcode = self.wait()
             return Result(

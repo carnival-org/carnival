@@ -2,6 +2,7 @@ import os.path
 import typing
 from io import BytesIO
 from hashlib import sha1
+from uuid import uuid4
 
 from tqdm import tqdm  # type: ignore
 from colorama import Style as S, Fore as F  # type: ignore
@@ -20,29 +21,47 @@ def _file_sha1sum(c: Connection, fpath: str) -> typing.Optional[str]:
 
 def _transfer_file(
     reader: typing.IO[bytes],
-    writer: typing.IO[bytes],
+    writer_conn: Connection,
+    writer_dst_path: str,
     dst_file_size: int,
     dst_file_path: str,
     bufsize: int = 32768,
 ) -> None:
     write_size = 0
 
+    # Create dirs if needed
+    dirname = os.path.dirname(writer_dst_path)
+    if dirname:
+        writer_conn.run(f"mkdir -p {dirname}", hide=True)
+
+    tempfile_path = os.path.join(writer_conn.tempdir, f'carnival.{uuid4()}.tmp')
+
     with tqdm(
         desc=f"Transferring {dst_file_path}",
             unit='B', unit_scale=True, total=dst_file_size,
             leave=False,
     ) as pbar:
-        while True:
-            data = reader.read(bufsize)
-            if len(data) == 0:
-                break
+        with writer_conn.file_write(tempfile_path) as writer:
+            while True:
+                data = reader.read(bufsize)
+                if len(data) == 0:
+                    break
 
-            writer.write(data)
-            pbar.update(len(data))
-            write_size += len(data)
+                writer.write(data)
+                pbar.update(len(data))
+                write_size += len(data)
 
     if dst_file_size != write_size:
+        writer_conn.run(f"rm {tempfile_path}")
         raise IOError(f"size mismatch! {dst_file_size} != {write_size}")
+
+    writer_conn.run(f"mv {tempfile_path} {writer_dst_path}")
+    # если используется sudo - нужно назначить владельца
+    user_id = shortcuts.get_user_id(writer_conn)
+    user_group_id = shortcuts.get_user_group_id(writer_conn)
+    writer_conn.run(f"chown {user_id}:{user_group_id} {writer_dst_path}")
+
+    print(f"{S.BRIGHT}{writer_dst_path}{S.RESET_ALL}: {F.YELLOW}transferred{F.RESET}")
 
 
 class GetFile(Step):
@@ -76,20 +95,14 @@ class GetFile(Step):
             if remote_sha1 == local_sha1:
                 return
 
-        # Create dirs if needed
-        dirname = os.path.dirname(self.local_path)
-        if dirname:
-            localhost_connection.run(f"mkdir -p {dirname}", hide=True)
-
-        with localhost_connection.file_write(self.local_path) as writer:
-            with c.file_read(self.remote_path) as reader:
-                dst_file_size = c.file_stat(self.remote_path).st_size
-                _transfer_file(
-                    reader=reader, writer=writer,
-                    dst_file_size=dst_file_size, dst_file_path=self.remote_path,
-                )
-
-        print(f"{S.BRIGHT}{self.remote_path}{S.RESET_ALL}: {F.YELLOW}downloaded{F.RESET}")
+        with c.file_read(self.remote_path) as reader:
+            dst_file_size = c.file_stat(self.remote_path).st_size
+            _transfer_file(
+                reader=reader,
+                writer_conn=localhost_connection,
+                writer_dst_path=self.local_path,
+                dst_file_size=dst_file_size, dst_file_path=self.remote_path,
+            )
 
 
 class PutFile(Step):
@@ -124,20 +137,14 @@ class PutFile(Step):
             if remote_sha1 == local_sha1:
                 return
 
-        # Create dirs if needed
-        dirname = os.path.dirname(self.remote_path)
-        if dirname:
-            c.run(f"mkdir -p {dirname}", hide=True)
-
         with localhost_connection.file_read(self.local_path) as reader:
-            with c.file_write(self.remote_path) as writer:
-                dst_file_size = localhost_connection.file_stat(self.local_path).st_size
-                _transfer_file(
-                    reader=reader, writer=writer,
-                    dst_file_size=dst_file_size, dst_file_path=self.remote_path,
-                )
-
-        print(f"{S.BRIGHT}{self.remote_path}{S.RESET_ALL}: {F.YELLOW}uploaded{F.RESET}")
+            dst_file_size = localhost_connection.file_stat(self.local_path).st_size
+            _transfer_file(
+                reader=reader,
+                writer_conn=c,
+                writer_dst_path=self.remote_path,
+                dst_file_size=dst_file_size, dst_file_path=self.remote_path,
+            )
 
 
 class PutTemplate(Step):
@@ -174,18 +181,12 @@ class PutTemplate(Step):
             if remote_sha1 == local_sha1:
                 return
 
-        # Create dirs if needed
-        dirname = os.path.dirname(self.remote_path)
-        if dirname:
-            c.run(f"mkdir -p {dirname}", hide=True)
-
-        with c.file_write(self.remote_path) as writer:
-            _transfer_file(
-                reader=BytesIO(filebytes), writer=writer,
-                dst_file_size=len(filebytes), dst_file_path=self.remote_path,
-            )
-
-        print(f"{S.BRIGHT}{self.remote_path}{S.RESET_ALL}: {F.YELLOW}uploaded{F.RESET}")
+        _transfer_file(
+            reader=BytesIO(filebytes),
+            writer_conn=c,
+            writer_dst_path=self.remote_path,
+            dst_file_size=len(filebytes), dst_file_path=self.remote_path,
+        )
 
 
 class Rsync(Step):
@@ -253,19 +254,20 @@ class Rsync(Step):
         c.run(f"mkdir -p {self.dst_dir}", hide=True)
 
         ssh_opts = self.ssh_opts
-
         if c.host.connect_config.port != SSH_PORT:
             ssh_opts = f"-p {c.host.connect_config.port} {ssh_opts}"
-
         if c.host.connect_config.proxycommand is not None:
             ssh_opts = f"-o ProxyCommand='{c.host.connect_config.proxycommand}'"
-
         ssh_opts = ssh_opts.strip()
         if ssh_opts:
             ssh_opts = f'-e "ssh {ssh_opts.strip()}"'
 
+        rsync_opts = self.rsync_opts
+        if c.use_sudo is True:
+            rsync_opts = f'--rsync-path="sudo -n rsync" {rsync_opts}'
+
         host_str = self._host_for_ssh(c.host)
-        command = f'{self.rsync_command} {self.rsync_opts} {ssh_opts} {self.src_dir_or_file} {host_str}:{self.dst_dir}'
+        command = f'{self.rsync_command} {rsync_opts} {ssh_opts} {self.src_dir_or_file} {host_str}:{self.dst_dir}'
 
         return localhost_connection.run(command, hide=False, timeout=self.rsync_timeout)
 

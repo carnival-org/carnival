@@ -15,7 +15,6 @@ class SshResultPromise(ResultPromise):
         use_sudo: bool,
         env: typing.Optional[typing.Dict[str, str]] = None,
     ):
-        self.command = command
         self.timeout = timeout
         self.conn = conn
 
@@ -23,7 +22,10 @@ class SshResultPromise(ResultPromise):
             command = f"cd {cwd}; {command}"
 
         if use_sudo is True:
-            command = f"sudo -n -- sh -c '{command}'"
+            command = command.replace('"', '\\"')
+            command = f'sudo -n -- sh -c "{command}"'
+
+        self.command = command
 
         # https://stackoverflow.com/questions/39429680/python-paramiko-redirecting-stderr-is-affected-by-get-pty-true
         _, stdout, stderr = self.conn.exec_command(

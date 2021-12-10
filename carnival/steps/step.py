@@ -1,6 +1,8 @@
 import abc
 import typing
 
+from colorama import Style as S, Fore as F  # type: ignore
+
 if typing.TYPE_CHECKING:
     from carnival.steps.validators import StepValidatorBase
     from carnival import Connection
@@ -50,6 +52,15 @@ class Step:
                 errors.append(err)
 
         return errors
+
+    def log_action(self, kind: str, changed_label: str) -> None:
+        """
+        Вывести на экран событие изменения, которое произошло в рамках выполнения шага
+
+        :param kind: сущность
+        :param changed_label: действие
+        """
+        print(f" - {S.BRIGHT}{kind}{S.RESET_ALL}: {F.YELLOW}{changed_label}{F.RESET}", flush=True)
 
     @abc.abstractmethod
     def run(self, c: "Connection") -> typing.Any:

@@ -195,6 +195,7 @@ class RestartServices(Step):
                 if_err_true_fn=lambda c: not self.services,
                 error_message="'services' must not be empty",
             ),
+            validators.IsDirectoryValidator(self.app_dir),
             validators.CommandRequiredValidator('docker-compose'),
         ]
 
@@ -233,6 +234,7 @@ class Logs(Step):
 
     def get_validators(self) -> typing.List[validators.StepValidatorBase]:
         return [
+            validators.IsDirectoryValidator(self.app_dir),
             validators.CommandRequiredValidator('docker-compose'),
         ]
 
@@ -263,6 +265,7 @@ class LogsServices(Step):
                 if_err_true_fn=lambda c: not self.services,
                 error_message="'services' must not be empty",
             ),
+            validators.IsDirectoryValidator(self.app_dir),
             validators.CommandRequiredValidator('docker-compose'),
         ]
 
@@ -296,6 +299,7 @@ class WaitHealthy(Step):
                 if_err_true_fn=lambda c: not self.service,
                 error_message="'service' must not be empty",
             ),
+            validators.IsDirectoryValidator(self.app_dir),
             validators.CommandRequiredValidator('docker'),
             validators.CommandRequiredValidator('docker-compose'),
         ]

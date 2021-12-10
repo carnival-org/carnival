@@ -72,9 +72,6 @@ class GetInstalledPackageVersion(Step):
         ]
 
     def run(self, c: Connection) -> typing.Optional[str]:
-        """
-        :return: Версия пакета если установлен, `None` если пакет не установлен
-        """
         result = c.run(
             f"dpkg -l {self.pkgname} | grep '{self.pkgname}'",
             env={"DEBIAN_FRONTEND": "noninteractive"},
@@ -107,11 +104,6 @@ class IsPackageInstalled(Step):
         return self.get_installed_package_version.get_validators()
 
     def run(self, c: Connection) -> bool:
-        """
-        Проверить установлен ли пакет
-        Если версия не указана - проверяется любая
-        """
-
         pkgver = self.get_installed_package_version.run(c=c)
         if self.version is None and pkgver is not None:
             return True
@@ -177,9 +169,6 @@ class Install(Step):
         return self.is_package_installed.get_validators() + self.force_install.get_validators()
 
     def run(self, c: Connection) -> bool:
-        """
-        :return: `True` если пакет был установлен, `False` если пакет уже был установлен ранее
-        """
         if self.is_package_installed.run(c=c):
             if self.version is not None:
                 installed_version = GetInstalledPackageVersion(self.pkgname).run(c)
@@ -217,14 +206,11 @@ class InstallMultiple(Step):
         ]
 
     def run(self, c: Connection) -> bool:
-        """
-        :return: `True` если хотя бы один пакет был установлен, `False` если все пакеты уже были установлен ранее
-        """
         if all([IsPackageInstalled(x).run(c=c) for x in self.pkg_names]):
             return False
 
         if self.update:
-            c.run("apt-get update", hide=True, env={"DEBIAN_FRONTEND": "noninteractive"})
+            Update().run(c)
 
         for pkg in self.pkg_names:
             Install(pkgname=pkg, update=False).run(c=c)

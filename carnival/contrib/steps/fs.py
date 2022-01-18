@@ -23,3 +23,17 @@ class Mkdirs(Step):
     def run(self, c: Connection) -> None:
         for path in self.paths:
             c.run(f"mkdir -p {path}")
+
+
+class Sync(Step):
+    """
+    Запускает sync
+    """
+
+    def get_validators(self) -> typing.List[validators.StepValidatorBase]:
+        return [
+            validators.CommandRequiredValidator("sync")
+        ]
+
+    def run(self, c: "Connection") -> typing.Any:
+        c.run("sync")

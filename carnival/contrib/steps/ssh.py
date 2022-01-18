@@ -24,7 +24,7 @@ class AddAuthorizedKey(Step):
         c.run(f"touch {self.keys_file}", use_sudo=False)
 
         if not shortcuts.is_file_contains(c, self.keys_file, self.ssh_key, escape=True):
-            shortcuts.append_string_to_file(c, file=self.keys_file, string=self.ssh_key)
+            shortcuts.append_string_to_file(c, file=self.keys_file, string=self.ssh_key, use_sudo=False)
             self.log_action("ssh key", "added")
 
 

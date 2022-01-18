@@ -1,8 +1,6 @@
 import os
 import typing
 
-from colorama import Fore as F, Style as S  # type: ignore
-
 from carnival import Step
 from carnival import Connection
 from carnival.steps import validators, shortcuts
@@ -14,6 +12,8 @@ class CeInstallUbuntu(Step):
     """
     Установить docker на ubuntu
     https://docs.docker.com/engine/install/ubuntu/
+
+    Автоматически подставляет архитектуру, используя `dpkg --print-architecture`
     """
     def __init__(self, version: typing.Optional[str] = None) -> None:
         """
@@ -26,6 +26,8 @@ class CeInstallUbuntu(Step):
 
     def get_validators(self) -> typing.List[validators.StepValidatorBase]:
         return [
+            validators.CommandRequiredValidator("dpkg"),
+            validators.CommandRequiredValidator("lsb_release"),
             validators.CommandRequiredValidator("apt-get"),
         ]
 
@@ -40,8 +42,11 @@ class CeInstallUbuntu(Step):
         ).run(c)
 
         c.run("curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -", hide=True)
+
+        arch_type = c.run("dpkg --print-architecture").stdout.strip()
+
         c.run(
-            'add-apt-repository -y "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"',  # noqa:E501
+            f'add-apt-repository -y "deb [arch={arch_type}] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"',  # noqa:E501
             hide=True
         )
         apt.Update().run(c)
@@ -54,7 +59,7 @@ class ComposeInstall(Step):
     """
     def __init__(
         self,
-        version: str = "1.25.1",
+        version: str = "v2.2.2",
         dest: str = "/usr/bin/docker-compose",
     ) -> None:
         """
@@ -67,16 +72,21 @@ class ComposeInstall(Step):
     def get_validators(self) -> typing.List[validators.StepValidatorBase]:
         return [
             validators.CommandRequiredValidator("curl"),
+            validators.CommandRequiredValidator("uname"),
         ]
 
     def run(self, c: Connection) -> None:
         if shortcuts.is_cmd_exist(c, "docker-compose"):
             return
 
-        link = f"https://github.com/docker/compose/releases/download/{self.version}/docker-compose-`uname -s`-`uname -m`"  # noqa:501
+        kernel = c.run("uname -s").stdout.strip().lower()
+        arch = c.run("uname -m").stdout.strip().lower()
+
+        link = f"https://github.com/docker/compose/releases/download/{self.version}/docker-compose-{kernel}-{arch}"  # noqa:501
+
         c.run(f"curl -sL {link} -o {self.dest}")
         c.run(f"chmod a+x {self.dest}")
-        print(f"{S.BRIGHT}docker-compose{S.RESET_ALL}: {F.GREEN}already installed{F.RESET}")
+        self.log_action("docker-compose", "installed")
 
 
 class UploadImageFile(Step):

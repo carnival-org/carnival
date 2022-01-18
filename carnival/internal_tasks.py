@@ -1,6 +1,7 @@
 import typing
 
 from carnival import TaskBase
+from carnival.hosts.base.host import Host
 from carnival.utils import get_class_full_name
 
 
@@ -57,12 +58,12 @@ class Validate(TaskBase):
 
 class Roles(TaskBase):
     """
-    Показать список ролей и хостов
+    Показать список хостов по ролям
 
         $ carnival roles
     """
     module_name = ""
-    help = "Show all roles and hosts"
+    help = "Show all hosts by role"
 
     def get_validation_errors(self) -> typing.List[str]:
         return []
@@ -72,3 +73,33 @@ class Roles(TaskBase):
 
         for role, hosts in role_repository.items():
             print(f"{get_class_full_name(role)}: {', '.join([x.host.addr for x in hosts])}")
+
+
+class Hosts(TaskBase):
+    """
+    Показать список ролей по хостам
+
+        $ carnival hosts
+    """
+    module_name = ""
+    help = "Show all roles by host"
+
+    def get_validation_errors(self) -> typing.List[str]:
+        return []
+
+    def run(self) -> None:
+        from carnival.role import role_repository
+
+        hosts: typing.Dict[Host, typing.List[str]] = {}
+
+        for role, rolehosts in role_repository.items():
+            for rolehost in rolehosts:
+                if rolehost.host in hosts:
+                    hosts[rolehost.host].append(get_class_full_name(role))
+                else:
+                    hosts[rolehost.host] = [get_class_full_name(role), ]
+
+        for host, roles in hosts.items():
+            print(f"{host} roles ({len(roles)} total):")
+            for rolename in roles:
+                print(f"    - {rolename}")

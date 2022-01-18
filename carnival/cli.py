@@ -57,7 +57,7 @@ def main() -> int:
             sys.excepthook = except_hook
 
         if no_validate:
-            print("Step validation {Style.BRIGHT}{Fore.YELLOW}OFF{Fore.RESET}{Style.RESET_ALL}")
+            print(f"Step validation {Style.BRIGHT}{Fore.YELLOW}OFF{Fore.RESET}{Style.RESET_ALL}")
 
         # Build chain and validate
         has_errors = False

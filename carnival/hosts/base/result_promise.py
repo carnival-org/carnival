@@ -20,13 +20,14 @@ class ResultPromise:
     @abc.abstractmethod
     def wait(self) -> int: ...
 
-    def get_result(self, hide: bool) -> Result:
+    def get_result(self, hide: bool, show_command: bool = False) -> Result:
         """
         Получить результат
 
-        :param hide: скрыть stdin & stdout
+        :param hide: скрыть stderr & stdout
+        :param show_command: показать исполняемую команду
         """
-        if hide is False:
+        if show_command is True:
             print(f"{F.GREEN}${F.RESET} {self.command}")
 
         if hide is True:
@@ -47,7 +48,10 @@ class ResultPromise:
 
         def output_thread(fromio: typing.IO[bytes], toios: typing.List[typing.IO[bytes]]) -> None:
             while not self.is_done():
-                data = fromio.read(1)
+                try:
+                    data = fromio.read(1)
+                except IOError:
+                    continue
                 for toio in toios:
                     toio.write(data)
                     toio.flush()

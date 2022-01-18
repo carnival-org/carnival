@@ -198,7 +198,7 @@ class Task(abc.ABC, typing.Generic[RoleT], TaskBase):
                     task_name = get_task_full_name(carnival_tasks_module, self.__class__)
                     step_name = step.get_name()
                     print(
-                        f"{B.YELLOW}💃💃💃{B.BLUE} {hostrole.host}{B.RESET}{F.RESET}> "
+                        f"{B.YELLOW}💃💃💃{B.BLUE} {hostrole.host}{B.RESET}{F.RESET} "
                         f"Running {S.BRIGHT}{task_name}:{step_name}{S.RESET_ALL}"
                     )
                     step.run(c=c)

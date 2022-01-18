@@ -1,7 +1,5 @@
 import typing
 
-from colorama import Style as S, Fore as F  # type: ignore
-
 from carnival import Step
 from carnival import Connection
 from carnival.steps import validators
@@ -23,7 +21,7 @@ class Update(Step):
             hide=True,
             env={"DEBIAN_FRONTEND": "noninteractive"},
         )
-        print(f"{S.BRIGHT}apt packages list{S.RESET_ALL}: {F.YELLOW}updated{F.RESET}")
+        self.log_action("apt packages list", "updated")
 
 
 class GetPackageVersions(Step):
@@ -179,7 +177,7 @@ class Install(Step):
             return False
 
         ForceInstall(pkgname=self.pkgname, version=self.version, update=self.update).run(c=c)
-        print(f"{S.BRIGHT}{self.pkgname}{S.RESET_ALL}: {F.YELLOW}installed{F.RESET}")
+        self.log_action(self.pkgname, "installed")
         return True
 
 
@@ -244,4 +242,4 @@ class Remove(Step):
                     f"apt-get remove --auto-remove -y {' '.join(self.pkg_names)}",
                     env={"DEBIAN_FRONTEND": "noninteractive"},
                 )
-                print(f"{S.BRIGHT}{pkg}{S.RESET_ALL}: {F.YELLOW}removed{F.RESET}")
+                self.log_action(pkg, "removed")

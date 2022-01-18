@@ -5,7 +5,6 @@ from hashlib import sha1
 from uuid import uuid4
 
 from tqdm import tqdm  # type: ignore
-from colorama import Style as S, Fore as F  # type: ignore
 from paramiko.config import SSH_PORT
 
 from carnival import Connection, localhost_connection, SshHost
@@ -61,7 +60,7 @@ def _transfer_file(
     user_group_id = shortcuts.get_user_group_id(writer_conn)
     writer_conn.run(f"chown {user_id}:{user_group_id} {writer_dst_path}")
 
-    print(f"{S.BRIGHT}{writer_dst_path}{S.RESET_ALL}: {F.YELLOW}transferred{F.RESET}")
+    Step.log_action(writer_dst_path, "transferred")
 
 
 class GetFile(Step):
@@ -110,13 +109,14 @@ class PutFile(Step):
     Закачать файл на сервер
 
     """
-    def __init__(self, local_path: str, remote_path: str, ):
+    def __init__(self, local_path: str, remote_path: str, chmod: typing.Optional[str] = None):
         """
         :param local_path: путь до локального файла
         :param remote_path: путь куда сохранить на сервере
         """
         self.local_path = local_path
         self.remote_path = remote_path
+        self.chmod = chmod
 
     def get_name(self) -> str:
         return f"{super().get_name()}(local_path={self.local_path}, remote_path={self.remote_path})"
@@ -127,7 +127,7 @@ class PutFile(Step):
             validators.Not(
                 validators.IsDirectoryValidator(self.remote_path),
                 error_message=f"{self.remote_path} must be full file path, not directory",
-            )
+            ),
         ]
 
     def run(self, c: "Connection") -> None:
@@ -145,6 +145,9 @@ class PutFile(Step):
                 writer_dst_path=self.remote_path,
                 dst_file_size=dst_file_size, dst_file_path=self.remote_path,
             )
+        if self.chmod is not None:
+            c.run(f"chmod {self.chmod} {self.remote_path}")
+            self.log_action(self.remote_path, f"chmod set to {self.chmod}")
 
 
 class PutTemplate(Step):
@@ -250,8 +253,10 @@ class Rsync(Step):
     def run(self, c: "Connection") -> typing.Any:
         assert isinstance(c.host, SshHost)
 
-        # Ensure dir exists
-        c.run(f"mkdir -p {self.dst_dir}", hide=True)
+        # Create dirs if needed
+        dirname = os.path.dirname(self.dst_dir)
+        if dirname:
+            c.run(f"mkdir -p {dirname}", hide=True)
 
         ssh_opts = self.ssh_opts
         if c.host.connect_config.port != SSH_PORT:

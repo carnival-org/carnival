@@ -53,7 +53,8 @@ class Step:
 
         return errors
 
-    def log_action(self, kind: str, changed_label: str) -> None:
+    @staticmethod
+    def log_action(kind: str, changed_label: str) -> None:
         """
         Вывести на экран событие изменения, которое произошло в рамках выполнения шага
 

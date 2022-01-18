@@ -99,16 +99,19 @@ class Up(Step):
         self,
         app_dir: str,
         scale: typing.Optional[typing.Dict[str, int]] = None,
-        only: typing.Optional[typing.List[str]] = None
+        only: typing.Optional[typing.List[str]] = None,
+        pull: bool = False,
     ):
         """
         :param app_dir: Путь до папки назначения
         :param scale: Масштабирование сервисов при запуске, не используется если `None`
         :param only: Запустить только указанные сервисы, не используется если `None`
+        :param pull: Принудительно запустить docker-compose pull перед запуском
         """
         self.app_dir = app_dir
         self.scale = scale
         self.only = only
+        self.pull = pull
 
     def get_name(self) -> str:
         return f"{super().get_name()}({self.app_dir})"
@@ -203,6 +206,21 @@ class RestartServices(Step):
         c.run(f"docker-compose {self.subcommand} {self.services}", cwd=self.app_dir)
 
 
+class Pull(Ps):
+    """
+    docker-compose pull
+    """
+
+    subcommand = "pull"
+
+
+class PullServices(RestartServices):
+    """
+    docker-compose pull [services...]
+    """
+    subcommand = "pull"
+
+
 class Stop(Ps):
     """
     docker-compose stop
@@ -212,14 +230,14 @@ class Stop(Ps):
 
 class StopServices(RestartServices):
     """
-    docker-compose logs -f --tail=tail
+    docker-compose stop [services...]
     """
     subcommand = "stop"
 
 
 class Logs(Step):
     """
-    docker-compose restart [services...]
+    docker-compose logs
     """
 
     def __init__(self, app_dir: str, tail: int = 20):
@@ -317,7 +335,7 @@ class WaitHealthy(Step):
             if container_ids:
                 statuses = [self._get_health(c, x) for x in container_ids]
 
-                print(f"{S.BRIGHT}{self.service}{S.RESET_ALL}:", end="")
+                print(f" - {S.BRIGHT}{self.service}{S.RESET_ALL}:", end="")
                 for st in statuses:
                     if st == 'healthy':
                         print(f" {F.GREEN}{st}{F.RESET}", end="")

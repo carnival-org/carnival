@@ -38,6 +38,7 @@ class SshHost(Host):
         :param password: Пароль SSH
         :param gateway: Gateway
         :param connect_timeout: SSH таймаут соединения
+        :param missing_host_key_policy: политика system host keys
         """
         super(SshHost, self).__init__(use_sudo=use_sudo)
 

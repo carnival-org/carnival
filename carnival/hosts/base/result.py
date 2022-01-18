@@ -27,19 +27,25 @@ class Result:
         self.stderr = stderr.replace("\r", "").strip()
         self.stdout = stdout.replace("\r", "").strip()
 
-    def check_result(self, warn: bool) -> None:
+    def check_result(self, warn: bool, hide: bool) -> None:
         """
         Проверить результат выполнения, выкинуть ошибку если она была
 
         :param warn: вывести результат неуспешной команды вместо того чтобы выкинуть исключение :py:exc:`.CommandError`
         """
         if not self.ok:
-            if self.stdout:
-                print(self.stdout, flush=True)
-            if self.stderr:
-                print(self.stderr, flush=True)
+            if warn:
+                if not hide:
+                    if self.stdout:
+                        print(self.stdout, flush=True)
+                    if self.stderr:
+                        print(self.stderr, flush=True)
 
             if not warn:
+                if self.stdout:
+                    print(self.stdout, flush=True)
+                if self.stderr:
+                    print(self.stderr, flush=True)
                 raise CommandError(f"{self.command} failed with exist code: {self.return_code}")
 
     @property

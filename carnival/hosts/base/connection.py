@@ -54,6 +54,7 @@ class Connection:
         use_sudo: typing.Optional[bool] = None,
         env: typing.Optional[typing.Dict[str, str]] = None,
         hide: bool = True,
+        show_command: bool = False,
         warn: bool = False,
         cwd: typing.Optional[str] = None,
         timeout: int = 60,
@@ -65,6 +66,7 @@ class Connection:
         :param use_sudo: использовать sudo для выполнения команды, если не задано используется значение `self.use_sudo`
         :param env: задать переменные окружения для команды
         :param hide: Скрыть вывод команды
+        :param show_command: показать исполняемую команду
         :param warn: Вывести stderr
         :param cwd: Перейти в папку при выполнении команды
         :param timeout: таймаут выполнения команды
@@ -79,8 +81,8 @@ class Connection:
             cwd=cwd,
             use_sudo=use_sudo,
             timeout=timeout,
-        ).get_result(hide=hide)
-        result.check_result(warn=warn)
+        ).get_result(hide=hide, show_command=show_command)
+        result.check_result(warn=warn, hide=hide)
         return result
 
     @abc.abstractmethod

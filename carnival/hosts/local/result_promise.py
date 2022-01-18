@@ -40,7 +40,7 @@ class LocalResultPromise(ResultPromise):
     def wait(self) -> int:
         return self.proc.wait(timeout=self.timeout)
 
-    def get_result(self, hide: bool) -> Result:
-        result = super().get_result(hide=hide)
+    def get_result(self, hide: bool, show_command: bool = False) -> Result:
+        result = super().get_result(hide=hide, show_command=show_command)
         self.proc.__exit__(None, None, None)
         return result

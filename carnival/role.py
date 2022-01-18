@@ -64,7 +64,7 @@ class Role:
         for role in role_repository.get(cls):
             if role.host == host:
                 return role
-        raise ValueError("Role {} with host {} not registrered")
+        raise ValueError(f"Role {cls.__name__} with host {host} not registrered")
 
 
 class SingleRole(Role):

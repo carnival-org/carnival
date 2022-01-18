@@ -2,6 +2,7 @@
 Хелперы для помощи в написании шагов (Steps)
 """
 
+import typing
 import re
 
 from carnival import Connection
@@ -88,8 +89,8 @@ def is_file_contains(c: Connection, filename: str, text: str, escape: bool = Tru
     return c.run(egrep_cmd, hide=True, warn=True, use_sudo=False).ok
 
 
-def append_string_to_file(c: Connection, file: str, string: str) -> None:
+def append_string_to_file(c: Connection, file: str, string: str, use_sudo: typing.Optional[bool] = None) -> None:
     """
     Дописать строку в конец файла
     """
-    c.run(f'echo "{string}" >> {file}')
+    c.run(f'echo "{string}" >> {file}', use_sudo=use_sudo)

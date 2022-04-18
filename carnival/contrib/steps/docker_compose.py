@@ -221,6 +221,13 @@ class PullServices(RestartServices):
     subcommand = "pull"
 
 
+class Rm(Ps):
+    """
+    docker-compose stop
+    """
+    subcommand = "rm"
+
+
 class Stop(Ps):
     """
     docker-compose stop

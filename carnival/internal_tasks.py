@@ -53,7 +53,7 @@ class Validate(TaskBase):
         task_list.sort()
 
         for task_name in task_list:
-            task_types[task_name](no_validate=False).validate()
+            task_types[task_name](no_validate=False, servers=[]).validate()
 
 
 class Roles(TaskBase):

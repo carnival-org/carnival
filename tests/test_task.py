@@ -20,7 +20,7 @@ def test_task_name():
         def get_validation_errors(self) -> typing.List[str]:
             return []
 
-    t = DryTask(True)
+    t = DryTask(True, [])
     assert t.get_name() == "dry_task"
 
     class DryNameTask(TaskBase):
@@ -32,7 +32,7 @@ def test_task_name():
         def run(self) -> None:
             pass
 
-    t = DryNameTask(True)
+    t = DryNameTask(True, [])
     assert t.get_name() == "nametask"
 
 
@@ -40,7 +40,7 @@ def test_task(noop_step, mocker):
     spy = mocker.spy(noop_step, 'run')
 
     with pytest.raises(NotImplementedError):
-        TaskBase(False).run()  # type: ignore
+        TaskBase(False, None).run()  # type: ignore
 
     spy.assert_not_called()
 
@@ -59,7 +59,7 @@ def test_simple_task(noop_step, mocker):
     class DryTask(Task[TestRole]):
         def get_steps(self) -> typing.List[Step]:
             return [noop_step, ]
-    t = DryTask(True)
+    t = DryTask(True, [])
 
     t.run()
     spy.assert_called()

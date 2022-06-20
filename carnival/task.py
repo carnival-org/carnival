@@ -64,8 +64,9 @@ class TaskBase:
     Строка помощи при вызове carnival help
     """
 
-    def __init__(self, no_validate: bool) -> None:
+    def __init__(self, no_validate: bool, servers: typing.List[str]) -> None:
         self.no_validate = no_validate
+        self.servers = servers
 
     @classmethod
     def get_name(cls) -> str:
@@ -138,11 +139,15 @@ class Task(abc.ABC, typing.Generic[RoleT], TaskBase):
 
     role: RoleT
 
-    def __init__(self, no_validate: bool) -> None:
-        super().__init__(no_validate=no_validate)
+    def __init__(self, no_validate: bool, servers: typing.List[str]) -> None:
+        super().__init__(no_validate=no_validate, servers=servers)
         # Get role from generic
         self.role_class: typing.Type[RoleT] = typing.get_args(self.__class__.__orig_bases__[0])[0]  # type: ignore
         self.hostroles: typing.List[RoleT] = self.role_class.resolve()
+
+        if self.servers:
+            self.hostroles = [x for x in self.hostroles if x.host.addr in self.servers]
+
         if not self.hostroles:
             print(f"[WARN]: not hosts for {self.role_class}", file=sys.stderr)
 
@@ -223,7 +228,7 @@ class TaskGroup(abc.ABC, TaskBase):
             errors.append(f"{self.__class__.__name__} 'tasks' cannot be empty")
 
         for task_class in self.tasks:
-            task = task_class(no_validate=self.no_validate)
+            task = task_class(no_validate=self.no_validate, servers=self.servers)
             for error in task.get_validation_errors():
                 errors.append(f"{task_class.__name__} -> {error}")
 
@@ -231,5 +236,5 @@ class TaskGroup(abc.ABC, TaskBase):
 
     def run(self) -> None:
         for task_class in self.tasks:
-            task = task_class(no_validate=self.no_validate)
+            task = task_class(no_validate=self.no_validate, servers=self.servers)
             task.run()

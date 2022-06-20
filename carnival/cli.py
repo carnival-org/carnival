@@ -32,6 +32,7 @@ def main() -> int:
         >>> $ poetry run python -m carnival --help
         >>> Usage: python -m carnival [OPTIONS] {help|test}...
         >>> Options:
+        >>> --server       Limit run on server addr
         >>> --debug        Turn on debug mode
         >>> --no_validate  Disable step validation
         >>> --help         Show this message and exit.
@@ -44,11 +45,24 @@ def main() -> int:
         for_completion=is_completion_script(complete_var)
     )
 
+    from carnival.role import role_repository
+    discovered_hosts: typing.Set[str] = set()
+    for _, roles in role_repository.items():
+        for role in roles:
+            discovered_hosts.add(role.host.addr)
+
     @click.command()
+    @click.option('--server', required=False, help="Limit run on server addr",
+                  type=click.Choice(list(discovered_hosts)), multiple=True)
     @click.option('--debug', is_flag=True, default=False, help="Turn on debug mode")
     @click.option('--no-validate', is_flag=True, default=False, help="Disable step validation")
     @click.argument('tasks', required=True, type=click.Choice(list(task_types.keys())), nargs=-1)
-    def cli(debug: bool, no_validate: bool, tasks: typing.Iterable[str]) -> int:
+    def cli(
+        debug: bool,
+        no_validate: bool,
+        server: typing.List[str],
+        tasks: typing.Iterable[str],
+    ) -> int:
         colorama.init()
 
         if debug is True:
@@ -63,7 +77,7 @@ def main() -> int:
         has_errors = False
         task_chain: typing.List["TaskBase"] = []
         for task_class_str in tasks:
-            task = task_types[task_class_str](no_validate=no_validate)
+            task = task_types[task_class_str](no_validate=no_validate, servers=server)
             is_valid = task.validate()
             if is_valid is False:
                 has_errors = True

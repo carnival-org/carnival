@@ -31,7 +31,7 @@ def _transfer_file(
     # Create dirs if needed
     dirname = os.path.dirname(writer_dst_path)
     if dirname:
-        writer_conn.run(f"mkdir -p {dirname}", hide=True)
+        writer_conn.run(f'mkdir -p "{dirname}"', hide=True)
 
     tempfile_path = os.path.join(writer_conn.tempdir, f'carnival.{uuid4()}.tmp')
 

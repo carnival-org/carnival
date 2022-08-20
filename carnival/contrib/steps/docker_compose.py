@@ -225,7 +225,7 @@ class Rm(Ps):
     """
     docker-compose stop
     """
-    subcommand = "rm"
+    subcommand = "rm -fv"
 
 
 class Stop(Ps):

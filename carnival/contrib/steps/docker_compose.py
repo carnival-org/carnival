@@ -137,7 +137,10 @@ class Up(Step):
             scale_str = " ".join([f" --scale {service_name}={count}" for service_name, count in self.scale.items()])
         else:
             scale_str = ""
-        c.run(f"docker-compose up -d --remove-orphans --no-recreate {onlystr} {scale_str}", cwd=self.app_dir, hide=False)
+        c.run(
+            f"docker-compose up -d --remove-orphans --no-recreate {onlystr} {scale_str}",
+            cwd=self.app_dir, hide=False
+        )
 
 
 class Ps(Step):
